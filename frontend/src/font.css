@@ -1,0 +1,68 @@
+@font-face {
+  font-family: "Significent";
+  src: url("./assets/Significent .otf") format("opentype"),
+    url("./assets/Significent .ttf") format("truetype");
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Press+Start+2P&display=swap");
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+nav a:hover {
+  color: #e0f7fa; /* Light teal for hover effect */
+}
+
+body {
+  background-color: rgb(41, 160, 175);
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 30ch; /* Matches the length of the text */
+  }
+}
+
+/* Cursor blinking animation */
+@keyframes blink {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: white;
+  }
+}
+

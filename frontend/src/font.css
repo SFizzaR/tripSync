@@ -1,7 +1,20 @@
+
 @font-face {
   font-family: "Significent";
   src: url("./assets/Significent .otf") format("opentype"),
     url("./assets/Significent .ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "P2P";
+  src: url("./assets/PressStart2P-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("./assets/Montserrat-VariableFont_wght.ttf") format("truetype");
 }
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Press+Start+2P&display=swap");
@@ -43,26 +56,21 @@ nav a:hover {
   color: #e0f7fa; /* Light teal for hover effect */
 }
 
-body {
-  background-color: rgb(41, 160, 175);
-}
-
 @keyframes typing {
-  from {
-    width: 0;
-  }
-  to {
-    width: 30ch; /* Matches the length of the text */
-  }
+  from { width: 0; }
+  to { width: 100%; }
 }
 
-/* Cursor blinking animation */
 @keyframes blink {
-  from, to {
-    border-color: transparent;
-  }
-  50% {
-    border-color: white;
-  }
+  50% { border-color: transparent; }
 }
 
+body{
+  background-color: rgb(0, 17, 19);
+}
+
+@keyframes flashing {
+  0% { opacity: 1; text-shadow: 0 0 10px rgb(114, 153, 179); }
+  50% { opacity: 0.5; text-shadow: 0 0 20px rgb(114, 153, 179); }
+  100% { opacity: 1; text-shadow: 0 0 10px rgb(114, 153, 179); }
+}

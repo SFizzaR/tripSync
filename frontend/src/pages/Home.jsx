@@ -2,33 +2,31 @@ import React from "react";
 import { useState } from "react";
 import Header from "../assets/headerBg.jpg";
 import text from "../assets/Phonto.PNG";
-import logo from "../assets/logo.PNG";
-import plane from "../assets/plane.PNG";
+import logo from "../assets/plane.PNG";
+import plane from "../assets/icon.PNG";
 import { Link } from "react-router-dom";
 import "../font.css";
-import Santorini from '../assets/santorini.jpeg';
-import Hella from '../assets/hella.jpg';
-import Paris from '../assets/paris.jpg';
-import Vancouver from '../assets/vancouver.jpg';
-import Edinburgh from '../assets/edinburgh.jpg';
-import singapore from '../assets/singapore.jpg';
-import London from '../assets/london.jpg';
-import KL from '../assets/KualaLumpur.jpg';
-import sydney from '../assets/Sydney.jpg'
-
+import Santorini from "../assets/santorini.jpeg";
+import Reynisfjara from "../assets/Reynisfjara.jpg";
+import Paris from "../assets/paris.jpg";
+import Vancouver from "../assets/vancouver.jpg";
+import Edinburgh from "../assets/edinburgh.jpg";
+import singapore from "../assets/singapore.jpg";
+import London from "../assets/london.jpg";
+import KL from "../assets/KualaLumpur.jpg";
+import sydney from "../assets/Sydney.jpg";
 
 export default function Home() {
-
   const cards = [
-    { id: 1, city: "Santorini", country: "Greece", image: Santorini},
-    { id: 2, city: "Hella", country: "Iceland", image: Hella},
-    { id: 3, city: "Paris", country: "France", image: Paris},
-    { id: 4, city: "Vancouver", country: "Canada", image: Vancouver},
-    { id: 5, city: "Edinburgh", country: "Scotland", image: Edinburgh},
-    { id: 6, city: "Singapore", country: "Singapore", image: singapore},
-    { id: 7, city: "London", country: "United Kingdom", image: London},
-    { id: 8, city: "Kuala Lumpur", country: "Malaysia", image: KL},
-    { id: 9, city: "Sydney", country: "Australia", image: sydney}
+    { id: 1, city: "Santorini", country: "GREECE", image: Santorini },
+    { id: 2, city: "Reynisfjara", country: "ICELAND", image: Reynisfjara },
+    { id: 3, city: "Paris", country: "FRANCE", image: Paris },
+    { id: 4, city: "Vancouver", country: "CANADA", image: Vancouver },
+    { id: 5, city: "Edinburgh", country: "SCOTLAND", image: Edinburgh },
+    { id: 6, city: "Singapore", country: "SINGAPORE", image: singapore },
+    { id: 7, city: "London", country: "UNITED KINGDOM", image: London },
+    { id: 8, city: "Kuala Lumpur", country: "MALAYSIA", image: KL },
+    { id: 9, city: "Sydney", country: "AUSTRALIA", image: sydney },
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -38,7 +36,9 @@ export default function Home() {
   };
 
   const prevCard = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + cards.length) % cards.length);
+    setCurrentIndex(
+      (prevIndex) => (prevIndex - 1 + cards.length) % cards.length
+    );
   };
 
   return (
@@ -49,7 +49,7 @@ export default function Home() {
           position: "fixed",
           top: "0",
           width: "100%",
-          backgroundColor: "rgb(37, 99, 104)",
+          backgroundColor: "rgb(49, 89, 116)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -87,12 +87,12 @@ export default function Home() {
           <p
             style={{
               fontFamily: "Significent",
-              color: "rgb(133, 231, 248)",
+              color: "rgb(133, 187, 248)",
               fontSize: "41px",
               letterSpacing: "1px",
               marginTop: "15%",
               display: "block",
-              textShadow: "2px 2px 3px rgba(0, 0, 0, 0.5)",
+              textShadow: "1px 1px 1px rgba(13, 39, 59, 0.57)",
             }}
           >
             tripsync
@@ -108,26 +108,26 @@ export default function Home() {
             alignContent: "center",
             marginRight: "30px",
             columnGap: "10px",
+            padding: "-10px",
           }}
         >
-
           <Link to="/signup">
             <button
               className="buttons"
               style={{
-                backgroundColor: "rgb(152, 226, 255)",
+                backgroundColor: "rgb(126, 190, 202)",
                 fontFamily: "Inter",
                 fontWeight: "bold",
                 padding: "10px 15px",
                 borderRadius: "10px",
                 border: "none",
                 fontSize: "20px",
-                boxShadow: "1px 2px 2px rgb(0, 0, 0, 0.5)",
+                boxShadow: "0 2px 2px rgba(0, 0, 0, 0.5)",
                 transition: "all 0.3s ease-in-out",
               }}
               onMouseEnter={(e) => (
                 (e.target.style.boxShadow =
-                  "0px 0px 15px rgb(152, 226, 225, 1)"),
+                  "0px 0px 15px rgba(151, 201, 224, 0.85)"),
                 (e.target.style.color = "white")
               )}
               onMouseLeave={(e) => (
@@ -192,35 +192,39 @@ export default function Home() {
       <section
         className="oneLiner"
         style={{
-          backgroundColor: "rgb(2, 53, 59)",
+          backgroundColor: "rgb(114, 153, 179)",
           margin: "0",
-          paddingLeft: "10%",
+          paddingLeft: "11%",
         }}
       >
-        <div style={{
-          textAlign: "center",
-          fontFamily: "Inter",
-          fontWeight: "bold",
-          color: "white",
-          padding: "10px 0",
-          overflow: "hidden", // Ensures the typing effect works
-          whiteSpace: "nowrap", // Prevents wrapping
-          display: "inline-block", // Keeps text inline
-          borderRight: "2px solid white", // Cursor effect
-          fontSize: "4vw", // Adjust font size
-          textShadow: "rgba(0, 0, 0, 0.5)",
-          animation: "typing 2.5s steps(30, end), blink 0.5s step-end infinite",
-        }}>YOUR ONE STOP ITINERARY MANAGER</div>
+        <div
+          style={{
+            textAlign: "center",
+            fontFamily: "P2P",
+            fontWeight: "lighter",
+            color: "rgb(255, 255, 255, 0.8)",
+            padding: "2% 0 1% 0",
+            overflow: "hidden", // Ensures the typing effect works
+            whiteSpace: "nowrap", // Prevents wrapping
+            display: "inline-block", // Keeps text inline
+            borderRight: "2px solid white", // Cursor effect
+            fontSize: "2.5vw", // Adjust font size
+            textShadow: "0 0 4px rgba(13, 99, 99, 0.96)",
+            boxShadow: "0px 1px 2px rgb(114, 153, 179)",
+            animation:
+              "typing 4s steps(30, end) infinite alternate, blink 0.5s step-end infinite",
+          }}
+        >
+          YOUR ONE-STOP ITINERARY MANAGER
+        </div>
       </section>
 
       {/* About Section */}
       <section
         className="about-section"
         style={{
-          backgroundColor: "rgb(23, 111, 122)",
           margin: "0",
           textAlign: "center",
-          fontFamily: "sans-serif",
           color: "white",
           padding: "0",
           animation: "slideInLeft 0.8s ease-out", // Slide-in effect for About section
@@ -228,38 +232,55 @@ export default function Home() {
       >
         <div
           style={{
-            padding: "10px 10px 10px 10px",
+            padding: "10px 5% 10px 5%",
+            marginBottom: "50px"
           }}
         >
           <div
             style={{
               display: "flex",
-              justifyContent: "end",
-              columnGap: "10px",
+              justifyContent: "center",
+              alignItems: "center", // Fixes alignment issue
+              columnGap: "2px",
             }}
           >
+            <img
+              src={plane}
+              alt="Plane Icon"
+              style={{
+                width: "9vw",
+                display: "block",
+                objectFit: "contain", // Prevents stretching
+                margin: "6% 0 0 0",
+              }}
+            />
             <p
               style={{
-                display: "block",
-                fontFamily: "Significent",
-                fontSize: "8vw",
-                fontWeight: "lighter",
-                textShadow: "2px 3px 2px rgb(3, 48, 51)",
-                padding: "0",
-                margin: "0 0 15px",
-                letterSpacing: "1px",
-                opacity: "0.9",
-                paddingBottom: "10px",
-                fontWeight: "200px"
+                fontFamily: "P2P",
+                fontWeight: "bold",
+                color: "rgba(247, 253, 255, 0.86)",
+                fontSize: "6.5vw",
+                textAlign: "left",
+                textShadow: "0 0 10px rgb(114, 153, 179)",
+                margin: "8% -2px 2% 8px",
+                padding: "7px 10px",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                display: "inline-block",
+                animation: "flashing 1s infinite alternate",
               }}
             >
-              About
+              ABOUT
             </p>
             <img
               src={plane}
+              alt="Plane Icon"
               style={{
-                width: "16vw",
+                width: "8vw",
                 display: "block",
+                margin: "6% 0 0 0",
+                objectFit: "contain", // Prevents stretching
+                transform: "scaleX(-1)", // Flips vertically
               }}
             />
           </div>
@@ -267,9 +288,10 @@ export default function Home() {
           <div
             className="AboutDeets"
             style={{
-              fontFamily: "Inter",
-              marginTop: "-25px",
-              textShadow: "2px 3px 2px rgb(5, 72, 77)",
+              fontFamily: "Arial",
+              marginTop: "-20px",
+              textShadow: "1px 1px 3px rgba(28, 111, 117, 0.5)",
+              color: "rgb(140, 179, 204)",
               padding: "0px",
               fontSize: "2vw",
             }}
@@ -277,10 +299,7 @@ export default function Home() {
             <p>
               <strong>TripSync</strong> is a cutting-edge itinerary creation and
               management platform designed to simplify travel planning with the
-              power of AI.
-            </p>
-            <p>
-              Whether you're embarking on{" "}
+              power of AI. Whether you're embarking on{" "}
               <em>a solo adventure, a family getaway, or a business trip,</em>{" "}
               TripSync customizes itineraries tailored to your preferences,
               budget, and schedule.
@@ -293,82 +312,140 @@ export default function Home() {
         </div>
       </section>
 
-      <section>
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "300px",
-          position: "relative",
-          width: "100%",
-          top: "20px"
-        }}>
-          {/* Card Display */}
-          <div style={{
-            width: "75%",
-            maxWidth:"500px",
-            height: "400px",
-            backgroundImage: 'URL(${cards[currentIndex].image})',
-            color: "white",
+      <section
+        style={{padding: "40px 2px" }}
+      >
+        <div
+          style={{
+            fontFamily: "P2P",
+            fontWeight: "bold",
+            color: "rgba(247, 253, 255, 0.86)",
+            fontSize: "3.8vw",
+            textAlign: "left",
+            textShadow: "0 0 6px rgb(114, 153, 179)",
+            marginTop: "2%",
+            marginBottom: "2%",
+            marginLeft: "8px",
+            padding: "7px 5px",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            display: "inline-block",
+            animation:
+              "typing 4s steps(30, end) infinite alternate, blink 0.5s step-end infinite",
+          }}
+        >
+          PLAN YOUR NEXT TRIP TO...
+        </div>
+
+        <div
+          style={{
             display: "flex",
             flexDirection: "column",
-            alignItems: "start",
-            justifyContent: "start",
-            borderRadius: "10px",
-            padding: "6px",
-            boxShadow: "2px 5px 8px rgba(0, 0, 0, 0.4)",
-            transition: "transform 0.5s ease-in-out",
-            textAlign: "center"
-          }}>
-            <p style={{ 
-              fontSize: "50px",
-              fontFamily: "Significent",
-              fontWeight: "200",
-              textShadow: "1px 2px 3px rgb(0, 0, 0, 0.1)",
-              margin: "0 0 0 15px" 
-            }}>{cards[currentIndex].city}</p>
+            alignItems: "center",
+            justifyContent: "center",
+            height: "300px",
+            position: "relative",
+            top: "20px",
+            margin: "-50px 0 0 0",
+            marginTop: "-30px",
+            padding: "0",
+            height: "60vh",
+            maxheight: "200px",
+          }}
+        >
+          {/* Card Display */}
+          <Link
+            to="/signup"
+            style={{
+              width: "85%",
+              maxWidth: "800px",
+              height: "100%",
+              backgroundImage: `url(${cards[currentIndex].image})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              color: "rgb(240, 238, 238)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "start",
+              justifyContent: "start",
+              borderRadius: "10px",
+              padding: "8px",
+              boxShadow: "2px 5px 8px rgb(114, 153, 179, 0.4)",
+              transition: "transform 0.5s ease-in-out",
+              textAlign: "center",
+              borderStyle: "solid",
+              borderColor: "rgb(255, 255, 255, 0.3)",
+              borderWidth: "5px",
+              textDecoration: "none",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "50px",
+                fontFamily: "Significent",
+                fontWeight: "200",
+                textShadow: "0 1px 4px rgb(0, 0, 0, 1)",
+                margin: "-10px 0 0 10px",
+              }}
+            >
+              {cards[currentIndex].city}
+            </p>
 
-            <p style={{ 
-              fontSize: "20px",
-              fontFamily: "Inter",
-              fontWeight: "800",
-              margin: "-10px 0 0 30px", 
-              textShadow: "0 2px 2px rgb(0, 0, 0, 0.2)",
-              padding: "0 10px" 
-            }}>{cards[currentIndex].country}</p>
-          </div>
+            <p
+              style={{
+                fontSize: "20px",
+                fontFamily: "Inter",
+                fontWeight: "800",
+                margin: "-8px 0 0 15px",
+                textShadow: "0 2px 4px rgb(0, 0, 0, 0.8)",
+                letterSpacing: "2px",
+                padding: "0 10px",
+              }}
+            >
+              {cards[currentIndex].country}
+            </p>
+          </Link>
 
           {/* Navigation Arrows */}
-          <button onClick={prevCard} style={{
-            position: "absolute",
-            left: "10px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            background: "rgba(0,0,0,0.5)",
-            color: "white",
-            border: "none",
-            borderRadius: "50%",
-            width: "40px",
-            height: "40px",
-            cursor: "pointer",
-            fontSize: "18px"
-          }}>❮</button>
+          <button
+            onClick={prevCard}
+            style={{
+              position: "absolute",
+              left: "10px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "rgba(255, 255, 255, 0.3)",
+              color: "white",
+              border: "none",
+              borderRadius: "50%",
+              width: "40px",
+              height: "40px",
+              cursor: "pointer",
+              fontSize: "18px",
+            }}
+          >
+            ❮
+          </button>
 
-          <button onClick={nextCard} style={{
-            position: "absolute",
-            right: "10px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            background: "rgba(0,0,0,0.5)",
-            color: "white",
-            border: "none",
-            borderRadius: "50%",
-            width: "40px",
-            height: "40px",
-            cursor: "pointer",
-            fontSize: "18px"
-          }}>❯</button>
+          <button
+            onClick={nextCard}
+            style={{
+              position: "absolute",
+              right: "10px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "rgba(255, 255, 255, 0.3)",
+              color: "white",
+              border: "none",
+              borderRadius: "50%",
+              width: "40px",
+              height: "40px",
+              cursor: "pointer",
+              fontSize: "18px",
+            }}
+          >
+            ❯
+          </button>
         </div>
       </section>
     </div>

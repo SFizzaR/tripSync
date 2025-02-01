@@ -1,12 +1,20 @@
 import React from "react";
+import { useState } from "react";
 import Header from "../assets/headerBg.jpg";
-import text from "../assets/Phonto.PNG";
-import logo from "../assets/logo.PNG";
+import logo from "../assets/plane.PNG";
 import plane from "../assets/plane.PNG";
 import { Link } from "react-router-dom";
 import "../font.css";
+import menu from "../assets/icons/ellipsis-vertical-solid.svg";
+import home from "../assets/icons/house-solid.svg";
+import list from "../assets/icons/list-check-solid.svg";
+import settings from "../assets/icons/gear-solid.svg";
+import logout from "../assets/icons/right-from-bracket-solid.svg";
 
 export default function Dashboard() {
+  const [isOpen, setIsOpen] = useState(false);
+  const currentPath = window.location.pathname;
+
   return (
     <div style={{ paddingBottom: "100px" }}>
       {/* Navbar */}
@@ -15,7 +23,7 @@ export default function Dashboard() {
           position: "fixed",
           top: "0",
           width: "100%",
-          backgroundColor: "rgb(37, 99, 104)",
+          backgroundColor: "rgb(49, 89, 116)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -53,16 +61,178 @@ export default function Dashboard() {
           <p
             style={{
               fontFamily: "Significent",
-              color: "rgb(133, 231, 248)",
+              color: "rgb(133, 187, 248)",
               fontSize: "41px",
               letterSpacing: "1px",
               marginTop: "15%",
               display: "block",
-              textShadow: "2px 2px 3px rgba(0, 0, 0, 0.5)",
+              textShadow: "1px 1px 1px rgba(13, 39, 59, 0.57)",
             }}
           >
             tripsync
           </p>
+        </div>
+
+        {/* Navbar Buttons */}
+        <div
+          style={{
+            width: "200px",
+            display: "flex",
+            justifyContent: "end",
+            alignContent: "center",
+            marginRight: "30px",
+            columnGap: "10px",
+            padding: "-10px",
+            position: "relative",
+          }}
+        >
+          {/* Button */}
+          <button
+            style={{
+              backgroundColor: "transparent",
+              width: "40px",
+              height: "40px",
+              padding: "0",
+              borderStyle: "none",
+              borderRadius: "10px",
+            }}
+            onMouseEnter={(e) =>
+              (e.target.style.backgroundColor = "rgba(25, 57, 78, 0.5)")
+            }
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = "transparent")
+            }
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <img
+              src={menu} // Ensure 'menu' is a valid image path or import
+              style={{
+                width: "20%",
+                padding: "6% 5% 0 5%",
+              }}
+            />
+          </button>
+
+          {/* Side Panel */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              right: isOpen ? "-15px" : "-270px", // Slide in effect
+              width: "250px",
+              height: "100vh",
+              backgroundColor: "rgba(2, 40, 53, 0.8)",
+              transition: "right 0.3s ease-in-out",
+              borderRadius: "10px",
+              padding: "10px",
+              color: "white",
+            }}
+          >
+            <button
+              onClick={() => setIsOpen(false)}
+              onMouseEnter={(e) =>
+                (e.target.style.backgroundColor = "rgba(93, 131, 156, 0.9)")
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.backgroundColor = "transparent")
+              }
+              style={{
+                position: "absolute",
+                top: "0px",
+                fontFamily: "Montserrat",
+                right: "10px",
+                backgroundColor: "transparent",
+                color: "white",
+                fontFamily: "Inter",
+                fontWeight: "bold",
+                fontSize: "27px",
+                borderRadius: "10px",
+                border: "none",
+                padding: "5px 10px",
+                float: "right",
+              }}
+            >
+              X
+            </button>
+
+            <p
+              style={{
+                fontFamily: "Significent",
+                fontWeight: "lighter",
+                fontSize: "65px",
+                margin: "0",
+                color: "rgba(255, 255, 255, 0.8)",
+                textShadow: "0 0 10px rgba(147, 182, 194, 0.8)",
+              }}
+            >
+              Menu
+            </p>
+            <ul
+              style={{
+                listStyle: "none",
+                padding: "10px 0",
+                marginTop: "0",
+              }}
+            >
+              {[
+                { name: "Home", path: "/dashboard", icon: home },
+                { name: "My Itineraries", path: "/", icon: list },
+                { name: "Settings", path: "/", icon: settings },
+                { name: "Log Out", path: "/", icon: logout },
+              ].map((item) => (
+                <li
+                  key={item.path}
+                  style={{
+                    margin: "30px 0",
+                    display: "flex",
+                    alignItems: "center", // Ensures everything is aligned
+                  }}
+                >
+                  <a
+                    href={item.path}
+                    style={{
+                      fontFamily: "Montserrat",
+                      fontSize: "20px",
+                      color:
+                        currentPath === item.path
+                          ? "rgb(158, 190, 211)"
+                          : "white",
+                      textShadow:
+                        currentPath === item.path
+                          ? "0 0 10px rgb(158, 190, 211)"
+                          : "none",
+                      fontWeight:
+                        currentPath === item.path ? "bolder" : "normal",
+                      textDecoration: "none",
+                      display: "flex",
+                      alignItems: "center", // Align icon & text
+                      gap: "10px", // Space between icon and text
+                      padding: "8px 15px",
+                      borderRadius: "8px",
+                      transition: "background 0.3s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.background = "rgba(255, 255, 255, 0.1)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.background = "transparent")
+                    }
+                  >
+                    <img
+                      src={item.icon}
+                      alt={item.name + " icon"}
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        verticalAlign: "middle",
+                      }}
+                    />
+                    {item.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </nav>
 
@@ -93,23 +263,26 @@ export default function Dashboard() {
         <div
           style={{
             position: "absolute",
-            top: "52%",
-            display: "inline",
+            top: "45%",
             left: "50%",
             transform: "translate(-50%, -50%)",
             animation: "fadeIn 1s ease-in-out", // Fade-in effect for overlay text
           }}
         >
-            <h1
+          <h1
             style={{
-                fontFamily: "Significent",
-                color: "white",
-                fontSize: "0px",
-                width: "100%",
-                fontWeight: "100",
-                textShadow: "1px 1px 5px rgb(0, 0, 0, 0.7)",
-                whiteSpace: "nowrap"
-            }}>Welcome, Stranger</h1>
+              fontFamily: "Significent",
+              color: "white",
+              fontSize: "9vw",
+              width: "100%",
+              fontWeight: "100",
+              overflow: "hidden",
+              textShadow: "1px 1px 5px rgb(0, 0, 0, 0.7)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Welcome, Zehra
+          </h1>
         </div>
       </section>
 
@@ -117,28 +290,31 @@ export default function Dashboard() {
       <section
         className="oneLiner"
         style={{
-          backgroundColor: "rgb(2, 53, 59)",
+          backgroundColor: "rgb(114, 153, 179)",
           margin: "0",
-          paddingLeft: "30%",
+          paddingLeft: "2%",
         }}
       >
-        <div style={{
-          textAlign: "center",
-          fontFamily: "Inter",
-          fontWeight: "bold",
-          color: "white",
-          padding: "10px 0",
-          overflow: "hidden", // Ensures the typing effect works
-          whiteSpace: "nowrap", // Prevents wrapping
-          display: "inline-block", // Keeps text inline
-          borderRight: "2px solid white", // Cursor effect
-          fontSize: "4vw", // Adjust font size
-          textShadow: "rgba(0, 0, 0, 0.5)",
-          animation: "typing 2.5s steps(30, end), blink 0.5s step-end infinite",
-        }}>WHERE TO NEXT?</div>
+        <div
+          style={{
+            textAlign: "center",
+            fontFamily: "P2P",
+            fontWeight: "lighter",
+            color: "rgba(255, 255, 255, 0.8)",
+            padding: "2% 0 1% 0",
+            overflow: "hidden", // Ensures the typing effect works
+            whiteSpace: "nowrap", // Prevents wrapping
+            display: "inline-block", // Keeps text inline
+            borderRight: "2px solid white", // Cursor effect
+            fontSize: "3.5vw", // Adjust font size
+            textShadow: "0 0 4px rgba(13, 99, 99, 0.96)",
+            animation:
+              "typing 3s steps(30, end) infinite alternate, blink 0.5s step-end infinite",
+          }}
+        >
+          WHERE ARE YOU HEADING NEXT?
+        </div>
       </section>
-
-      
     </div>
   );
 }

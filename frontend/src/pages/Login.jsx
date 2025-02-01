@@ -1,20 +1,50 @@
 import React, { useState, useEffect } from "react";
 import LoginBg from "../assets/Login.jpg";
 import plane from "../assets/plane.PNG";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import axios from 'axios';
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
+  const navigate = useNavigate();
+
   // Reset fields on component mount (ensures fields are empty on reload)
   useEffect(() => {
     setUsername("");
     setPassword("");
   }, []);
 
+  const handleSignIn = async () => {
+    try{
+      const response = await axios.post('http://localhost:5001/api/users/login', {
+        password: password,
+        username: username
+      });
+
+      if (response.status == 200){
+        const {accessToken} = response.data;
+        console.log('Access token', accessToken);
+        alert ('Sign-in successful!');
+
+        localStorage.setItem('acessToken', accessToken);
+        localStorage.setItem('username', username);
+
+
+        navigate('/dashboard');
+      }
+      else {
+        throw new Error('Invalid login credentials');
+      }
+    }
+    catch(error){
+      console.error('Error signing-in: ', error.response?.data || error.message);
+      console.log("Invalid");
+      alert('Sign-in failed. Please check your credentials.')
+    }
+    };
   return (
     <div
       style={{
@@ -173,15 +203,14 @@ export default function Login() {
               <span
                 style={{
                   position: "absolute",
-                  right: "10px",
                   top: "50%",
                   transform: "translateY(-50%)",
                   cursor: "pointer",
                   color: "white",
                   display: "flex",
                   alignItems: "center",
-                  top: "40px",
-                  right: "0"
+                  right: "0",
+                  marginTop: "10px"
                 }}
                 onClick={() => setShowPassword(!showPassword)}
               >
@@ -190,7 +219,7 @@ export default function Login() {
             </div>
           </div>
 
-        <Link to="/dashboard">
+        
           <button
             className="buttons"
             style={{
@@ -213,10 +242,11 @@ export default function Login() {
               (e.target.style.boxShadow = "1px 2px 2px rgb(0, 0, 0, 0.5)"),
               (e.target.style.color = "black")
             )}
+         onClick={handleSignIn}
           >
             LOGIN
           </button>
-        </Link>
+  
       </div>
     </div>
   );

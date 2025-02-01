@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../assets/headerBg.jpg";
 import logo from "../assets/plane.PNG";
 import plane from "../assets/plane.PNG";
@@ -14,6 +14,14 @@ import logout from "../assets/icons/right-from-bracket-solid.svg";
 export default function Dashboard() {
   const [isOpen, setIsOpen] = useState(false);
   const currentPath = window.location.pathname;
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    const storedUsername = localStorage.getItem('username'); // Retrieve username
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  }, []);
 
   return (
     <div style={{ paddingBottom: "100px" }}>
@@ -281,7 +289,7 @@ export default function Dashboard() {
               whiteSpace: "nowrap",
             }}
           >
-            Welcome, Zehra
+            Welcome, {username ? username : 'User'}
           </h1>
         </div>
       </section>

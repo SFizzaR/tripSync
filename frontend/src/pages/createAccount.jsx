@@ -128,9 +128,6 @@ export default function MultiStepForm() {
             onMouseEnter={(e) =>
               (e.target.style.boxShadow = "0px 0px 15px rgb(0, 0, 0, 0.6)")
             }
-            onMouseLeave={(e) =>
-              (e.target.style.boxShadow = "1px 2px 2px rgb(0, 0, 0, 0.5)")
-            }
           >
             X
           </button>
@@ -602,24 +599,6 @@ export default function MultiStepForm() {
               transition: "all 0.3s ease-in-out",
               cursor: step === 1 ? "not-allowed" : "pointer",
             }}
-            onMouseEnter={(e) => {
-              if (disabled) {
-                // Do nothing when the button is disabled
-                return;
-              } else {
-                e.target.style.boxShadow = "0px 0px 15px rgb(152, 226, 225, 1)";
-                e.target.style.color = "white";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (disabled) {
-                // Do nothing when the button is disabled
-                return;
-              } else {
-                (e.target.style.boxShadow = "1px 2px 2px rgb(0, 0, 0, 0.5)"),
-                  (e.target.style.color = "black");
-              }
-            }}
           >
             Back
           </button>
@@ -641,24 +620,6 @@ export default function MultiStepForm() {
               marginTop: "22px",
               transition: "all 0.3s ease-in-out",
               cursor: step === 3 ? "not-allowed" : "pointer",
-            }}
-            onMouseEnter={(e) => {
-              if (disabled) {
-                // Do nothing when the button is disabled
-                return;
-              } else {
-                e.target.style.boxShadow = "0px 0px 15px rgb(152, 226, 225, 1)";
-                e.target.style.color = "white";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (disabled) {
-                // Do nothing when the button is disabled
-                return;
-              } else {
-                (e.target.style.boxShadow = "1px 2px 2px rgb(0, 0, 0, 0.5)"),
-                  (e.target.style.color = "black");
-              }
             }}
           >
             Next

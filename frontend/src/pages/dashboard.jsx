@@ -5,6 +5,7 @@ import logo from "../assets/plane.PNG";
 import plane from "../assets/plane.PNG";
 import { Link } from "react-router-dom";
 import "../font.css";
+import axios from "axios";
 import menu from "../assets/icons/ellipsis-vertical-solid.svg";
 import home from "../assets/icons/house-solid.svg";
 import list from "../assets/icons/list-check-solid.svg";
@@ -17,11 +18,23 @@ export default function Dashboard() {
   const [username, setUsername] = useState('');
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username'); // Retrieve username
-    if (storedUsername) {
-      setUsername(storedUsername);
-    }
-  }, []);
+    const fetchFirstName = async () => {
+        try {
+            const storedCredential = localStorage.getItem("emailOrUsername"); // Retrieve stored email/username
+            if (storedCredential) {
+                // Fetch first name using stored email/username
+                const response = await axios.get(`http://localhost:5000/api/users/getname/${storedCredential}`);
+                
+                // Set username state to retrieved first name
+                setUsername(response.data.firstName);
+            }
+        } catch (error) {
+            console.error("Error fetching first name:", error.response?.data?.message || error.message);
+        }
+    };
+
+    fetchFirstName();
+}, []); // Runs once on component mount
 
   return (
     <div style={{ paddingBottom: "100px" }}>

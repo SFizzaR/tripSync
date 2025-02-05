@@ -10,41 +10,41 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
-  // Reset fields on component mount (ensures fields are empty on reload)
   useEffect(() => {
     setUsername("");
     setPassword("");
   }, []);
 
   const handleSignIn = async () => {
-    try{
-      const response = await axios.post('http://localhost:5001/api/users/login', {
-        password: password,
-        username: username
-      });
+    try {
+        const isEmail = /\S+@\S+\.\S+/.test(username); // Check if input is an email
 
-      if (response.status == 200){
-        const {accessToken} = response.data;
-        console.log('Access token', accessToken);
-        alert ('Sign-in successful!');
+        const response = await axios.post('http://localhost:5001/api/users/login', {
+            password: password,
+            [isEmail ? "email" : "username"]: username  
+        });
 
-        localStorage.setItem('acessToken', accessToken);
-        localStorage.setItem('username', username);
+        console.log("Response Data:", response.data);
 
+        if (response.status === 200) {
+            const { accessToken } = response.data;
 
-        navigate('/dashboard');
-      }
-      else {
-        throw new Error('Invalid login credentials');
-      }
+            alert('Sign-in successful!');
+
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('emailOrUsername', username); // Store whatever the user entered
+
+            navigate('/dashboard');
+        } else {
+            throw new Error('Invalid login credentials');
+        }
+    } catch (error) {
+        console.error('Error signing in:', error.response?.data || error.message);
+        alert('Sign-in failed. Please check your credentials.');
     }
-    catch(error){
-      console.error('Error signing-in: ', error.response?.data || error.message);
-      console.log("Invalid");
-      alert('Sign-in failed. Please check your credentials.')
-    }
-    };
+};
+
+
   return (
     <div
       style={{

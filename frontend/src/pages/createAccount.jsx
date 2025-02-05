@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import SignUpBg from "../assets/Login.jpg";
 import plane from "../assets/plane.PNG";
 import { Link } from "react-router-dom";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; 
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import axios from "axios";
 
 export default function MultiStepForm() {
   const [step, setStep] = useState(1);
@@ -41,14 +42,71 @@ export default function MultiStepForm() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSignUp = async () => { 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      e.preventDefault();
+        console.log(formData.password);
+        setError("Passwords do not match");
+        return; // Prevent further execution
     } else {
-      setError("");
+        setError("");
     }
-  };
+
+    // Ensure required fields are filled
+    if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.age) {
+        alert("Please fill in all required fields.");
+        return;
+    }
+
+    try {
+        const response = await axios.post("http://localhost:5001/api/users/register", {
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            age: formData.age,
+            city: formData.city || null,
+        });
+
+        if (response.status === 201) { // Assuming 201 for successful user creation
+            alert("Sign-up successful!");
+
+            // Automatically log in the user after successful registration
+            const loginResponse = await axios.post("http://localhost:5001/api/users/login", {
+                email: formData.email,
+                password: formData.password,
+            });
+
+            if (loginResponse.status === 200) {
+                const { accessToken } = loginResponse.data;
+
+                // Store the entered email or username
+                const storedCredential = formData.email || formData.username;
+                localStorage.setItem("emailOrUsername", storedCredential);
+
+                // Save the access token securely
+                await AsyncStorage.setItem("accessToken", accessToken);
+                setShowBanner(true);
+            } else {
+                alert("Unexpected response during login.");
+            }
+        } else {
+            alert("Unexpected response from the server during sign-up.");
+        }
+    } catch (error) {
+        // Improved error handling
+        if (error.response) {
+            console.error("Error response:", error.response.data);
+            alert(error.response.data.message || "An error occurred. Please try again.");
+        } else if (error.request) {
+            console.error("No response from server:", error.request);
+            alert("Unable to connect to the server. Please check your internet connection.");
+        } else {
+            console.error("Error:", error.message);
+            alert("An unexpected error occurred. Please try again.");
+        }
+    }
+};
 
   return (
     <div
@@ -127,6 +185,9 @@ export default function MultiStepForm() {
             }}
             onMouseEnter={(e) =>
               (e.target.style.boxShadow = "0px 0px 15px rgb(0, 0, 0, 0.6)")
+            }
+            onMouseLeave={(e) =>
+              (e.target.style.boxShadow = "1px 2px 2px rgb(0, 0, 0, 0.5)")
             }
           >
             X
@@ -546,9 +607,9 @@ export default function MultiStepForm() {
                 {error}
               </div>
             )}
-            <Link to="/">
+            <Link to="/dashboard">
                 <button
-                onClick={handleSubmit}
+                onClick={handleSignUp}
                 style={{
                     width: "100%",
                     backgroundColor: "rgb(152, 226, 255)",
@@ -599,6 +660,24 @@ export default function MultiStepForm() {
               transition: "all 0.3s ease-in-out",
               cursor: step === 1 ? "not-allowed" : "pointer",
             }}
+            onMouseEnter={(e) => {
+              if (disabled) {
+                // Do nothing when the button is disabled
+                return;
+              } else {
+                e.target.style.boxShadow = "0px 0px 15px rgb(152, 226, 225, 1)";
+                e.target.style.color = "white";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (disabled) {
+                // Do nothing when the button is disabled
+                return;
+              } else {
+                (e.target.style.boxShadow = "1px 2px 2px rgb(0, 0, 0, 0.5)"),
+                  (e.target.style.color = "black");
+              }
+            }}
           >
             Back
           </button>
@@ -620,6 +699,24 @@ export default function MultiStepForm() {
               marginTop: "22px",
               transition: "all 0.3s ease-in-out",
               cursor: step === 3 ? "not-allowed" : "pointer",
+            }}
+            onMouseEnter={(e) => {
+              if (disabled) {
+                // Do nothing when the button is disabled
+                return;
+              } else {
+                e.target.style.boxShadow = "0px 0px 15px rgb(152, 226, 225, 1)";
+                e.target.style.color = "white";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (disabled) {
+                // Do nothing when the button is disabled
+                return;
+              } else {
+                (e.target.style.boxShadow = "1px 2px 2px rgb(0, 0, 0, 0.5)"),
+                  (e.target.style.color = "black");
+              }
             }}
           >
             Next

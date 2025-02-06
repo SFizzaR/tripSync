@@ -4,17 +4,17 @@ const userSchema = mongoose.Schema(
   {
     username: {
       type: String,
-      required: [true, "Please add the user name"],
+      sparse: true,
       unique: [true, "Username already taken"],
     },
     email: {
       type: String,
-      required: [true, "Please add the email"],
+      sparse: true,
       unique: [true, "Email address already taken"],
     },
     password: {
       type: String,
-      required: [true, "Please add the password"],
+      sparse: true,
     },
     first_name: {
       type: String,
@@ -26,14 +26,11 @@ const userSchema = mongoose.Schema(
     },
     age: {
       type: Number,
-      required: [true, "Please enter age"]
+      sparse: true
     },
     city: {
       type: String
-    }
-  },
-  {
-    timestamps: true,
+    },
   }
 );
 

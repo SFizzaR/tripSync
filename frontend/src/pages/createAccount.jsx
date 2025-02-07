@@ -502,7 +502,7 @@ const handleSignUp = async () => {
                 style={{
                   position: "absolute",
                   left: "10px",
-                  top: formData.password ? "0px" : "49%",
+                  top: formData.password ? "-12px" : "49%",
                   transform: "translateY(-50%)",
                   color: "rgba(255,255,255,0.7)",
                   transition: "0.2s ease all",

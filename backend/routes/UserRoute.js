@@ -1,0 +1,11 @@
+const express = require("express");
+const {loginUser, registerUser, getFirstname} = require("../controller/UserController");
+const { protect } = require("../middleware/errorHandler");
+
+const router = express.Router();
+
+router.post('/register', registerUser);
+router.post("/login", loginUser);
+router.get("/getname",protect,getFirstname);
+
+module.exports = router;

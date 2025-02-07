@@ -4,6 +4,8 @@ import plane from "../assets/plane.PNG";
 import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";  // Import useNavigate for redirection
+
 
 export default function MultiStepForm() {
   const [step, setStep] = useState(1);
@@ -42,16 +44,17 @@ export default function MultiStepForm() {
     }
   };
 
-  const handleSignUp = async () => { 
+
+const navigate = useNavigate();  // Initialize navigation
+
+const handleSignUp = async () => { 
     if (formData.password !== formData.confirmPassword) {
-        console.log(formData.password);
         setError("Passwords do not match");
-        return; // Prevent further execution
+        return;
     } else {
         setError("");
     }
 
-    // Ensure required fields are filled
     if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.age) {
         alert("Please fill in all required fields.");
         return;
@@ -68,25 +71,24 @@ export default function MultiStepForm() {
             city: formData.city || null,
         });
 
-        if (response.status === 201) { // Assuming 201 for successful user creation
+        if (response.status === 201) { 
             alert("Sign-up successful!");
 
-            // Automatically log in the user after successful registration
+            // ✅ Automatically log in the user after signup
             const loginResponse = await axios.post("http://localhost:5001/api/users/login", {
                 email: formData.email,
                 password: formData.password,
             });
 
             if (loginResponse.status === 200) {
-                const { accessToken } = loginResponse.data;
+                const { accessToken, user } = loginResponse.data;  // Ensure your backend returns the user object
 
-                // Store the entered email or username
-                const storedCredential = formData.email || formData.username;
-                localStorage.setItem("emailOrUsername", storedCredential);
+                // ✅ Store token & user details in localStorage
+                localStorage.setItem("accessToken", accessToken);
+                localStorage.setItem("user", JSON.stringify(user));
 
-                // Save the access token securely
-                await AsyncStorage.setItem("accessToken", accessToken);
-                setShowBanner(true);
+                // ✅ Redirect to dashboard
+                navigate("/dashboard");
             } else {
                 alert("Unexpected response during login.");
             }
@@ -94,19 +96,16 @@ export default function MultiStepForm() {
             alert("Unexpected response from the server during sign-up.");
         }
     } catch (error) {
-        // Improved error handling
         if (error.response) {
-            console.error("Error response:", error.response.data);
             alert(error.response.data.message || "An error occurred. Please try again.");
         } else if (error.request) {
-            console.error("No response from server:", error.request);
             alert("Unable to connect to the server. Please check your internet connection.");
         } else {
-            console.error("Error:", error.message);
             alert("An unexpected error occurred. Please try again.");
         }
     }
 };
+
 
   return (
     <div

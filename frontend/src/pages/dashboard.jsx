@@ -11,30 +11,63 @@ import home from "../assets/icons/house-solid.svg";
 import list from "../assets/icons/list-check-solid.svg";
 import settings from "../assets/icons/gear-solid.svg";
 import logout from "../assets/icons/right-from-bracket-solid.svg";
+import { useNavigate } from "react-router-dom"; 
 
 export default function Dashboard() {
   const [isOpen, setIsOpen] = useState(false);
   const currentPath = window.location.pathname;
-  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchFirstName = async () => {
-        try {
-            const storedCredential = localStorage.getItem("emailOrUsername"); // Retrieve stored email/username
-            if (storedCredential) {
-                // Fetch first name using stored email/username
-                const response = await axios.get(`http://localhost:5000/api/users/getname/${storedCredential}`);
-                
-                // Set username state to retrieved first name
-                setUsername(response.data.firstName);
-            }
-        } catch (error) {
-            console.error("Error fetching first name:", error.response?.data?.message || error.message);
-        }
-    };
+useEffect(() => {
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem("accessToken"); // Make sure it's "accessToken"
+      
+      console.log("Fetched Token from Storage:", token); // Debugging
 
-    fetchFirstName();
-}, []); // Runs once on component mount
+      if (!token) {
+        console.error("No token found in localStorage! Redirecting to login.");
+        navigate("/"); // Redirect to login page
+        return;
+      }
+
+      const response = await fetch("http://localhost:5001/api/users/getname", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Ensure proper token format
+        },
+      });
+
+      console.log("Response Status:", response.status);
+
+      if (response.status === 401) {
+        console.error("Unauthorized: Invalid token");
+        return;
+      }
+
+      const data = await response.json();
+      console.log("Fetched User Data:", data);
+
+      setFirstName(data.first_name); 
+      console.log("First Name Updated:", data.first_name);
+      
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
+
+  fetchUserData();
+}, []);
+
+const handleLogout = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("userData");
+  setFirstName(""); // Reset UI state
+  navigate("/"); 
+  window.location.reload(); 
+};
 
   return (
     <div style={{ paddingBottom: "100px" }}>
@@ -188,71 +221,65 @@ export default function Dashboard() {
             >
               Menu
             </p>
-            <ul
-              style={{
-                listStyle: "none",
-                padding: "10px 0",
-                marginTop: "0",
-              }}
-            >
-              {[
-                { name: "Home", path: "/dashboard", icon: home },
-                { name: "My Itineraries", path: "/", icon: list },
-                { name: "Settings", path: "/", icon: settings },
-                { name: "Log Out", path: "/", icon: logout },
-              ].map((item) => (
-                <li
-                  key={item.path}
-                  style={{
-                    margin: "30px 0",
-                    display: "flex",
-                    alignItems: "center", // Ensures everything is aligned
-                  }}
-                >
-                  <a
-                    href={item.path}
-                    style={{
-                      fontFamily: "Montserrat",
-                      fontSize: "20px",
-                      color:
-                        currentPath === item.path
-                          ? "rgb(158, 190, 211)"
-                          : "white",
-                      textShadow:
-                        currentPath === item.path
-                          ? "0 0 10px rgb(158, 190, 211)"
-                          : "none",
-                      fontWeight:
-                        currentPath === item.path ? "bolder" : "normal",
-                      textDecoration: "none",
-                      display: "flex",
-                      alignItems: "center", // Align icon & text
-                      gap: "10px", // Space between icon and text
-                      padding: "8px 15px",
-                      borderRadius: "8px",
-                      transition: "background 0.3s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.target.style.background = "rgba(255, 255, 255, 0.1)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.target.style.background = "transparent")
-                    }
-                  >
-                    <img
-                      src={item.icon}
-                      alt={item.name + " icon"}
-                      style={{
-                        width: "20px",
-                        height: "20px",
-                        verticalAlign: "middle",
-                      }}
-                    />
-                    {item.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <ul style={{ listStyle: "none", padding: "10px 0", marginTop: "0" }}>
+  {[
+    { name: "Home", path: "/dashboard", icon: home },
+    { name: "My Itineraries", path: "/", icon: list },
+    { name: "Settings", path: "/", icon: settings },
+    { name: "Log Out", icon: logout, onClick: handleLogout } // No path for logout
+  ].map((item) => (
+    <li key={item.name} style={{ margin: "30px 0", display: "flex", alignItems: "center" }}>
+      {item.name === "Log Out" ? (
+        // Logout Button
+        <button
+          onClick={handleLogout}
+          style={{
+            fontFamily: "Montserrat",
+            fontSize: "20px",
+            color: "white",
+            background: "none",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "8px 15px",
+            cursor: "pointer",
+          }}
+          onMouseEnter={(e) => (e.target.style.background = "rgba(255, 255, 255, 0.1)")}
+          onMouseLeave={(e) => (e.target.style.background = "transparent")}
+        >
+          <img src={item.icon} alt="Log Out icon" style={{ width: "20px", height: "20px" }} />
+          {item.name}
+        </button>
+      ) : (
+        // Navigation Links
+        <Link
+          to={item.path}
+          style={{
+            fontFamily: "Montserrat",
+            fontSize: "20px",
+            color: currentPath === item.path ? "rgb(158, 190, 211)" : "white",
+            textShadow: currentPath === item.path ? "0 0 10px rgb(158, 190, 211)" : "none",
+            fontWeight: currentPath === item.path ? "bolder" : "normal",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "8px 15px",
+            borderRadius: "8px",
+            transition: "background 0.3s",
+          }}
+          onMouseEnter={(e) => (e.target.style.background = "rgba(255, 255, 255, 0.1)")}
+          onMouseLeave={(e) => (e.target.style.background = "transparent")}
+        >
+          <img src={item.icon} alt={`${item.name} icon`} style={{ width: "20px", height: "20px" }} />
+          {item.name}
+        </Link>
+      )}
+    </li>
+  ))}
+</ul>
+
           </div>
         </div>
       </nav>
@@ -302,7 +329,9 @@ export default function Dashboard() {
               whiteSpace: "nowrap",
             }}
           >
-            Welcome, {username ? username : 'User'}
+            Welcome,{firstName ? firstName : "Guest"}! 
+                     !
+
           </h1>
         </div>
       </section>

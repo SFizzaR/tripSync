@@ -26,15 +26,18 @@ export default function Login() {
 
         console.log("Response Data:", response.data);
 
-        if (response.status === 200) {
-            const { accessToken } = response.data;
+        if (response.status === 200 || response.status === 201) {
+          //  const { accessToken, user } = response.data; // Get user data
+
+            const { accessToken, username } = response.data; // ✅ Ensure username is extracted
 
             alert('Sign-in successful!');
-
+            
             localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('emailOrUsername', username); // Store whatever the user entered
-
+            localStorage.setItem('username', username); // ✅ Now `username` is correctly used
+            
             navigate('/dashboard');
+            
         } else {
             throw new Error('Invalid login credentials');
         }
@@ -43,7 +46,6 @@ export default function Login() {
         alert('Sign-in failed. Please check your credentials.');
     }
 };
-
 
   return (
     <div

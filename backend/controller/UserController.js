@@ -37,6 +37,13 @@ const registerUser = expressAsyncHandler(async (req, res) => {
 
   // Send success response
   if (user) {
+
+    const accessToken = jwt.sign(
+      { user: { id: user.id, username: user.username, email: user.email } },
+      process.env.ACCESS_SECRET_TOKEN,
+      { expiresIn: "1h" }
+    );
+
     res.status(201).json({
       _id: user.id,
       username: user.username,
@@ -65,17 +72,21 @@ const loginUser = expressAsyncHandler(async (req, res) => {
   if (user && (await bcrypt.compare(password, user.password))) {
     // Generate an access token
     const accessToken = jwt.sign(
-      { user: { username: user.username, email: user.email, id: user.id } },
+      { user: { id: user._id, username: user.username, email: user.email } }, // ✅ Change `user.id` to `user._id`
       process.env.ACCESS_SECRET_TOKEN,
       { expiresIn: "1h" }
     );
     
-    res.status(201).json({
+    
+    res.status(200).json({
       _id: user.id,
       username: user.username,
       email: user.email,
       accessToken, 
     });
+
+   // console.log("Stored Token:", localStorage.getItem("accessToken"));
+
     
   } else {
     res.status(401).json({ message: "Invalid credentials" });

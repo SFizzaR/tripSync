@@ -48,62 +48,55 @@ export default function MultiStepForm() {
 const navigate = useNavigate();  // Initialize navigation
 
 const handleSignUp = async () => { 
-    if (formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match");
-        return;
-    } else {
-        setError("");
-    }
 
-    if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.age) {
-        alert("Please fill in all required fields.");
-        return;
-    }
+  if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+  }
 
-    try {
-        const response = await axios.post("http://localhost:5001/api/users/register", {
-            username: formData.username,
-            email: formData.email,
-            password: formData.password,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            age: formData.age,
-            city: formData.city || null,
-        });
+  if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.age) {
+      alert("Please fill in all required fields.");
+      return;
+  }
 
-        if (response.status === 201) { 
-            alert("Sign-up successful!");
+  try {
+      const response = await axios.post("http://localhost:5001/api/users/register", {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          age: formData.age,
+          city: formData.city || null,
+      });
 
-            // ✅ Automatically log in the user after signup
-            const loginResponse = await axios.post("http://localhost:5001/api/users/login", {
-                email: formData.email,
-                password: formData.password,
-            });
+      alert("Sign-up successful!");
 
-            if (loginResponse.status === 200) {
-                const { accessToken, user } = loginResponse.data;  // Ensure your backend returns the user object
+      const loginResponse = await axios.post("http://localhost:5001/api/users/login", {
+          email: formData.email,
+          password: formData.password,
+      });
 
-                // ✅ Store token & user details in localStorage
-                localStorage.setItem("accessToken", accessToken);
-                localStorage.setItem("user", JSON.stringify(user));
 
-                // ✅ Redirect to dashboard
-                navigate("/dashboard");
-            } else {
-                alert("Unexpected response during login.");
-            }
-        } else {
-            alert("Unexpected response from the server during sign-up.");
-        }
-    } catch (error) {
-        if (error.response) {
-            alert(error.response.data.message || "An error occurred. Please try again.");
-        } else if (error.request) {
-            alert("Unable to connect to the server. Please check your internet connection.");
-        } else {
-            alert("An unexpected error occurred. Please try again.");
-        }
-    }
+      if (loginResponse.status === 200) {
+          const { accessToken, ...user } = loginResponse.data;  
+
+          if (!accessToken || !user) {
+              alert("Login failed. No user data received.");
+              return;
+          }
+
+          localStorage.setItem("accessToken", accessToken);  
+          localStorage.setItem("user", JSON.stringify(user));
+
+          
+          navigate("/dashboard");
+      } else {
+          alert("Unexpected response during login.");
+      }
+  } catch (error) {
+      alert(error.response?.data?.message || "An error occurred. Please try again.");
+  }
 };
 
 
@@ -502,7 +495,7 @@ const handleSignUp = async () => {
                 style={{
                   position: "absolute",
                   left: "10px",
-                  top: formData.password ? "-12px" : "49%",
+                  top: formData.password ? "0px" : "49%",
                   transform: "translateY(-50%)",
                   color: "rgba(255,255,255,0.7)",
                   transition: "0.2s ease all",

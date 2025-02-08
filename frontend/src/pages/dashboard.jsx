@@ -13,54 +13,51 @@ import settings from "../assets/icons/gear-solid.svg";
 import logout from "../assets/icons/right-from-bracket-solid.svg";
 import { useNavigate } from "react-router-dom"; 
 
+
 export default function Dashboard() {
   const [isOpen, setIsOpen] = useState(false);
   const currentPath = window.location.pathname;
   const [firstName, setFirstName] = useState("");
   const navigate = useNavigate();
-
-useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const token = localStorage.getItem("accessToken"); // Make sure it's "accessToken"
-      
-      console.log("Fetched Token from Storage:", token); // Debugging
-
+  const [loading, setLoading] = useState(true); // New state for loading
+  
+ 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("accessToken");
+  
       if (!token) {
-        console.error("No token found in localStorage! Redirecting to login.");
-        navigate("/"); // Redirect to login page
+        console.error("No token found in localStorage.");
         return;
       }
+  
+      try {
 
-      const response = await fetch("http://localhost:5001/api/users/getname", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Ensure proper token format
-        },
-      });
-
-      console.log("Response Status:", response.status);
-
-      if (response.status === 401) {
-        console.error("Unauthorized: Invalid token");
-        return;
+        const response = await fetch("http://localhost:5001/api/users/getname", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
+        });
+  
+        const data = await response.json();
+        
+        if (response.status === 401) {
+          console.error("Unauthorized: Invalid token");
+        } else {
+          setFirstName(data.first_name);
+          setLoading(false); // Stop loading once data is set
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
       }
-
-      const data = await response.json();
-      console.log("Fetched User Data:", data);
-
-      setFirstName(data.first_name); 
-      console.log("First Name Updated:", data.first_name);
-      
-    } catch (error) {
-      console.error("Error fetching user:", error);
-    }
-  };
-
-  fetchUserData();
-}, []);
-
+    };
+  
+    fetchUserData();
+  }, []);
+  
+    
 const handleLogout = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("userData");
@@ -330,9 +327,7 @@ const handleLogout = () => {
             }}
           >
             Welcome,{firstName ? firstName : "Guest"}! 
-                     !
-
-          </h1>
+            </h1>
         </div>
       </section>
 

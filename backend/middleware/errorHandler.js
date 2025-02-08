@@ -26,20 +26,27 @@ const errorHandler = (err, req, res, next) =>{
     next(); 
 }
 
-const protect = async (req, res, next) => {
-    let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-      try {
-        token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, process.env.ACCESS_SECRET_TOKEN);
-        req.user = await User.findById(decoded.user.id).select("-password");
-        next();
-      } catch (error) {
-        res.status(401).json({ message: "Not authorized, token failed" });
+const protect = (req, res, next) => {
+  let token = req.headers.authorization;
+
+  if (!token || !token.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Not authorized, no token" });
+  }
+
+  try {
+      token = token.split(" ")[1]; 
+      const decoded = jwt.verify(token, process.env.ACCESS_SECRET_TOKEN);
+
+      if (!decoded || !decoded.user) {
+          return res.status(401).json({ message: "Invalid token" });
       }
-    } else {
-      res.status(401).json({ message: "Not authorized, no token" });
-    }
-  };
+
+      req.user = decoded.user; // Attach user data to request
+      next();
+  } catch (error) {
+      return res.status(401).json({ message: "Token verification failed", error: error.message });
+  }
+};
+
   
 module.exports ={errorHandler, protect};

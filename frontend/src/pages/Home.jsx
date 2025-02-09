@@ -99,7 +99,7 @@ export default function Home() {
           <p
             style={{
               fontFamily: "Significent",
-              color: "rgb(133, 187, 248)",
+              color: "rgb(147, 204, 234)",
               fontSize: "300%",
               letterSpacing: "1px",
               marginTop: "15%",
@@ -672,11 +672,11 @@ export default function Home() {
               className="AboutDeets"
               style={{
                 fontFamily: "Montserrat",
-                marginTop: "-3px",
+                marginTop: "-2.5%",
                 textShadow: "1px 1px 3px rgba(28, 111, 117, 0.5)",
                 color: "rgb(167, 208, 233)",
                 padding: "0px 5%",
-                fontSize: "2vw",
+                fontSize: "2.1vw",
                 marginBottom: "10%",
                 marginLeft: "10px",
                 textAlign: "left",
@@ -756,9 +756,9 @@ export default function Home() {
                   columnGap: "2%",
                   borderStyle: "dotted",
                   borderRadius: "10px",
-                  margin: "20px 5% 0 5%",
+                  margin: "20px 5% 0 7%",
                   backgroundColor: "rgba(169, 184, 199, 0.65)",
-                  fontSize: "140%",
+                  fontSize: "2.5vw",
                   textAlign: "center",
                   marginBottom: "5%",
                   zIndex: "0"
@@ -814,7 +814,7 @@ export default function Home() {
                     style={{
                       margin: "2%",
                       textShadow: "1px 1px 10px rgba(226, 71, 205, 0.5)",
-                      color: "rgb(126, 18, 90)",
+                      color: "rgb(78, 8, 112)",
                     }}
                   >
                     Zahab Jahangir
@@ -826,7 +826,7 @@ export default function Home() {
                     style={{
                       margin: "2%",
                       textShadow: "1px 1px 10px rgba(226, 71, 205, 0.5)",
-                      color: "rgb(126, 18, 90)",
+                      color: "rgb(78, 8, 112)",
                     }}
                   >
                     Syeda Fizza
@@ -838,7 +838,7 @@ export default function Home() {
                     style={{
                       margin: "2%",
                       textShadow: "1px 1px 10px rgba(226, 71, 205, 0.5)",
-                      color: "rgb(126, 18, 90)",
+                      color: "rgb(78, 8, 112)",
                     }}
                   >
                     Zehra Waqar

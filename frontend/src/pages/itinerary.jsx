@@ -1,78 +1,33 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../assets/headerBg.jpg";
 import logo from "../assets/plane.PNG";
-import plane from "../assets/plane.PNG";
-import { Link } from "react-router-dom";
-import "../font.css";
-import axios from "axios";
 import menu from "../assets/icons/ellipsis-vertical-solid.svg";
 import home from "../assets/icons/house-solid.svg";
 import list from "../assets/icons/list-check-solid.svg";
 import settings from "../assets/icons/gear-solid.svg";
 import logout from "../assets/icons/right-from-bracket-solid.svg";
-import { useNavigate } from "react-router-dom";
-import Calendar from "react-calendar";
-import "./CustomCalendar.css";
-import WeatherBox from "./weather";
+import "../font.css";
+import edit from "../assets/icons/pen-to-square-solid.svg";
 
-export default function Dashboard() {
-  const [date, setDate] = useState(new Date());
+export default function Itinerary() {
   const [isOpen, setIsOpen] = useState(false);
-  const currentPath = window.location.pathname;
-  const [firstName, setFirstName] = useState("");
+  const [firstName, setFirstName] = useState(
+    localStorage.getItem("userData") || "Guest"
+  );
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true); // New state for loading
-
-  const itineraryDates = ["2025-01-10", "2025-02-10", "2025-02-20"];
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem("accessToken");
-
-      if (!token) {
-        console.error("No token found in localStorage.");
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          "http://localhost:5001/api/users/getname",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-
-        if (response.status === 401) {
-          console.error("Unauthorized: Invalid token");
-        } else {
-          setFirstName(data.first_name);
-          setLoading(false); // Stop loading once data is set
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
+  const currentPath = window.location.pathname;
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userData");
-    setFirstName(""); // Reset UI state
+    setFirstName("Guest"); // Reset UI state
     navigate("/");
     window.location.reload();
   };
 
   return (
-    <div style={{ paddingBottom: "100px" }}>
+    <div style={{ paddingBottom: "100px", overflowX: "hidden" }}>
       {/* Navbar */}
       <nav
         style={{
@@ -354,15 +309,15 @@ export default function Dashboard() {
             style={{
               fontFamily: "Significent",
               color: "white",
-              fontSize: "9.5vw",
-              fontWeight: "100",
-              padding: "50px",
+              fontSize: "15vw",
+              fontWeight: "lighter",
+              padding: "20px",
               overflow: "hidden",
               textShadow: "1px 1px 5px rgb(0, 0, 0, 0.7)",
               whiteSpace: "nowrap",
             }}
           >
-            Welcome, {firstName ? firstName : "Guest"}
+            My Itineraries
           </h1>
         </div>
       </section>
@@ -393,60 +348,125 @@ export default function Dashboard() {
               "typing 3s steps(30, end) infinite alternate, blink 0.5s step-end infinite",
           }}
         >
-          WHERE ARE YOU HEADING NEXT?
+          PLAN YOUR ITINERARIES HERE
         </div>
       </section>
 
+      {/* ITINERARIES BOX */}
       <section>
-      <p 
+        <div
           style={{
-            fontFamily: "P2P",
-            fontWeight: "bold",
-            color: "rgba(247, 253, 255, 0.86)",
-            fontSize: "5vw",
-            textAlign: "left",
-            textShadow: "0 0 10px rgb(114, 153, 179)",
-            margin: "7% -2px -2% 8px",
-            padding: "7px 10px",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            display: "inline-block",
+            borderStyle: "dotted",
+            width: "91%", // Responsive width
+            maxWidth: "1000px", // Prevents excessive stretching
+            height: "900px", // Increased height for a longer box
+            borderColor: "rgba(217, 228, 231, 0.6)",
+            margin: "20px auto", // Centers it horizontally
+            display: "grid",
+            gridTemplateColumns: "30% 1fr",
+            color: "white",
+            padding: "0",
+            borderRadius: "5px",
+            backgroundColor: "rgb(0,0,0)",
+            boxShadow: "0px 0px 10px rgba(6, 73, 106, 0.5)",
+            fontFamily: "Montserrat"
           }}
-        >WEATHER</p>
-        <WeatherBox location="Lahore" />
-      </section>
+        >
+          {/* Left Column */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateRows: "32px 1fr 1fr",
+              borderRightStyle: "dotted",
+              borderRightColor: "white",
+              fontSize: "1.8vw",
+              whiteSpace: "nowrap",
+              marginTop: 0,
+              padding: "10px"
+            }}
+          >
+            {/* HEADER ROW */}
+            <div style={{
+                  fontFamily: "P2P",
+                  fontWeight: "lighter",
+                  color: "rgba(247, 253, 255, 0.86)",
+                  fontSize: "2.2vw",
+                  textShadow: "0 0 10px rgb(114, 153, 179)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                ITINERARIES
+            </div>
 
-      {/* Calendar Section */}
-      <section>
-        <p 
-          style={{
-            fontFamily: "P2P",
-            fontWeight: "bold",
-            color: "rgba(247, 253, 255, 0.86)",
-            fontSize: "5vw",
-            textAlign: "left",
-            textShadow: "0 0 10px rgb(114, 153, 179)",
-            margin: "4% -2px -2% 8px",
-            padding: "7px 10px",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            display: "inline-block",
-          }}
-        >YOUR CALENDAR</p>
-        <Calendar
-          onChange={setDate}
-          value={date}
-          tileClassName={({ date }) => {
-            const today = new Date();
-            const dateStr = date.toLocaleDateString("en-CA"); // Format as YYYY-MM-DD
-            const todayStr = today.toLocaleDateString("en-CA");
-            
-            if (dateStr === todayStr) return "highlight-today"; // Highlight today
-            if (itineraryDates.includes(dateStr)) return "highlight"; // Highlight itinerary dates
+            {/* SOLO ITINERARY ROW */}
+            <div style={{
+                whiteSpace: "nowrap",
+                borderTopColor: "grey",
+                borderTopStyle: "solid",
+                borderTopWidth: "1px",
+                padding: "10px 2px"
+            }}>
+                SOLO TRIP ITINERARIES
+            </div>
 
-            return ""; // Default case
-          }}
-        />
+            {/* COLLAB ITINERARY ROW */}
+            <div style={{
+                whiteSpace: "nowrap",
+                borderTopColor: "grey",
+                borderTopStyle: "solid",
+                borderTopWidth: "1px",
+                padding: "10px 2px"
+            }}>
+                COLLAB ITINERARIES
+            </div>
+          </div>
+
+          {/* Right Column (Button) */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <button
+              style={{
+                backgroundColor: "rgb(71, 47, 110)",
+                boxShadow: "0px 0px 10px rgb(85, 51, 123)",
+                borderStyle: "none",
+                padding: "10px 20px",
+                fontFamily: "Montserrat",
+                fontWeight: "bold",
+                fontSize: "19px",
+                color: "white",
+                width: "150px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.boxShadow = "0px 0px 15px rgb(145, 117, 177)")
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+              }
+            >
+              <img
+                src={edit}
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  boxShadow: "none",
+                }}
+                alt="Edit"
+              />
+              CREATE
+            </button>
+          </div>
+        </div>
       </section>
     </div>
   );

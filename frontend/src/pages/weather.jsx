@@ -3,7 +3,14 @@ import axios from "axios";
 
 const WeatherBox = ({ location }) => {
   const [weather, setWeather] = useState(null);
-  const API_KEY = "YOUR_API_KEY"; // Replace with your actual API key
+  const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+
+  console.log("API Key:", API_KEY);
+
+  if (!API_KEY) {
+    console.error("API Key is not defined. Check your .env file and restart the server.");
+  }
+  
 
   useEffect(() => {
     if (!location) return;

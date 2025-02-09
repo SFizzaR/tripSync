@@ -22,7 +22,8 @@ export default function Dashboard() {
   const currentPath = window.location.pathname;
   const [firstName, setFirstName] = useState("");
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true); // New state for loading
+  const [loading, setLoading] = useState(true); 
+  const [userLocation,setUserLocation]=useState("");
 
   const itineraryDates = ["2025-01-10", "2025-02-10", "2025-02-20"];
 
@@ -48,6 +49,9 @@ export default function Dashboard() {
         );
 
         const data = await response.json();
+        console.log("User Data: ",data);
+        setUserLocation(data.city);
+        console.log('City of user: ',data.city)
 
         if (response.status === 401) {
           console.error("Unauthorized: Invalid token");
@@ -413,7 +417,7 @@ export default function Dashboard() {
             display: "inline-block",
           }}
         >WEATHER</p>
-        <WeatherBox location="Lahore" />
+        <WeatherBox location={userLocation} />
       </section>
 
       {/* Calendar Section */}

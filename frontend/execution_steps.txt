@@ -3,4 +3,6 @@ npm i
 npm i react-router-dom
 npm i react-icons
 npm i framer-motion
+npm i axios
+npm i @fullcalendar/react @fullcalendar/daygrid @fullcalendar/interaction
 npm run dev

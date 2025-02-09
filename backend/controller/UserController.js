@@ -95,13 +95,13 @@ const loginUser = expressAsyncHandler(async (req, res) => {
 
   const getFirstname = expressAsyncHandler(async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select("first_name username email"); // Fetch first_name
+        const user = await User.findById(req.user.id).select("first_name username email city"); // Fetch first_name
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        res.status(200).json({ first_name: user.first_name, username: user.username, email: user.email });
+        res.status(200).json({ first_name: user.first_name, username: user.username, email: user.email, city: user.city });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }

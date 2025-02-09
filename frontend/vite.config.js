@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    
   ],
+  envPrefix: "VITE_", 
   assetsInclude: ['**/*.JPG', '**/*.jpg', '**/*.PNG', '**/*.png']
 })

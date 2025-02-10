@@ -1,8 +1,4 @@
 cd frontend
 npm i 
-npm i react-router-dom
-npm i react-icons
-npm i framer-motion
-npm i axios
-npm i @fullcalendar/react @fullcalendar/daygrid @fullcalendar/interaction
+npm i react-router-dom react-icons framer-motion axios react-calendar
 npm run dev

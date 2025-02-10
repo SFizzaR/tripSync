@@ -430,7 +430,7 @@ export default function Dashboard() {
             fontSize: "5vw",
             textAlign: "left",
             textShadow: "0 0 10px rgb(114, 153, 179)",
-            margin: "4% -2px -2% 8px",
+            margin: "5% -2px 0 8px",
             padding: "7px 10px",
             overflow: "hidden",
             whiteSpace: "nowrap",

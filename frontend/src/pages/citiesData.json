@@ -1,0 +1,372 @@
+[
+    {
+        "city": "Abu Dhabi",
+        "country": "UAE",
+        "flag": "🇦🇪"
+    },
+    {
+        "city": "Agra",
+        "country": "India",
+        "flag": "🇮🇳"
+    },
+    {
+        "city": "Amsterdam",
+        "country": "Netherlands",
+        "flag": "🇳🇱"
+    },
+    {
+        "city": "Athens",
+        "country": "Greece",
+        "flag": "🇬🇷"
+    },
+    {
+        "city": "Auckland",
+        "country": "New Zealand",
+        "flag": "🇳🇿"
+    },
+    {
+        "city": "Bali",
+        "country": "Indonesia",
+        "flag": "🇮🇩"
+    },    
+    {
+        "city": "Bangkok",
+        "country": "Thailand",
+        "flag": "🇹🇭"
+    },
+    {
+        "city": "Barcelona",
+        "country": "Spain",
+        "flag": "🇪🇸"
+    },
+    {
+        "city": "Beijing",
+        "country": "China",
+        "flag": "🇨🇳"
+    },
+    {
+        "city": "Berlin",
+        "country": "Germany",
+        "flag": "🇩🇪"
+    },
+    {
+        "city": "Bogotá",
+        "country": "Colombia",
+        "flag": "🇨🇴"
+    },
+    {
+        "city": "Bora Bora",
+        "country": "French Polynesia",
+        "flag": "🇵🇫"
+    },
+    {
+        "city": "Boston",
+        "country": "USA",
+        "flag": "🇺🇸"
+    },
+    {
+        "city": "Brussels",
+        "country": "Belgium",
+        "flag": "🇧🇪"
+    },
+    {
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "flag": "🇦🇷"
+    },
+    {
+        "city": "Cairo",
+        "country": "Egypt",
+        "flag": "🇪🇬"
+    },
+    {
+        "city": "Cape Town",
+        "country": "South Africa",
+        "flag": "🇿🇦"
+    },
+    {
+        "city": "Chicago",
+        "country": "USA",
+        "flag": "🇺🇸"
+    },
+    {
+        "city": "Colombo",
+        "country": "Sri Lanka",
+        "flag": "🇱🇰"
+    },
+    {
+        "city": "Copenhagen",
+        "country": "Denmark",
+        "flag": "🇩🇰"
+    },
+    {
+        "city": "Delhi",
+        "country": "India",
+        "flag": "🇮🇳"
+    },
+    {
+        "city": "Dhaka",
+        "country": "Bangladesh",
+        "flag": "🇧🇩"
+    },
+    {
+        "city": "Dubai",
+        "country": "UAE",
+        "flag": "🇦🇪"
+    },
+    {
+        "city": "Dubrovnik",
+        "country": "Croatia",
+        "flag": "🇭🇷"
+    },
+    {
+        "city": "Edinburgh",
+        "country": "UK",
+        "flag": "🇬🇧"
+    },
+    {
+        "city": "Florence",
+        "country": "Italy",
+        "flag": "🇮🇹"
+    },
+    {
+        "city": "Hanoi",
+        "country": "Vietnam",
+        "flag": "🇻🇳"
+    },
+    {
+        "city": "Hawaii",
+        "country": "USA",
+        "flag": "🇺🇸"
+    },
+    {
+        "city": "Hong Kong",
+        "country": "China",
+        "flag": "🇨🇳"
+    },
+    {
+        "city": "Islamabad",
+        "country": "Pakistan",
+        "flag": "🇵🇰"
+    },
+    {
+        "city": "Istanbul",
+        "country": "Turkey",
+        "flag": "🇹🇷"
+    },
+    {
+        "city": "Jakarta",
+        "country": "Indonesia",
+        "flag": "🇮🇩"
+    },
+    {
+        "city": "Johannesburg",
+        "country": "South Africa",
+        "flag": "🇿🇦"
+    },
+    {
+        "city": "Kyoto",
+        "country": "Japan",
+        "flag": "🇯🇵"
+    },
+    {
+        "city": "Karachi",
+        "country": "Pakistan",
+        "flag": "🇵🇰"
+    },
+    {
+        "city": "Kuala Lumpur",
+        "country": "Malaysia",
+        "flag": "🇲🇾"
+    },
+    {
+        "city": "Lahore",
+        "country": "Pakistan",
+        "flag": "🇵🇰"
+    },
+    {
+        "city": "Las Vegas",
+        "country": "USA",
+        "flag": "🇺🇸"
+    },
+    {
+        "city": "Lima",
+        "country": "Peru",
+        "flag": "🇵🇪"
+    },
+    {
+        "city": "Lisbon",
+        "country": "Portugal",
+        "flag": "🇵🇹"
+    },
+    {
+        "city": "London",
+        "country": "UK",
+        "flag": "🇬🇧"
+    },
+    {
+        "city": "Los Angeles",
+        "country": "USA",
+        "flag": "🇺🇸"
+    },
+    {
+        "city": "Madrid",
+        "country": "Spain",
+        "flag": "🇪🇸"
+    },
+    {
+        "city": "Malé",
+        "country": "Maldives",
+        "flag": "🇲🇻"
+    },
+    {
+        "city": "Manama",
+        "country": "Bahrain",
+        "flag": "🇧🇭"
+    },
+    {
+        "city": "Manila",
+        "country": "Philippines",
+        "flag": "🇵🇭"
+    },
+    {
+        "city": "Maui",
+        "country": "USA",
+        "flag": "🇺🇸"
+    },
+    {
+        "city": "Melbourne",
+        "country": "Australia",
+        "flag": "🇦🇺"
+    },
+    {
+        "city": "Mexico City",
+        "country": "Mexico",
+        "flag": "🇲🇽"
+    },
+    {
+        "city": "Montreal",
+        "country": "Canada",
+        "flag": "🇨🇦"
+    },
+    {
+        "city": "Moscow",
+        "country": "Russia",
+        "flag": "🇷🇺"
+    },
+    {
+        "city": "Mumbai",
+        "country": "India",
+        "flag": "🇮🇳"
+    },
+    {
+        "city": "New York",
+        "country": "USA",
+        "flag": "🇺🇸"
+    },
+    {
+        "city": "Osaka",
+        "country": "Japan",
+        "flag": "🇯🇵"
+    },
+    {
+        "city": "Paris",
+        "country": "France",
+        "flag": "🇫🇷"
+    },
+    {
+        "city": "Phuket",
+        "country": "Thailand",
+        "flag": "🇹🇭"
+    },
+    {
+        "city": "Prague",
+        "country": "Czech Republic",
+        "flag": "🇨🇿"
+    },
+    {
+        "city": "Reykjavik",
+        "country": "Iceland",
+        "flag": "🇮🇸"
+    },
+    {
+        "city": "Rio de Janeiro",
+        "country": "Brazil",
+        "flag": "🇧🇷"
+    },
+    {
+        "city": "Rome",
+        "country": "Italy",
+        "flag": "🇮🇹"
+    },
+    {
+        "city": "Santorini",
+        "country": "Greece",
+        "flag": "🇬🇷"
+    },
+    {
+        "city": "Seoul",
+        "country": "South Korea",
+        "flag": "🇰🇷"
+    },
+    {
+        "city": "Singapore",
+        "country": "Singapore",
+        "flag": "🇸🇬"
+    },
+    {
+        "city": "Stockholm",
+        "country": "Sweden",
+        "flag": "🇸🇪"
+    },
+    {
+        "city": "Swat",
+        "country": "Pakistan",
+        "flag": "🇵🇰"
+    },
+    {
+        "city": "Sydney",
+        "country": "Australia",
+        "flag": "🇦🇺"
+    },
+    {
+        "city": "Taipei",
+        "country": "Taiwan",
+        "flag": "🇹🇼"
+    },
+    {
+        "city": "Tokyo",
+        "country": "Japan",
+        "flag": "🇯🇵"
+    },
+    {
+        "city": "Toronto",
+        "country": "Canada",
+        "flag": "🇨🇦"
+    },
+    {
+        "city": "Vancouver",
+        "country": "Canada",
+        "flag": "🇨🇦"
+    },
+    {
+        "city": "Venice",
+        "country": "Italy",
+        "flag": "🇮🇹"
+    },
+    {
+        "city": "Vienna",
+        "country": "Austria",
+        "flag": "🇦🇹"
+    },
+    {
+        "city": "Warsaw",
+        "country": "Poland",
+        "flag": "🇵🇱"
+    },
+    {
+        "city": "Zurich",
+        "country": "Switzerland",
+        "flag": "🇨🇭"
+    }
+]

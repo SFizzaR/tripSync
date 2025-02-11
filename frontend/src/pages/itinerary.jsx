@@ -26,6 +26,9 @@ export default function Itinerary() {
   const [takeoffDate, setTakeoffDate] = useState("");
   const [touchdownDate, setTouchdownDate] = useState("");
 
+  const [nameOption, setNameOption] = useState("default");
+  const [itineraryName, setItineraryName] = useState(city);
+
   const handleSearch = (e) => {
     const searchValue = e.target.value.toLowerCase();
     setCity(e.target.value);
@@ -405,7 +408,7 @@ export default function Itinerary() {
             borderColor: "rgba(217, 228, 231, 0.6)",
             margin: "20px auto", // Centers it horizontally
             display: "grid",
-            gridTemplateColumns: "30% 1fr",
+            gridTemplateColumns: "30vw 1fr",
             color: "white",
             padding: "0",
             borderRadius: "5px",
@@ -418,10 +421,10 @@ export default function Itinerary() {
           <div
             style={{
               display: "grid",
-              gridTemplateRows: "32px 1fr 1fr",
+              gridTemplateRows: "5% 1fr 1fr",
               borderRightStyle: "dotted",
               borderRightColor: "white",
-              fontSize: "1.8vw",
+              fontSize: "120%", // Adjusted base font size
               whiteSpace: "nowrap",
               marginTop: 0,
               padding: "6px",
@@ -433,10 +436,10 @@ export default function Itinerary() {
                 fontFamily: "P2P",
                 fontWeight: "lighter",
                 color: "rgba(247, 253, 255, 0.86)",
-                fontSize: "2.2vw",
+                fontSize: "65%", // Slightly larger for emphasis
                 textShadow: "0 0 10px rgb(114, 153, 179)",
-                whiteSpace: "nowrap",
                 marginTop: "3px",
+                paddingBottom: "10px",
               }}
             >
               ITINERARIES
@@ -445,11 +448,9 @@ export default function Itinerary() {
             {/* SOLO ITINERARY ROW */}
             <div
               style={{
-                whiteSpace: "nowrap",
-                borderTopColor: "grey",
-                borderTopStyle: "solid",
-                borderTopWidth: "1px",
+                borderTop: "1px solid grey",
                 padding: "10px 2px",
+                fontSize: "60%", 
               }}
             >
               SOLO TRIP ITINERARIES
@@ -458,11 +459,9 @@ export default function Itinerary() {
             {/* COLLAB ITINERARY ROW */}
             <div
               style={{
-                whiteSpace: "nowrap",
-                borderTopColor: "grey",
-                borderTopStyle: "solid",
-                borderTopWidth: "1px",
+                borderTop: "1px solid grey",
                 padding: "10px 2px",
+                fontSize: "60%", // Matched to Solo Itineraries for consistency
               }}
             >
               COLLAB ITINERARIES
@@ -543,7 +542,8 @@ export default function Itinerary() {
                   borderStyle: "dotted",
                   color: "rgb(172, 120, 191)",
                   fontWeight: "bold",
-                  width: "50%",
+                  width: "65%",
+                  maxWidth: "500px",
                   zIndex: 1000,
                 }}
               >
@@ -551,18 +551,24 @@ export default function Itinerary() {
                   <>
                     <h2
                       style={{
+                        fontSize: "132%",
                         marginTop: "0",
                         fontFamily: "P2P",
                         fontWeight: "lighter",
+                        marginBottom: "20px",
+                        color: "purple",
+                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
                       }}
                     >
-                      Step 1:
+                      Step 1 of 4:
                     </h2>
                     <h2
                       style={{
                         marginTop: "-15px",
                         fontFamily: "P2P",
                         fontWeight: "lighter",
+                        color: "purple",
+                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
                       }}
                     >
                       Choose Mode
@@ -612,12 +618,12 @@ export default function Itinerary() {
                     >
                       <button
                         onClick={() => {
-                          setSelectedOption(""); // Clear the selected option
-                          setIsDialogOpen(false); // Close the dialog
+                          setSelectedOption("");
+                          setIsDialogOpen(false);
                           setStep(1);
                           setCity("");
                           setTouchdownDate("");
-                          setTakeoffDate(""); // Close the dialog
+                          setTakeoffDate("");
                         }}
                         style={{
                           backgroundColor: "rgb(71, 47, 110)",
@@ -684,18 +690,24 @@ export default function Itinerary() {
                   <>
                     <h2
                       style={{
+                        fontSize: "132%",
                         marginTop: "0",
                         fontFamily: "P2P",
                         fontWeight: "lighter",
+                        marginBottom: "20px",
+                        color: "purple",
+                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
                       }}
                     >
-                      Step 2:
+                      Step 2 of 4:
                     </h2>
                     <h2
                       style={{
                         marginTop: "-15px",
                         fontFamily: "P2P",
                         fontWeight: "lighter",
+                        color: "purple",
+                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
                       }}
                     >
                       Select City
@@ -839,24 +851,30 @@ export default function Itinerary() {
                   <>
                     <h2
                       style={{
+                        fontSize: "132%",
                         marginTop: "0",
                         fontFamily: "P2P",
                         fontWeight: "lighter",
+                        marginBottom: "20px",
+                        color: "purple",
+                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
                       }}
                     >
-                      Step 3:
+                      Step 3 of 4:
                     </h2>
                     <h2
                       style={{
                         marginTop: "-15px",
                         fontFamily: "P2P",
                         fontWeight: "lighter",
+                        color: "purple",
+                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
                       }}
                     >
                       Select Dates
                     </h2>
 
-                    <p style={{ fontSize: "92%", color: "purple" }}>
+                    <p style={{ fontSize: "92%" }}>
                       NOTE: <i>Enter dates if decided, else continue...</i>
                     </p>
                     <div
@@ -883,33 +901,35 @@ export default function Itinerary() {
                         <span
                           style={{
                             color: "rgb(187, 150, 218)",
-                            fontSize: "100%",
+                            fontSize: "90%",
                             fontWeight: "bold",
                             marginBottom: "10%",
                           }}
                         >
-                          TAKEOFF 🛫
+                          TAKEOFF
                         </span>
+
                         <input
                           type="date"
                           value={takeoffDate}
                           onChange={(e) => setTakeoffDate(e.target.value)}
                           style={{
                             color: takeoffDate ? "white" : "black",
-                            fontSize: "14px",
+                            fontSize: "90%",
                             textAlign: "center",
                             border: "1px dashed grey",
                             padding: "5px",
                             borderRadius: "5px",
                             cursor: "pointer",
                             backgroundColor: "black",
+                            width: "85%",
                           }}
                         />
                         <FaCalendarAlt
                           style={{
                             position: "absolute",
-                            right: "27px",
-                            top: "61px",
+                            right: "12%",
+                            top: "69%",
                             transform: "translateY(-50%)",
                             color: "white",
                             pointerEvents: "none",
@@ -919,7 +939,7 @@ export default function Itinerary() {
                           <span
                             style={{
                               position: "absolute",
-                              top: "53px",
+                              top: "60%",
                               fontSize: "14px",
                               color: "grey",
                               pointerEvents: "none",
@@ -967,33 +987,34 @@ export default function Itinerary() {
                         <span
                           style={{
                             color: "rgb(187, 150, 218)",
-                            fontSize: "100%",
+                            fontSize: "90%",
                             fontWeight: "bold",
                             marginBottom: "10%",
                           }}
                         >
-                          TOUCHDOWN 🛬
+                          TOUCHDOWN
                         </span>
                         <input
                           type="date"
                           value={touchdownDate}
                           onChange={(e) => setTouchdownDate(e.target.value)}
                           style={{
-                            color: touchdownDate ? "white" : "black",
-                            fontSize: "14px",
+                            color: takeoffDate ? "white" : "black",
+                            fontSize: "90%",
                             textAlign: "center",
                             border: "1px dashed grey",
                             padding: "5px",
                             borderRadius: "5px",
                             cursor: "pointer",
                             backgroundColor: "black",
+                            width: "85%",
                           }}
                         />
                         <FaCalendarAlt
                           style={{
                             position: "absolute",
-                            right: "27px",
-                            top: "61px",
+                            right: "12%",
+                            top: "69%",
                             transform: "translateY(-50%)",
                             color: "white",
                             pointerEvents: "none",
@@ -1003,7 +1024,7 @@ export default function Itinerary() {
                           <span
                             style={{
                               position: "absolute",
-                              top: "53px",
+                              top: "60%",
                               fontSize: "14px",
                               color: "grey",
                               pointerEvents: "none",
@@ -1079,13 +1100,176 @@ export default function Itinerary() {
                       </button>
 
                       <button
+                        onClick={handleNext}
+                        style={{
+                          backgroundColor: "rgb(71, 47, 110)",
+                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                          borderStyle: "none",
+                          padding: "10px 20px",
+                          fontFamily: "Montserrat",
+                          fontWeight: "bold",
+                          fontSize: "15px",
+                          color: "white",
+                          width: "70%",
+                          borderRadius: "10px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.target.style.boxShadow =
+                            "0px 0px 15px rgb(145, 117, 177)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.target.style.boxShadow =
+                            "0px 0px 10px rgb(85, 51, 123)")
+                        }
+                      >
+                        NEXT
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {step === 4 && (
+                  <>
+                    <h2
+                      style={{
+                        fontSize: "132%",
+                        marginTop: "0",
+                        fontFamily: "P2P",
+                        fontWeight: "lighter",
+                        marginBottom: "20px",
+                        color: "purple",
+                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                      }}
+                    >
+                      Step 4 of 4:
+                    </h2>
+                    <h2
+                      style={{
+                        marginTop: "-15px",
+                        fontFamily: "P2P",
+                        fontWeight: "lighter",
+                        color: "purple",
+                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                      }}
+                    >
+                      Set Name
+                    </h2>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        placeItems: "center",
+                        marginBottom: "5%",
+                      }}
+                    >
+                      <div>
+                        <input
+                          type="radio"
+                          name="myRadio"
+                          value="nameIt"
+                          required
+                          style={{ accentColor: "purple" }}
+                          checked={nameOption === "nameIt"}
+                          onChange={() => setNameOption("nameIt")}
+                        />
+                        Name Itinerary
+                      </div>
+
+                      <div>
+                        <input
+                          type="radio"
+                          name="myRadio"
+                          value="default"
+                          required
+                          style={{ accentColor: "purple" }}
+                          checked={nameOption === "default"}
+                          onChange={() => {
+                            setNameOption("default");
+                            setItineraryName(city); // Reset to city name
+                          }}
+                        />
+                        Default (City)
+                      </div>
+                    </div>
+
+                    {/* Show input field if "Name Itinerary" is selected */}
+                    {nameOption === "nameIt" && (
+                      <input
+                        type="text"
+                        value={itineraryName}
+                        onChange={(e) => setItineraryName(e.target.value)}
+                        placeholder="Enter itinerary name..."
+                        style={{
+                          width: "95%",
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                          borderRadius: "5px",
+                          background: "rgb(0, 0, 0)",
+                          marginBottom: "10px",
+                          borderStyle: "solid",
+                          borderWidth: "1px",
+                          padding: "8px",
+                          fontFamily: "Inter",
+                          fontSize: "14px",
+                          marginTop: "-10px",
+                        }}
+                      />
+                    )}
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        columnGap: "10px",
+                        placeItems: "center",
+                        width: "100%",
+                      }}
+                    >
+                      <button
+                        onClick={handleBack}
+                        style={{
+                          backgroundColor: "rgb(71, 47, 110)",
+                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                          borderStyle: "none",
+                          padding: "10px 20px",
+                          fontFamily: "Montserrat",
+                          fontWeight: "bold",
+                          fontSize: "15px",
+                          color: "white",
+                          width: "70%",
+                          borderRadius: "10px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.target.style.boxShadow =
+                            "0px 0px 15px rgb(145, 117, 177)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.target.style.boxShadow =
+                            "0px 0px 10px rgb(85, 51, 123)")
+                        }
+                      >
+                        BACK
+                      </button>
+
+                      <button
                         onClick={() => {
-                          setSelectedOption(""); // Clear the selected option
-                          setIsDialogOpen(false); // Close the dialog
+                          setSelectedOption("");
+                          setIsDialogOpen(false);
                           setStep(1);
                           setCity("");
                           setTouchdownDate("");
                           setTakeoffDate("");
+                          setNameOption("");
+                          setItineraryName("");
                         }}
                         style={{
                           backgroundColor: "rgb(71, 47, 110)",

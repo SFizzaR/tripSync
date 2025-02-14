@@ -10,8 +10,9 @@ const { fetchCityFromCoordinates } = require('../utils/findCity');
 
 const createItinerary = expressAsyncHandler(async (req, res) => {
   try {
-    const { collaborative, status, city, startDate, endDate, budget } = req.body;
-
+    const { collaborative, status, city, startDate, endDate, budget,title } = req.body;
+     
+    console.log("Data recieved: ",req.body)
 
     // Validate status
     const validStatuses = ["planning", "in-progress", "complete"];
@@ -28,7 +29,8 @@ const createItinerary = expressAsyncHandler(async (req, res) => {
       status: status || "planning",
       startDate: startDate || null,
       endDate: endDate || null,
-      budget: budget || null
+      budget: budget || null,
+      title,
     });
 
     await itinerary.save();
@@ -141,3 +143,4 @@ const addUserToItinerary = expressAsyncHandler(async (req, res) => {
 
 
 module.exports = { createItinerary, updateItinerary, addPlaceToItinerary, addUserToItinerary };
+

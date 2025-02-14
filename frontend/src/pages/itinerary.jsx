@@ -41,6 +41,60 @@ export default function Itinerary() {
     );
   };
 
+  const handleFinish = async () => {
+    console.log("CAllledddddddd");
+    const token = localStorage.getItem("accessToken"); 
+    console.log("TOken from hnadlefimish: ",token)
+    if (!token) {
+        alert("User not authenticated");
+        return;
+    }
+
+    try {
+      const decodedToken = jwtDecode(token);
+      console.log("DECODED TOKEN: ",decodedToken)
+      const userId = decodedToken.user.id;
+
+      const userBudget = "Standard";  // HARDCODEDDD
+      const isCollaborative = selectedOption === "collaborative"; 
+
+      const itineraryData = {
+        userId,
+        city,
+        startDate: takeoffDate || null,
+        endDate: touchdownDate || null, 
+        budget: userBudget, 
+        collaborative: isCollaborative, 
+        status: "planning",
+        title: itineraryName || city
+      };
+      
+
+      console.log("📦 Sending Itinerary Data:", itineraryData);
+
+      const response = await fetch("http://localhost:5001/api/itineraries/CreateItinerary", {
+          method: "POST",  
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`  
+          },
+        
+          body: JSON.stringify(itineraryData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+          alert("🎉 Itinerary saved successfully!");
+      } else {
+          alert("❌ Error: " + (data.error || "Unknown error"));
+      }
+  } catch (error) {
+      alert("Failed to save itinerary.");
+  }
+};
+
+
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userData");
@@ -1262,6 +1316,7 @@ export default function Itinerary() {
 
                       <button
                         onClick={() => {
+                          handleFinish();
                           setSelectedOption("");
                           setIsDialogOpen(false);
                           setStep(1);

@@ -4,6 +4,9 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 const Itinerary = require("../models/ItinerariesModel");
+const Place = require("../models/placesModel");
+const { fetchCityFromCoordinates } = require('../utils/findCity');
+
 
 const createItinerary = expressAsyncHandler(async (req, res) => {
   try {
@@ -23,9 +26,9 @@ const createItinerary = expressAsyncHandler(async (req, res) => {
       city,
       collaborative,
       status: status || "planning",
-      startDate: startDate || null, 
-      endDate: endDate || null,    
-      budget: budget || null     
+      startDate: startDate || null,
+      endDate: endDate || null,
+      budget: budget || null
     });
 
     await itinerary.save();
@@ -77,56 +80,64 @@ const updateItinerary = expressAsyncHandler(async (req, res) => {
 
 
 const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
-  const { id } = req.params; // Itinerary ID
-  const { placeId } = req.body; 
+  const { id } = req.params;
+  const { placeId } = req.body;
 
   try {
-      const itinerary = await Itinerary.findById(id);
-      if (!itinerary) return res.status(404).json({ message: "Itinerary not found" });
+    const itinerary = await Itinerary.findById(id);
+    if (!itinerary) return res.status(404).json({ message: "Itinerary not found" });
 
-      const place = await Place.findById(placeId);
-      if (!place) return res.status(404).json({ message: "Place not found" });
+    const place = await Place.findById(placeId);
+    if (!place) return res.status(404).json({ message: "Place not found" });
 
-      // Ensure the place belongs to the same city as the itinerary
-      if (place.city !== itinerary.city) {
-          return res.status(400).json({ message: "Place does not belong to the itinerary's city" });
-      }
 
-      if (!itinerary.places.includes(placeId)) {
-          itinerary.places.push(placeId);
+    const city = await fetchCityFromCoordinates(place.latitude, place.longitude)
+    if (city.toLowerCase() !== itinerary.city.toLowerCase()) {
+      return res.status(400).json({ message: `Place does not belong to ${itinerary.city}` })
+    }
+    if (!itinerary.places.includes(placeId)) {
+      const updatedItinerary = await Itinerary.findByIdAndUpdate(
+        id,
+        {
+          $addToSet: { places: placeId }
+        },
+        { new: true }
+      );
 
-          // If it's the first place, set title as city name
-          if (itinerary.places.length === 1) {
-              itinerary.title = itinerary.city; // Use itinerary's city
-          }
+      return res.json({ message: "Place added", itinerary: updatedItinerary });
+    }
 
-          await itinerary.save();
-      }
-
-      res.json({ message: "Place added", itinerary });
+    res.json({ message: "Place already exists in the itinerary", itinerary });
   } catch (error) {
-      console.error("Error adding place:", error);
-      res.status(500).json({ message: "Error adding place", error: error.message });
+    console.error("Error adding place:", error);
+    res.status(500).json({ message: "Error adding place", error: error.message });
   }
 });
 
- const addUserToItinerary = expressAsyncHandler(async (req, res) => {
-    const {id} = req.params;
-    const {userId} = req.body;
-    try {
-        const itinerary = await Itinerary.findById(id);
-        if (!itinerary) return res.status(404).json({message: "Itinerary not found"});
-        if (!itinerary.users.includes(userId)) {
-            itinerary.users.push(userId);
 
-            await itinerary.save();
-        }
-        res.json({message: "User added", itinerary});
-    }
-    catch(error){
-        res.status(500).json({message: "Error finding user"});
-    }
-  })
-  
+const addUserToItinerary = expressAsyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+  try {
+    const itinerary = await Itinerary.findById(id);
+    if (!itinerary) return res.status(404).json({ message: "Itinerary not found" });
 
-module.exports = {createItinerary, updateItinerary, addPlaceToItinerary, addUserToItinerary};
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" })
+
+    if (!itinerary.users.includes(userId)) {
+      const updatedItinerary = await Itinerary.findByIdAndUpdate(
+        id,
+        { $addToSet: { users: userId } },
+        { new: true }
+      )
+    }
+    res.json({ message: "User added", itinerary });
+  }
+  catch (error) {
+    res.status(500).json({ message: "Error finding user" });
+  }
+})
+
+
+module.exports = { createItinerary, updateItinerary, addPlaceToItinerary, addUserToItinerary };

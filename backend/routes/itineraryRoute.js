@@ -5,7 +5,7 @@ const {protect} = require("../middleware/errorHandler")
 
 router.post('/CreateItinerary', protect, createItinerary);
 router.put('/:id', updateItinerary);
-router.post('/:id/places', addPlaceToItinerary);
-router.post('/:id/users', addUserToItinerary);
+router.post('/places/:id', addPlaceToItinerary);
+router.post('/users/:id', addUserToItinerary);
 
 module.exports = router;

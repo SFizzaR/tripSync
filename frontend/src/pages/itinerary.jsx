@@ -11,6 +11,8 @@ import "../font.css";
 import edit from "../assets/icons/pen-to-square-solid.svg";
 import citiesData from "./citiesData"; // Import the city list (JSON file)
 import { FaCalendarAlt } from "react-icons/fa";
+import {jwtDecode} from "jwt-decode";
+
 
 export default function Itinerary() {
   const [isOpen, setIsOpen] = useState(false);

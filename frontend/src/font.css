@@ -74,3 +74,33 @@ body{
   50% { opacity: 0.5; text-shadow: 0 0 20px rgb(114, 153, 179); }
   100% { opacity: 1; text-shadow: 0 0 10px rgb(114, 153, 179); }
 }
+
+/* For WebKit-based browsers (Chrome, Edge, Safari) */
+.solo-itineraries::-webkit-scrollbar,
+.collab-itineraries::-webkit-scrollbar {
+  width: 8px; 
+}
+
+.solo-itineraries::-webkit-scrollbar-track,
+.collab-itineraries::-webkit-scrollbar-track {
+  background: #1e1e1e; 
+  border-radius: 10px;
+}
+
+.solo-itineraries::-webkit-scrollbar-thumb,
+.collab-itineraries::-webkit-scrollbar-thumb {
+  background: rgb(101, 140, 175); 
+  border-radius: 10px;
+}
+
+.solo-itineraries::-webkit-scrollbar-thumb:hover,
+.collab-itineraries::-webkit-scrollbar-thumb:hover {
+  background: rgb(101, 140, 175);
+}
+
+/* For Firefox */
+.solo-itineraries,
+.collab-itineraries {
+  scrollbar-width: thin; 
+  scrollbar-color: rgb(101, 140, 175) #1e1e1e;
+}

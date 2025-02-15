@@ -11,8 +11,7 @@ import "../font.css";
 import edit from "../assets/icons/pen-to-square-solid.svg";
 import citiesData from "./citiesData"; // Import the city list (JSON file)
 import { FaCalendarAlt } from "react-icons/fa";
-import {jwtDecode} from "jwt-decode";
-
+import { jwtDecode } from "jwt-decode";
 
 export default function Itinerary() {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,39 +35,49 @@ export default function Itinerary() {
   useEffect(() => {
     fetchSoloItineraries(); // Fetch when component mounts
   }, []);
-  
-    const fetchSoloItineraries = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        console.log("No token found. User not authenticated.");
-        return;
-      }
 
-      try {
-        const response = await fetch("http://localhost:5001/api/itineraries/solo", {
+  const fetchSoloItineraries = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.log("No token found. User not authenticated.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "http://localhost:5001/api/itineraries/solo",
+        {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          setSoloItineraries(data); 
-        } else {
-          console.error("Error:", data.message);
         }
-      } catch (error) {
-        console.error("Failed to fetch itineraries:", error);
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSoloItineraries(data);
+      } else {
+        console.error("Error:", data.message);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch itineraries:", error);
+    }
+  };
+
+  const [selectedItinerary, setSelectedItinerary] = useState(null);
 
   const handleItineraryClick = (itineraryId) => {
-    navigate(`/itinerary/${itineraryId}`); // Redirect to itinerary details page
+    alert("Clicked Itinerary ID:", itineraryId);
+    const selected = soloItineraries.find(
+      (itinerary) => String(itinerary.id) === String(itineraryId)
+    );
+    alert("Found Itinerary:", selected);
+    setSelectedItinerary(selected);
   };
-  
+
   const handleSearch = (e) => {
     const searchValue = e.target.value.toLowerCase();
     setCity(e.target.value);
@@ -83,59 +92,60 @@ export default function Itinerary() {
 
   const handleFinish = async () => {
     console.log("CAllledddddddd");
-    const token = localStorage.getItem("accessToken"); 
-    console.log("TOken from hnadlefimish: ",token)
+    const token = localStorage.getItem("accessToken");
+    console.log("TOken from hnadlefimish: ", token);
     if (!token) {
-        alert("User not authenticated");
-        return;
+      alert("User not authenticated");
+      return;
     }
 
     try {
       const decodedToken = jwtDecode(token);
-      console.log("DECODED TOKEN: ",decodedToken)
+      console.log("DECODED TOKEN: ", decodedToken);
       const userId = decodedToken.user.id;
 
-      const userBudget = "Standard";  // HARDCODEDDD
-      const isCollaborative = selectedOption === "collaborative"; 
+      const userBudget = "Standard"; // HARDCODEDDD
+      const isCollaborative = selectedOption === "collaborative";
 
       const itineraryData = {
         userId,
         city,
         startDate: takeoffDate || null,
-        endDate: touchdownDate || null, 
-        budget: userBudget, 
-        collaborative: isCollaborative, 
+        endDate: touchdownDate || null,
+        budget: userBudget,
+        collaborative: isCollaborative,
         status: "planning",
-        title: itineraryName || city
+        title: itineraryName || city,
       };
-      
 
       console.log("📦 Sending Itinerary Data:", itineraryData);
 
-      const response = await fetch("http://localhost:5001/api/itineraries/CreateItinerary", {
-          method: "POST",  
+      const response = await fetch(
+        "http://localhost:5001/api/itineraries/CreateItinerary",
+        {
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`  
+            Authorization: `Bearer ${token}`,
           },
-        
-          body: JSON.stringify(itineraryData)
-      });
+
+          body: JSON.stringify(itineraryData),
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
-          alert("🎉 Itinerary saved successfully!");
+        alert("🎉 Itinerary saved successfully!");
 
-          setSoloItineraries((prevItineraries) => [...prevItineraries, data]);
-
+        setSoloItineraries((prevItineraries) => [...prevItineraries, data]);
       } else {
-          alert("❌ Error: " + (data.error || "Unknown error"));
+        alert("❌ Error: " + (data.error || "Unknown error"));
       }
-  } catch (error) {
+    } catch (error) {
       alert("Failed to save itinerary.");
-  }
-};
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -167,7 +177,7 @@ export default function Itinerary() {
   };
 
   return (
-    <div style={{ paddingBottom: "100px", overflowX: "hidden" }}>
+    <div style={{ paddingBottom: "0", overflowX: "hidden" }}>
       {/* Navbar */}
       <nav
         style={{
@@ -492,6 +502,825 @@ export default function Itinerary() {
         </div>
       </section>
 
+      <button
+        style={{
+          backgroundColor: "rgb(62, 38, 103)",
+          boxShadow: "1px 1px 2px rgb(85, 51, 123)",
+          borderStyle: "none",
+          margin: "20px auto -10px 70%",
+          padding: "5px 15px",
+          fontFamily: "Montserrat",
+          fontWeight: "bold",
+          fontSize: "2vw",
+          color: "white",
+          borderRadius: "8px",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          overflowX: "hidden",
+        }}
+        onMouseEnter={(e) =>
+          (e.target.style.boxShadow = "0px 0px 15px rgb(145, 117, 177)")
+        }
+        onMouseLeave={(e) =>
+          (e.target.style.boxShadow = "1px 1px 2px rgb(85, 51, 123)")
+        }
+        onClick={() => setIsDialogOpen(true)}
+      >
+        <img
+          src={edit}
+          style={{
+            width: "2vw",
+            height: "auto",
+            boxShadow: "none",
+          }}
+          alt="Edit"
+        />
+        CREATE
+      </button>
+
+      {isDialogOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
+            zIndex: 999,
+          }}
+        />
+      )}
+
+      {isDialogOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "rgba(0, 0, 0, 1)",
+            padding: "20px",
+            boxShadow: "0px 0px 19px rgb(49, 16, 102)",
+            borderRadius: "10px",
+            borderStyle: "dotted",
+            color: "rgb(172, 120, 191)",
+            fontWeight: "bold",
+            width: "65%",
+            fontFamily: "Montserrat",
+            maxWidth: "500px",
+            zIndex: 1000,
+          }}
+        >
+          {step === 1 && (
+            <>
+              <h2
+                style={{
+                  fontSize: "132%",
+                  marginTop: "0",
+                  fontFamily: "P2P",
+                  fontWeight: "lighter",
+                  marginBottom: "20px",
+                  color: "purple",
+                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                }}
+              >
+                Step 1 of 4:
+              </h2>
+              <h2
+                style={{
+                  marginTop: "-15px",
+                  fontFamily: "P2P",
+                  fontWeight: "lighter",
+                  color: "purple",
+                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                }}
+              >
+                Choose Mode
+              </h2>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  columnGap: "5px",
+                  placeItems: "start",
+                  marginBottom: "20px",
+                }}
+              >
+                <div>
+                  <input
+                    type="radio"
+                    name="myRadio"
+                    value="solo"
+                    required
+                    style={{ accentColor: "purple" }}
+                    checked={selectedOption === "solo"} // Ensure the selected option stays checked
+                    onChange={(e) => setSelectedOption(e.target.value)}
+                  />
+                  Solo
+                </div>
+                <div>
+                  <input
+                    type="radio"
+                    name="myRadio"
+                    value="collaborative"
+                    required
+                    style={{ accentColor: "purple" }}
+                    checked={selectedOption === "collaborative"} // Ensure the selected option stays checked
+                    onChange={(e) => setSelectedOption(e.target.value)}
+                  />
+                  Collaborative
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  columnGap: "10px",
+                  placeItems: "center",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setSelectedOption("");
+                    setIsDialogOpen(false);
+                    setStep(1);
+                    setCity("");
+                    setTouchdownDate("");
+                    setTakeoffDate("");
+                  }}
+                  style={{
+                    backgroundColor: "rgb(71, 47, 110)",
+                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                    borderStyle: "none",
+                    padding: "10px 20px",
+                    fontFamily: "Montserrat",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "white",
+                    width: "70%",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(145, 117, 177)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                  }
+                >
+                  CANCEL
+                </button>
+
+                <button
+                  onClick={handleNext}
+                  style={{
+                    backgroundColor: "rgb(71, 47, 110)",
+                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                    borderStyle: "none",
+                    padding: "10px 20px",
+                    fontFamily: "Montserrat",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "white",
+                    width: "70%",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(145, 117, 177)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                  }
+                >
+                  NEXT
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <h2
+                style={{
+                  fontSize: "132%",
+                  marginTop: "0",
+                  fontFamily: "P2P",
+                  fontWeight: "lighter",
+                  marginBottom: "20px",
+                  color: "purple",
+                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                }}
+              >
+                Step 2 of 4:
+              </h2>
+              <h2
+                style={{
+                  marginTop: "-15px",
+                  fontFamily: "P2P",
+                  fontWeight: "lighter",
+                  color: "purple",
+                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                }}
+              >
+                Select City
+              </h2>
+              {/* Searchable Input Field */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateRows: "20% 70%",
+                  placeItems: "center",
+                  rowGap: "10px",
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Enter city name"
+                  value={city}
+                  onChange={handleSearch}
+                  style={{
+                    width: "90%",
+                    padding: "10px",
+                    marginBottom: "5px",
+                    background: "black",
+                    borderWidth: "1px",
+                    borderStyle: "dashed",
+                    fontFamily: "Inter",
+                    color: "grey",
+                    fontSize: "100%",
+                  }}
+                />
+
+                {/* Scrollable Dropdown */}
+                <div
+                  style={{
+                    width: "90%",
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                    borderRadius: "5px",
+                    background: "rgb(0, 0, 0)",
+                    marginBottom: "10px",
+                  }}
+                >
+                  {filteredCities.map((item) => (
+                    <div
+                      key={item.city}
+                      onClick={() => setCity(`${item.city}, ${item.country}`)}
+                      style={{
+                        padding: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        borderBottom: "1px solid rgb(124, 126, 126)",
+                        fontFamily: "Inter",
+                        fontSize: "80%",
+                      }}
+                    >
+                      <span style={{ marginRight: "10px" }}>{item.flag}</span>
+                      {item.city}, {item.country}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  columnGap: "10px",
+                  placeItems: "center",
+                  width: "100%",
+                }}
+              >
+                <button
+                  onClick={handleBack}
+                  style={{
+                    backgroundColor: "rgb(71, 47, 110)",
+                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                    borderStyle: "none",
+                    padding: "10px 20px",
+                    fontFamily: "Montserrat",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "white",
+                    width: "70%",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(145, 117, 177)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                  }
+                >
+                  BACK
+                </button>
+
+                <button
+                  onClick={handleNext}
+                  style={{
+                    backgroundColor: "rgb(71, 47, 110)",
+                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                    borderStyle: "none",
+                    padding: "10px 20px",
+                    fontFamily: "Montserrat",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "white",
+                    width: "70%",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(145, 117, 177)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                  }
+                >
+                  NEXT
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <h2
+                style={{
+                  fontSize: "132%",
+                  marginTop: "0",
+                  fontFamily: "P2P",
+                  fontWeight: "lighter",
+                  marginBottom: "20px",
+                  color: "purple",
+                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                }}
+              >
+                Step 3 of 4:
+              </h2>
+              <h2
+                style={{
+                  marginTop: "-15px",
+                  fontFamily: "P2P",
+                  fontWeight: "lighter",
+                  color: "purple",
+                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                }}
+              >
+                Select Dates
+              </h2>
+
+              <p style={{ fontSize: "92%" }}>
+                NOTE: <i>Enter dates if decided, else continue...</i>
+              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  border: "1px solid purple",
+                  borderRadius: "10px",
+                  padding: "10px",
+                  marginBottom: "5%",
+                }}
+              >
+                {/* Takeoff Section */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    padding: "10px",
+                    borderRight: "1px solid purple",
+                    position: "relative",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "rgb(187, 150, 218)",
+                      fontSize: "90%",
+                      fontWeight: "bold",
+                      marginBottom: "10%",
+                    }}
+                  >
+                    TAKEOFF
+                  </span>
+
+                  <input
+                    type="date"
+                    value={takeoffDate}
+                    onChange={(e) => setTakeoffDate(e.target.value)}
+                    style={{
+                      color: takeoffDate ? "white" : "black",
+                      fontSize: "90%",
+                      textAlign: "center",
+                      border: "1px dashed grey",
+                      padding: "5px",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                      backgroundColor: "black",
+                      width: "85%",
+                    }}
+                  />
+                  <FaCalendarAlt
+                    style={{
+                      position: "absolute",
+                      right: "12%",
+                      top: "69%",
+                      transform: "translateY(-50%)",
+                      color: "white",
+                      pointerEvents: "none",
+                    }}
+                  />
+                  {!takeoffDate && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "60%",
+                        fontSize: "14px",
+                        color: "grey",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      --/--/--
+                    </span>
+                  )}
+
+                  {takeoffDate && (
+                    <button
+                      style={{
+                        backgroundColor: "purple",
+                        boxShadow: "0px 0px 2px rgb(85, 51, 123)",
+                        borderStyle: "none",
+                        padding: "8px 10px",
+                        fontFamily: "Montserrat",
+                        fontWeight: "bold",
+                        fontSize: "12px",
+                        color: "white",
+                        borderRadius: "10px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginTop: "10px",
+                      }}
+                      onClick={() => setTakeoffDate("")}
+                    >
+                      RESET
+                    </button>
+                  )}
+                </div>
+
+                {/* Touchdown Section */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    padding: "10px",
+                    position: "relative",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "rgb(187, 150, 218)",
+                      fontSize: "90%",
+                      fontWeight: "bold",
+                      marginBottom: "10%",
+                    }}
+                  >
+                    TOUCHDOWN
+                  </span>
+                  <input
+                    type="date"
+                    value={touchdownDate}
+                    onChange={(e) => setTouchdownDate(e.target.value)}
+                    style={{
+                      color: takeoffDate ? "white" : "black",
+                      fontSize: "90%",
+                      textAlign: "center",
+                      border: "1px dashed grey",
+                      padding: "5px",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                      backgroundColor: "black",
+                      width: "85%",
+                    }}
+                  />
+                  <FaCalendarAlt
+                    style={{
+                      position: "absolute",
+                      right: "12%",
+                      top: "69%",
+                      transform: "translateY(-50%)",
+                      color: "white",
+                      pointerEvents: "none",
+                    }}
+                  />
+                  {!touchdownDate && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "60%",
+                        fontSize: "14px",
+                        color: "grey",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      --/--/--
+                    </span>
+                  )}
+
+                  {touchdownDate && (
+                    <button
+                      style={{
+                        backgroundColor: "purple",
+                        boxShadow: "0px 0px 2px rgb(85, 51, 123)",
+                        borderStyle: "none",
+                        padding: "8px 10px",
+                        fontFamily: "Montserrat",
+                        fontWeight: "bold",
+                        fontSize: "12px",
+                        color: "white",
+                        borderRadius: "10px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginTop: "10px",
+                      }}
+                      onClick={() => setTouchdownDate("")}
+                    >
+                      RESET
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  columnGap: "10px",
+                  placeItems: "center",
+                  width: "100%",
+                }}
+              >
+                <button
+                  onClick={handleBack}
+                  style={{
+                    backgroundColor: "rgb(71, 47, 110)",
+                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                    borderStyle: "none",
+                    padding: "10px 20px",
+                    fontFamily: "Montserrat",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "white",
+                    width: "70%",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(145, 117, 177)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                  }
+                >
+                  BACK
+                </button>
+
+                <button
+                  onClick={handleNext}
+                  style={{
+                    backgroundColor: "rgb(71, 47, 110)",
+                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                    borderStyle: "none",
+                    padding: "10px 20px",
+                    fontFamily: "Montserrat",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "white",
+                    width: "70%",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(145, 117, 177)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                  }
+                >
+                  NEXT
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 4 && (
+            <>
+              <h2
+                style={{
+                  fontSize: "132%",
+                  marginTop: "0",
+                  fontFamily: "P2P",
+                  fontWeight: "lighter",
+                  marginBottom: "20px",
+                  color: "purple",
+                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                }}
+              >
+                Step 4 of 4:
+              </h2>
+              <h2
+                style={{
+                  marginTop: "-15px",
+                  fontFamily: "P2P",
+                  fontWeight: "lighter",
+                  color: "purple",
+                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
+                }}
+              >
+                Set Name
+              </h2>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  placeItems: "center",
+                  marginBottom: "5%",
+                }}
+              >
+                <div>
+                  <input
+                    type="radio"
+                    name="myRadio"
+                    value="nameIt"
+                    required
+                    style={{ accentColor: "purple" }}
+                    checked={nameOption === "nameIt"}
+                    onChange={() => setNameOption("nameIt")}
+                  />
+                  Name Itinerary
+                </div>
+
+                <div>
+                  <input
+                    type="radio"
+                    name="myRadio"
+                    value="default"
+                    required
+                    style={{ accentColor: "purple" }}
+                    checked={nameOption === "default"}
+                    onChange={() => {
+                      setNameOption("default");
+                      setItineraryName(city); // Reset to city name
+                    }}
+                  />
+                  Default (City)
+                </div>
+              </div>
+
+              {/* Show input field if "Name Itinerary" is selected */}
+              {nameOption === "nameIt" && (
+                <input
+                  type="text"
+                  value={itineraryName}
+                  onChange={(e) => setItineraryName(e.target.value)}
+                  placeholder="Enter itinerary name..."
+                  style={{
+                    width: "95%",
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                    borderRadius: "5px",
+                    background: "rgb(0, 0, 0)",
+                    marginBottom: "10px",
+                    borderStyle: "solid",
+                    borderWidth: "1px",
+                    padding: "8px",
+                    fontFamily: "Inter",
+                    fontSize: "14px",
+                    marginTop: "-10px",
+                  }}
+                />
+              )}
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  columnGap: "10px",
+                  placeItems: "center",
+                  width: "100%",
+                }}
+              >
+                <button
+                  onClick={handleBack}
+                  style={{
+                    backgroundColor: "rgb(71, 47, 110)",
+                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                    borderStyle: "none",
+                    padding: "10px 20px",
+                    fontFamily: "Montserrat",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "white",
+                    width: "70%",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(145, 117, 177)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                  }
+                >
+                  BACK
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleFinish();
+                    setSelectedOption("");
+                    setIsDialogOpen(false);
+                    setStep(1);
+                    setCity("");
+                    setTouchdownDate("");
+                    setTakeoffDate("");
+                    setNameOption("");
+                    setItineraryName("");
+                  }}
+                  style={{
+                    backgroundColor: "rgb(71, 47, 110)",
+                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
+                    borderStyle: "none",
+                    padding: "10px 20px",
+                    fontFamily: "Montserrat",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "white",
+                    width: "70%",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(145, 117, 177)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                  }
+                >
+                  FINISH
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {/* ITINERARIES BOX */}
       <section>
         <div
@@ -500,11 +1329,11 @@ export default function Itinerary() {
             position: "relative",
             width: "91%", // Responsive width
             maxWidth: "1000px", // Prevents excessive stretching
-            height: "500px", // Increased height for a longer box
+            height: "690px", // Increased height for a longer box
             borderColor: "rgba(217, 228, 231, 0.6)",
             margin: "20px auto", // Centers it horizontally
             display: "grid",
-            gridTemplateColumns: "30vw 1fr",
+            gridTemplateColumns: "35vh 1fr",
             color: "white",
             padding: "0",
             borderRadius: "5px",
@@ -517,13 +1346,18 @@ export default function Itinerary() {
           <div
             style={{
               display: "grid",
-              gridTemplateRows: "5% 1fr 1fr",
+              gridTemplateRows: "4% 47% 47%",
+              columnGap: "5%",
               borderRightStyle: "dotted",
               borderRightColor: "white",
               fontSize: "120%", // Adjusted base font size
-              whiteSpace: "nowrap",
               marginTop: 0,
               padding: "6px",
+              overflow: "hidden", // Prevents text overflow
+              wordWrap: "break-word", // Wraps long words
+              whiteSpace: "normal", // Ensures text doesn't overflow
+              marginBottom: "2%",
+              paddingBottom: "20px"
             }}
           >
             {/* HEADER ROW */}
@@ -532,31 +1366,36 @@ export default function Itinerary() {
                 fontFamily: "P2P",
                 fontWeight: "lighter",
                 color: "rgba(247, 253, 255, 0.86)",
-                fontSize: "65%", // Slightly larger for emphasis
+                fontSize: "clamp(12px, 2.5vw, 18px)", // Slightly larger for emphasis
                 textShadow: "0 0 10px rgb(114, 153, 179)",
-                marginTop: "3px",
-                paddingBottom: "10px",
+                marginTop: "3%",
+                marginBottom: "0"
               }}
             >
               ITINERARIES
             </div>
 
             {/* SOLO ITINERARY ROW */}
-            <div
+            <div class="collab-itineraries"
               style={{
-                borderTop: "1px solid grey",
-                padding: "10px 2px",
-                fontSize: "60%", 
+                borderTop: "2px solid grey",
+                fontSize: "clamp(12px, 2vw, 18px)",
+                marginTop: "3%",
+                padding: "3% 0",
+                maxHeight: "28vh",
               }}
             >
-              SOLO TRIP ITINERARIES
+              <strong style={{color: "rgb(114, 153, 179)"}}>SOLO TRIP ITINERARIES</strong>
               <navbar>
                 <ul
                   style={{
-                    height: "88%",
+                    height: "120%",
                     padding: "0",
                     overflowY: "auto",
                     overflowX: "hidden",
+                    fontSize: "85%",
+                    padding: "0",
+                    paddingBottom: "-10px"
                   }}
                 >
                   {soloItineraries &&
@@ -575,7 +1414,10 @@ export default function Itinerary() {
                           margin: 0,
                           cursor: "pointer",
                         }}
-                        onClick={() => handleItineraryClick(itinerary.id)}
+                        onClick={() => {
+                          console.log("Clicked Itinerary ID:", itinerary.id); // Debugging
+                          handleItineraryClick(itinerary.id);
+                        }}
                       >
                         {itinerary.title ||
                           itinerary.name ||
@@ -596,857 +1438,107 @@ export default function Itinerary() {
                   )}
                 </ul>
               </navbar>
-
             </div>
 
             {/* COLLAB ITINERARY ROW */}
-            <div
+            <div class="collab-itineraries"
               style={{
-                borderTop: "1px solid grey",
-                padding: "10px 2px",
-                fontSize: "60%", // Matched to Solo Itineraries for consistency
+                borderTop: "3px solid grey",
+                fontSize: "clamp(12px, 2vw, 18px)",
+                marginTop: "5%",
+                padding: "3% 0",
+                maxHeight: "28vh"
               }}
             >
-              COLLAB ITINERARIES
+              <strong  style={{color: "rgb(114, 153, 179)"}}>COLLAB ITINERARIES</strong>
+              <navbar>
+                <ul
+                  style={{
+                    height: "130%",
+                    padding: "0",
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                    fontSize: "85%",
+                    padding: "0",
+                    paddingBottom: "-10px"
+                  }}
+                >
+                  {soloItineraries &&
+                  Array.isArray(soloItineraries) &&
+                  soloItineraries.length > 0 ? (
+                    soloItineraries.map((itinerary) => (
+                      <li
+                        key={itinerary.id}
+                        style={{
+                          color: "white",
+                          display: "block",
+                          borderTop: "1px solid",
+                          listStyle: "none",
+                          width: "100%",
+                          padding: "10px",
+                          margin: 0,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          console.log("Clicked Itinerary ID:", itinerary.id); // Debugging
+                          handleItineraryClick(itinerary.id);
+                        }}
+                      >
+                        {itinerary.title ||
+                          itinerary.name ||
+                          "Untitled Itinerary"}
+                      </li>
+                    ))
+                  ) : (
+                    <li
+                      style={{
+                        color: "gray",
+                        textAlign: "center",
+                        padding: "10px",
+                        listStyle: "none",
+                      }}
+                    >
+                      No Itineraries found.
+                    </li>
+                  )}
+                </ul>
+              </navbar>
             </div>
           </div>
 
-          {/* Right Column (Button) */}
+          {/* Right Column (Details Box) */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              width: "100%",
             }}
           >
-            <button
+            <div
               style={{
-                backgroundColor: "rgb(71, 47, 110)",
-                boxShadow: "0px 0px 10px rgb(85, 51, 123)",
-                borderStyle: "none",
-                padding: "10px 20px",
-                fontFamily: "Montserrat",
-                fontWeight: "bold",
-                fontSize: "19px",
+                background: "black",
+                padding: "20px",
                 color: "white",
-                width: "150px",
-                borderRadius: "10px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
+                borderLeft: "1px solid gray",
+                width: "100%",
+                fontSize: "70%",
+                textAlign: "center"
               }}
-              onMouseEnter={(e) =>
-                (e.target.style.boxShadow = "0px 0px 15px rgb(145, 117, 177)")
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
-              }
-              onClick={() => setIsDialogOpen(true)}
             >
-              <img
-                src={edit}
-                style={{
-                  width: "20px",
-                  height: "20px",
-                  boxShadow: "none",
-                }}
-                alt="Edit"
-              />
-              CREATE
-            </button>
-
-            {isDialogOpen && (
-              <div
-                style={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: "rgba(0, 0, 0, 0.4)",
-                  zIndex: 999,
-                }}
-              />
-            )}
-
-            {isDialogOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  backgroundColor: "rgba(0, 0, 0, 1)",
-                  padding: "20px",
-                  boxShadow: "0px 0px 19px rgb(49, 16, 102)",
-                  borderRadius: "10px",
-                  borderStyle: "dotted",
-                  color: "rgb(172, 120, 191)",
-                  fontWeight: "bold",
-                  width: "65%",
-                  maxWidth: "500px",
-                  zIndex: 1000,
-                }}
-              >
-                {step === 1 && (
-                  <>
-                    <h2
-                      style={{
-                        fontSize: "132%",
-                        marginTop: "0",
-                        fontFamily: "P2P",
-                        fontWeight: "lighter",
-                        marginBottom: "20px",
-                        color: "purple",
-                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                      }}
-                    >
-                      Step 1 of 4:
-                    </h2>
-                    <h2
-                      style={{
-                        marginTop: "-15px",
-                        fontFamily: "P2P",
-                        fontWeight: "lighter",
-                        color: "purple",
-                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                      }}
-                    >
-                      Choose Mode
-                    </h2>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        columnGap: "5px",
-                        placeItems: "start",
-                        marginBottom: "20px",
-                      }}
-                    >
-                      <div>
-                        <input
-                          type="radio"
-                          name="myRadio"
-                          value="solo"
-                          required
-                          style={{ accentColor: "purple" }}
-                          checked={selectedOption === "solo"} // Ensure the selected option stays checked
-                          onChange={(e) => setSelectedOption(e.target.value)}
-                        />
-                        Solo
-                      </div>
-                      <div>
-                        <input
-                          type="radio"
-                          name="myRadio"
-                          value="collaborative"
-                          required
-                          style={{ accentColor: "purple" }}
-                          checked={selectedOption === "collaborative"} // Ensure the selected option stays checked
-                          onChange={(e) => setSelectedOption(e.target.value)}
-                        />
-                        Collaborative
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        columnGap: "10px",
-                        placeItems: "center",
-                      }}
-                    >
-                      <button
-                        onClick={() => {
-                          setSelectedOption("");
-                          setIsDialogOpen(false);
-                          setStep(1);
-                          setCity("");
-                          setTouchdownDate("");
-                          setTakeoffDate("");
-                        }}
-                        style={{
-                          backgroundColor: "rgb(71, 47, 110)",
-                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                          borderStyle: "none",
-                          padding: "10px 20px",
-                          fontFamily: "Montserrat",
-                          fontWeight: "bold",
-                          fontSize: "15px",
-                          color: "white",
-                          width: "70%",
-                          borderRadius: "10px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 15px rgb(145, 117, 177)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 10px rgb(85, 51, 123)")
-                        }
-                      >
-                        CANCEL
-                      </button>
-
-                      <button
-                        onClick={handleNext}
-                        style={{
-                          backgroundColor: "rgb(71, 47, 110)",
-                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                          borderStyle: "none",
-                          padding: "10px 20px",
-                          fontFamily: "Montserrat",
-                          fontWeight: "bold",
-                          fontSize: "15px",
-                          color: "white",
-                          width: "70%",
-                          borderRadius: "10px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 15px rgb(145, 117, 177)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 10px rgb(85, 51, 123)")
-                        }
-                      >
-                        NEXT
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {step === 2 && (
-                  <>
-                    <h2
-                      style={{
-                        fontSize: "132%",
-                        marginTop: "0",
-                        fontFamily: "P2P",
-                        fontWeight: "lighter",
-                        marginBottom: "20px",
-                        color: "purple",
-                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                      }}
-                    >
-                      Step 2 of 4:
-                    </h2>
-                    <h2
-                      style={{
-                        marginTop: "-15px",
-                        fontFamily: "P2P",
-                        fontWeight: "lighter",
-                        color: "purple",
-                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                      }}
-                    >
-                      Select City
-                    </h2>
-                    {/* Searchable Input Field */}
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateRows: "20% 70%",
-                        placeItems: "center",
-                        rowGap: "10px",
-                      }}
-                    >
-                      <input
-                        type="text"
-                        placeholder="Enter city name"
-                        value={city}
-                        onChange={handleSearch}
-                        style={{
-                          width: "90%",
-                          padding: "10px",
-                          marginBottom: "5px",
-                          background: "black",
-                          borderWidth: "1px",
-                          borderStyle: "dashed",
-                          fontFamily: "Inter",
-                          color: "grey",
-                          fontSize: "100%",
-                        }}
-                      />
-
-                      {/* Scrollable Dropdown */}
-                      <div
-                        style={{
-                          width: "90%",
-                          maxHeight: "200px",
-                          overflowY: "auto",
-                          borderRadius: "5px",
-                          background: "rgb(0, 0, 0)",
-                          marginBottom: "10px",
-                        }}
-                      >
-                        {filteredCities.map((item) => (
-                          <div
-                            key={item.city}
-                            onClick={() =>
-                              setCity(`${item.city}, ${item.country}`)
-                            }
-                            style={{
-                              padding: "8px",
-                              display: "flex",
-                              alignItems: "center",
-                              cursor: "pointer",
-                              borderBottom: "1px solid rgb(124, 126, 126)",
-                              fontFamily: "Inter",
-                              fontSize: "80%",
-                            }}
-                          >
-                            <span style={{ marginRight: "10px" }}>
-                              {item.flag}
-                            </span>
-                            {item.city}, {item.country}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        columnGap: "10px",
-                        placeItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <button
-                        onClick={handleBack}
-                        style={{
-                          backgroundColor: "rgb(71, 47, 110)",
-                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                          borderStyle: "none",
-                          padding: "10px 20px",
-                          fontFamily: "Montserrat",
-                          fontWeight: "bold",
-                          fontSize: "15px",
-                          color: "white",
-                          width: "70%",
-                          borderRadius: "10px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 15px rgb(145, 117, 177)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 10px rgb(85, 51, 123)")
-                        }
-                      >
-                        BACK
-                      </button>
-
-                      <button
-                        onClick={handleNext}
-                        style={{
-                          backgroundColor: "rgb(71, 47, 110)",
-                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                          borderStyle: "none",
-                          padding: "10px 20px",
-                          fontFamily: "Montserrat",
-                          fontWeight: "bold",
-                          fontSize: "15px",
-                          color: "white",
-                          width: "70%",
-                          borderRadius: "10px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 15px rgb(145, 117, 177)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 10px rgb(85, 51, 123)")
-                        }
-                      >
-                        NEXT
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {step === 3 && (
-                  <>
-                    <h2
-                      style={{
-                        fontSize: "132%",
-                        marginTop: "0",
-                        fontFamily: "P2P",
-                        fontWeight: "lighter",
-                        marginBottom: "20px",
-                        color: "purple",
-                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                      }}
-                    >
-                      Step 3 of 4:
-                    </h2>
-                    <h2
-                      style={{
-                        marginTop: "-15px",
-                        fontFamily: "P2P",
-                        fontWeight: "lighter",
-                        color: "purple",
-                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                      }}
-                    >
-                      Select Dates
-                    </h2>
-
-                    <p style={{ fontSize: "92%" }}>
-                      NOTE: <i>Enter dates if decided, else continue...</i>
-                    </p>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        border: "1px solid purple",
-                        borderRadius: "10px",
-                        padding: "10px",
-                        marginBottom: "5%",
-                      }}
-                    >
-                      {/* Takeoff Section */}
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          padding: "10px",
-                          borderRight: "1px solid purple",
-                          position: "relative",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "rgb(187, 150, 218)",
-                            fontSize: "90%",
-                            fontWeight: "bold",
-                            marginBottom: "10%",
-                          }}
-                        >
-                          TAKEOFF
-                        </span>
-
-                        <input
-                          type="date"
-                          value={takeoffDate}
-                          onChange={(e) => setTakeoffDate(e.target.value)}
-                          style={{
-                            color: takeoffDate ? "white" : "black",
-                            fontSize: "90%",
-                            textAlign: "center",
-                            border: "1px dashed grey",
-                            padding: "5px",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            backgroundColor: "black",
-                            width: "85%",
-                          }}
-                        />
-                        <FaCalendarAlt
-                          style={{
-                            position: "absolute",
-                            right: "12%",
-                            top: "69%",
-                            transform: "translateY(-50%)",
-                            color: "white",
-                            pointerEvents: "none",
-                          }}
-                        />
-                        {!takeoffDate && (
-                          <span
-                            style={{
-                              position: "absolute",
-                              top: "60%",
-                              fontSize: "14px",
-                              color: "grey",
-                              pointerEvents: "none",
-                            }}
-                          >
-                            --/--/--
-                          </span>
-                        )}
-
-                        {takeoffDate && (
-                          <button
-                            style={{
-                              backgroundColor: "purple",
-                              boxShadow: "0px 0px 2px rgb(85, 51, 123)",
-                              borderStyle: "none",
-                              padding: "8px 10px",
-                              fontFamily: "Montserrat",
-                              fontWeight: "bold",
-                              fontSize: "12px",
-                              color: "white",
-                              borderRadius: "10px",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              marginTop: "10px",
-                            }}
-                            onClick={() => setTakeoffDate("")}
-                          >
-                            RESET
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Touchdown Section */}
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          padding: "10px",
-                          position: "relative",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "rgb(187, 150, 218)",
-                            fontSize: "90%",
-                            fontWeight: "bold",
-                            marginBottom: "10%",
-                          }}
-                        >
-                          TOUCHDOWN
-                        </span>
-                        <input
-                          type="date"
-                          value={touchdownDate}
-                          onChange={(e) => setTouchdownDate(e.target.value)}
-                          style={{
-                            color: takeoffDate ? "white" : "black",
-                            fontSize: "90%",
-                            textAlign: "center",
-                            border: "1px dashed grey",
-                            padding: "5px",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            backgroundColor: "black",
-                            width: "85%",
-                          }}
-                        />
-                        <FaCalendarAlt
-                          style={{
-                            position: "absolute",
-                            right: "12%",
-                            top: "69%",
-                            transform: "translateY(-50%)",
-                            color: "white",
-                            pointerEvents: "none",
-                          }}
-                        />
-                        {!touchdownDate && (
-                          <span
-                            style={{
-                              position: "absolute",
-                              top: "60%",
-                              fontSize: "14px",
-                              color: "grey",
-                              pointerEvents: "none",
-                            }}
-                          >
-                            --/--/--
-                          </span>
-                        )}
-
-                        {touchdownDate && (
-                          <button
-                            style={{
-                              backgroundColor: "purple",
-                              boxShadow: "0px 0px 2px rgb(85, 51, 123)",
-                              borderStyle: "none",
-                              padding: "8px 10px",
-                              fontFamily: "Montserrat",
-                              fontWeight: "bold",
-                              fontSize: "12px",
-                              color: "white",
-                              borderRadius: "10px",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              marginTop: "10px",
-                            }}
-                            onClick={() => setTouchdownDate("")}
-                          >
-                            RESET
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        columnGap: "10px",
-                        placeItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <button
-                        onClick={handleBack}
-                        style={{
-                          backgroundColor: "rgb(71, 47, 110)",
-                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                          borderStyle: "none",
-                          padding: "10px 20px",
-                          fontFamily: "Montserrat",
-                          fontWeight: "bold",
-                          fontSize: "15px",
-                          color: "white",
-                          width: "70%",
-                          borderRadius: "10px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 15px rgb(145, 117, 177)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 10px rgb(85, 51, 123)")
-                        }
-                      >
-                        BACK
-                      </button>
-
-                      <button
-                        onClick={handleNext}
-                        style={{
-                          backgroundColor: "rgb(71, 47, 110)",
-                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                          borderStyle: "none",
-                          padding: "10px 20px",
-                          fontFamily: "Montserrat",
-                          fontWeight: "bold",
-                          fontSize: "15px",
-                          color: "white",
-                          width: "70%",
-                          borderRadius: "10px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 15px rgb(145, 117, 177)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 10px rgb(85, 51, 123)")
-                        }
-                      >
-                        NEXT
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {step === 4 && (
-                  <>
-                    <h2
-                      style={{
-                        fontSize: "132%",
-                        marginTop: "0",
-                        fontFamily: "P2P",
-                        fontWeight: "lighter",
-                        marginBottom: "20px",
-                        color: "purple",
-                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                      }}
-                    >
-                      Step 4 of 4:
-                    </h2>
-                    <h2
-                      style={{
-                        marginTop: "-15px",
-                        fontFamily: "P2P",
-                        fontWeight: "lighter",
-                        color: "purple",
-                        textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                      }}
-                    >
-                      Set Name
-                    </h2>
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        placeItems: "center",
-                        marginBottom: "5%",
-                      }}
-                    >
-                      <div>
-                        <input
-                          type="radio"
-                          name="myRadio"
-                          value="nameIt"
-                          required
-                          style={{ accentColor: "purple" }}
-                          checked={nameOption === "nameIt"}
-                          onChange={() => setNameOption("nameIt")}
-                        />
-                        Name Itinerary
-                      </div>
-
-                      <div>
-                        <input
-                          type="radio"
-                          name="myRadio"
-                          value="default"
-                          required
-                          style={{ accentColor: "purple" }}
-                          checked={nameOption === "default"}
-                          onChange={() => {
-                            setNameOption("default");
-                            setItineraryName(city); // Reset to city name
-                          }}
-                        />
-                        Default (City)
-                      </div>
-                    </div>
-
-                    {/* Show input field if "Name Itinerary" is selected */}
-                    {nameOption === "nameIt" && (
-                      <input
-                        type="text"
-                        value={itineraryName}
-                        onChange={(e) => setItineraryName(e.target.value)}
-                        placeholder="Enter itinerary name..."
-                        style={{
-                          width: "95%",
-                          maxHeight: "200px",
-                          overflowY: "auto",
-                          borderRadius: "5px",
-                          background: "rgb(0, 0, 0)",
-                          marginBottom: "10px",
-                          borderStyle: "solid",
-                          borderWidth: "1px",
-                          padding: "8px",
-                          fontFamily: "Inter",
-                          fontSize: "14px",
-                          marginTop: "-10px",
-                        }}
-                      />
-                    )}
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        columnGap: "10px",
-                        placeItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <button
-                        onClick={handleBack}
-                        style={{
-                          backgroundColor: "rgb(71, 47, 110)",
-                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                          borderStyle: "none",
-                          padding: "10px 20px",
-                          fontFamily: "Montserrat",
-                          fontWeight: "bold",
-                          fontSize: "15px",
-                          color: "white",
-                          width: "70%",
-                          borderRadius: "10px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 15px rgb(145, 117, 177)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 10px rgb(85, 51, 123)")
-                        }
-                      >
-                        BACK
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          handleFinish();
-                          setSelectedOption("");
-                          setIsDialogOpen(false);
-                          setStep(1);
-                          setCity("");
-                          setTouchdownDate("");
-                          setTakeoffDate("");
-                          setNameOption("");
-                          setItineraryName("");
-                        }}
-                        style={{
-                          backgroundColor: "rgb(71, 47, 110)",
-                          boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                          borderStyle: "none",
-                          padding: "10px 20px",
-                          fontFamily: "Montserrat",
-                          fontWeight: "bold",
-                          fontSize: "15px",
-                          color: "white",
-                          width: "70%",
-                          borderRadius: "10px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 15px rgb(145, 117, 177)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.target.style.boxShadow =
-                            "0px 0px 10px rgb(85, 51, 123)")
-                        }
-                      >
-                        FINISH
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
+              {selectedItinerary ? (
+                <>
+                  <h2>{selectedItinerary.title || "Untitled Itinerary"}</h2>
+                  <p>City: {selectedItinerary.city || "Unknown"}</p>
+                  <p>Status: {selectedItinerary.status || "N/A"}</p>
+                  <p>Budget: {selectedItinerary.budget || "N/A"}</p>
+                </>
+              ) : soloItineraries.length > 0 ? (
+                <p>Select an itinerary to see details</p>
+              ) : (
+                <p>Create your first itinerary</p>
+              )}
+            </div>
           </div>
         </div>
       </section>

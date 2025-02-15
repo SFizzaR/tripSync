@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../assets/headerBg.jpg";
 import logo from "../assets/plane.PNG";
@@ -31,6 +31,44 @@ export default function Itinerary() {
   const [nameOption, setNameOption] = useState("default");
   const [itineraryName, setItineraryName] = useState(city);
 
+  const [soloItineraries, setSoloItineraries] = useState([]);
+
+  useEffect(() => {
+    fetchSoloItineraries(); // Fetch when component mounts
+  }, []);
+  
+    const fetchSoloItineraries = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        console.log("No token found. User not authenticated.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:5001/api/itineraries/solo", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setSoloItineraries(data); 
+        } else {
+          console.error("Error:", data.message);
+        }
+      } catch (error) {
+        console.error("Failed to fetch itineraries:", error);
+      }
+    };
+
+  const handleItineraryClick = (itineraryId) => {
+    navigate(`/itinerary/${itineraryId}`); // Redirect to itinerary details page
+  };
+  
   const handleSearch = (e) => {
     const searchValue = e.target.value.toLowerCase();
     setCity(e.target.value);
@@ -88,6 +126,9 @@ export default function Itinerary() {
 
       if (response.ok) {
           alert("🎉 Itinerary saved successfully!");
+
+          setSoloItineraries((prevItineraries) => [...prevItineraries, data]);
+
       } else {
           alert("❌ Error: " + (data.error || "Unknown error"));
       }
@@ -95,7 +136,6 @@ export default function Itinerary() {
       alert("Failed to save itinerary.");
   }
 };
-
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -510,6 +550,53 @@ export default function Itinerary() {
               }}
             >
               SOLO TRIP ITINERARIES
+              <navbar>
+                <ul
+                  style={{
+                    height: "88%",
+                    padding: "0",
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                  }}
+                >
+                  {soloItineraries &&
+                  Array.isArray(soloItineraries) &&
+                  soloItineraries.length > 0 ? (
+                    soloItineraries.map((itinerary) => (
+                      <li
+                        key={itinerary.id}
+                        style={{
+                          color: "white",
+                          display: "block",
+                          borderTop: "1px solid",
+                          listStyle: "none",
+                          width: "100%",
+                          padding: "10px",
+                          margin: 0,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => handleItineraryClick(itinerary.id)}
+                      >
+                        {itinerary.title ||
+                          itinerary.name ||
+                          "Untitled Itinerary"}
+                      </li>
+                    ))
+                  ) : (
+                    <li
+                      style={{
+                        color: "gray",
+                        textAlign: "center",
+                        padding: "10px",
+                        listStyle: "none",
+                      }}
+                    >
+                      No Itineraries found.
+                    </li>
+                  )}
+                </ul>
+              </navbar>
+
             </div>
 
             {/* COLLAB ITINERARY ROW */}

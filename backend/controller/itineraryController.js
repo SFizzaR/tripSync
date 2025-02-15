@@ -41,6 +41,20 @@ const createItinerary = expressAsyncHandler(async (req, res) => {
   }
 });
 
+const getSoloItineraries = expressAsyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const itineraries = await Itinerary.find({ users: userId })
+      .select("title") // Fetch only titles
+      .lean();
+
+    res.status(200).json(itineraries);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching itineraries", error: error.message });
+  }
+});
+
 const updateItinerary = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
   const { title, status, startDate, endDate, budget } = req.body;
@@ -142,5 +156,4 @@ const addUserToItinerary = expressAsyncHandler(async (req, res) => {
 })
 
 
-module.exports = { createItinerary, updateItinerary, addPlaceToItinerary, addUserToItinerary };
-
+module.exports = { createItinerary, getSoloItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary };

@@ -46,12 +46,29 @@ const getSoloItineraries = expressAsyncHandler(async (req, res) => {
     const userId = req.user._id;
 
     const itineraries = await Itinerary.find({ users: userId })
-      .select("title") // Fetch only titles
+      .select("_id title city status budget") 
+      .lean();
+ 
+    res.status(200).json(itineraries);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching itineraries", error: error.message });
+  }
+});
+
+const getColabItineraries = expressAsyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const itineraries = await Itinerary.find({ 
+        users: userId,
+      collaborative:true 
+    })
+      .select("_id title") 
       .lean();
 
     res.status(200).json(itineraries);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching itineraries", error: error.message });
+    res.status(500).json({ message: "Error fetching collaborative itineraries", error: error.message });
   }
 });
 
@@ -156,4 +173,4 @@ const addUserToItinerary = expressAsyncHandler(async (req, res) => {
 })
 
 
-module.exports = { createItinerary, getSoloItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary };
+module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary };

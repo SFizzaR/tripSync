@@ -31,34 +31,44 @@ export default function Itinerary() {
   const [itineraryName, setItineraryName] = useState(city);
 
   const [soloItineraries, setSoloItineraries] = useState([]);
-
+  const [colabItineraries, setColabItineraries] = useState([]);
+  const [selectedItinerary, setSelectedItinerary] = useState(null);
+  
   useEffect(() => {
-    fetchSoloItineraries(); // Fetch when component mounts
+    fetchSoloItineraries();
+    fetchColabItineraries();
   }, []);
-
+  
   const fetchSoloItineraries = async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       console.log("No token found. User not authenticated.");
       return;
     }
-
+  
     try {
-      const response = await fetch(
-        "http://localhost:5001/api/itineraries/solo",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      const response = await fetch("http://localhost:5001/api/itineraries/solo", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
       const data = await response.json();
-
+      console.log("Fetched Solo Itineraries:", data); 
+  
       if (response.ok) {
-        setSoloItineraries(data);
+        if (Array.isArray(data)) {
+          setSoloItineraries(
+            data.map((itinerary) => ({
+              ...itinerary,
+              id: itinerary._id, 
+            }))
+          );
+        } else {
+          console.error("Expected an array but got:", data);
+        }
       } else {
         console.error("Error:", data.message);
       }
@@ -66,18 +76,67 @@ export default function Itinerary() {
       console.error("Failed to fetch itineraries:", error);
     }
   };
-
-  const [selectedItinerary, setSelectedItinerary] = useState(null);
-
+  
+  
+  const fetchColabItineraries = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.log("No token found. User not authenticated.");
+      return;
+    }
+  
+    try {
+      const response = await fetch("http://localhost:5001/api/itineraries/colab", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        if (Array.isArray(data)) {
+          setColabItineraries(
+            data.map((itinerary) => ({
+              ...itinerary,
+              id: itinerary._id, 
+            }))
+          );
+        } else {
+          console.error("Expected an array but got:", data);
+        }
+      } else {
+        console.error("Error:", data.message);
+      }
+    } catch (error) {
+      console.error("Failed to fetch itineraries:", error);
+    }
+  };
+  
   const handleItineraryClick = (itineraryId) => {
-    alert("Clicked Itinerary ID:", itineraryId);
-    const selected = soloItineraries.find(
-      (itinerary) => String(itinerary.id) === String(itineraryId)
-    );
-    alert("Found Itinerary:", selected);
+    console.log("Clicked Itinerary ID:", itineraryId);
+  
+    if (!itineraryId) {
+      console.error("❌ Error: Itinerary ID is null or undefined!");
+      return;
+    }
+  
+    const selected =
+      soloItineraries.find((itinerary) => String(itinerary.id) === String(itineraryId)) ||
+      colabItineraries.find((itinerary) => String(itinerary.id) === String(itineraryId));
+  
+    if (!selected) {
+      console.error("❌ Error: No itinerary found with this ID!");
+      return;
+    }
+  
+    console.log("✅ Found Itinerary:", selected);
     setSelectedItinerary(selected);
   };
-
+  
+  
+  
   const handleSearch = (e) => {
     const searchValue = e.target.value.toLowerCase();
     setCity(e.target.value);
@@ -132,13 +191,19 @@ export default function Itinerary() {
           body: JSON.stringify(itineraryData),
         }
       );
-
       const data = await response.json();
 
       if (response.ok) {
         alert("🎉 Itinerary saved successfully!");
 
-        setSoloItineraries((prevItineraries) => [...prevItineraries, data]);
+        const newItinerary = { ...data, id: data._id };
+
+      if (isCollaborative) {
+        setColabItineraries((prev) => [...prev, newItinerary]); // ✅ Add to colab only
+      } else {
+        setSoloItineraries((prev) => [...prev, newItinerary]); // ✅ Add to solo only
+      }
+
       } else {
         alert("❌ Error: " + (data.error || "Unknown error"));
       }
@@ -1463,10 +1528,10 @@ export default function Itinerary() {
                     paddingBottom: "-10px"
                   }}
                 >
-                  {soloItineraries &&
-                  Array.isArray(soloItineraries) &&
-                  soloItineraries.length > 0 ? (
-                    soloItineraries.map((itinerary) => (
+                  {colabItineraries &&
+                  Array.isArray(colabItineraries) &&
+                  colabItineraries.length > 0 ? (
+                    colabItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
                         style={{

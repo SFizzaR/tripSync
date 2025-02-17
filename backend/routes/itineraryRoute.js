@@ -9,5 +9,6 @@ router.post('/places/:id', addPlaceToItinerary);
 router.post('/users/:id', addUserToItinerary);
 router.get("/solo", protect, getSoloItineraries);
 router.get("/colab", protect, getColabItineraries);
+router.delete('/:itineraryId/remove-user/:userId', protect, deleteUser);
 
 module.exports = router;

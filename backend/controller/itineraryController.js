@@ -172,5 +172,49 @@ const addUserToItinerary = expressAsyncHandler(async (req, res) => {
   }
 })
 
+const deleteUser = expressAsyncHandler(async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id; // Logged-in user (admin or normal user)
+    const { itineraryId, userId: targetUserId } = req.params; // Extract IDs
 
-module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary };
+    const itinerary = await Itinerary.findById(itineraryId);
+    if (!itinerary) {
+      return res.status(404).json({ message: "Itinerary not found" });
+    }
+
+    // Allow users to remove themselves OR admin to remove anyone
+    const isAdmin = loggedInUserId.toString() === itinerary.admin.toString();
+    const isSelf = loggedInUserId.toString() === targetUserId;
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ message: "Access Denied: Only admin can remove others." });
+    }
+
+    if (!itinerary.users.includes(targetUserId)) {
+      return res.status(404).json({ message: "User not found in itinerary." });
+    }
+
+    // Prevent the last user from deleting themselves
+    if (itinerary.users.length === 1) {
+      return res.status(403).json({ message: "Cannot remove the last user. Delete itinerary instead." });
+    }
+
+    // Remove user from the users array
+    itinerary.users = itinerary.users.filter(u => u.toString() !== targetUserId);
+
+    // If the admin is deleting themselves, assign a new admin
+    if (targetUserId === itinerary.admin.toString() && itinerary.users.length > 0) {
+      itinerary.admin = itinerary.users[0]; // First user becomes new admin
+    }
+
+    await itinerary.save();
+
+    return res.status(200).json({ message: isSelf ? "You left the itinerary." : "User removed successfully", itinerary });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
+module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary, deleteUser };

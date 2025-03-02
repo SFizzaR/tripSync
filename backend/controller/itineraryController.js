@@ -8,7 +8,6 @@ const Place = require("../models/placesModel");
 const { fetchCityFromCoordinates } = require('../utils/findCity');
 
 
-
 const createItinerary = expressAsyncHandler(async (req, res) => {
   try {
     const { collaborative, status, city, startDate, endDate, budget,title } = req.body;
@@ -26,7 +25,7 @@ const createItinerary = expressAsyncHandler(async (req, res) => {
       users: [req.user._id], // First user is the logged-in user
       admin: req.user._id,
       city,
-      collaborative,
+      collaborative : collaborative || false,
       status: status || "planning",
       startDate: startDate || null,
       endDate: endDate || null,
@@ -46,7 +45,11 @@ const getSoloItineraries = expressAsyncHandler(async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const itineraries = await Itinerary.find({ users: userId })
+    const itineraries = await Itinerary.find
+    ({ 
+      users: userId,
+      collaborative: false
+     })
       .select("_id title city status budget") 
       .lean();
  
@@ -112,6 +115,7 @@ const updateItinerary = expressAsyncHandler(async (req, res) => {
   }
 });
 
+
 const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
   const { placeId } = req.body;
@@ -170,7 +174,7 @@ const addUserToItinerary = expressAsyncHandler(async (req, res) => {
   catch (error) {
     res.status(500).json({ message: "Error finding user" });
   }
-});
+})
 
 const deleteUser = expressAsyncHandler(async (req, res) => {
   try {

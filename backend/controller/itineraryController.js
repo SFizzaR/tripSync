@@ -8,6 +8,7 @@ const Place = require("../models/placesModel");
 const { fetchCityFromCoordinates } = require('../utils/findCity');
 
 
+
 const createItinerary = expressAsyncHandler(async (req, res) => {
   try {
     const { collaborative, status, city, startDate, endDate, budget,title } = req.body;
@@ -110,7 +111,6 @@ const updateItinerary = expressAsyncHandler(async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
-
 
 const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;

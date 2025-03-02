@@ -170,7 +170,7 @@ const addUserToItinerary = expressAsyncHandler(async (req, res) => {
   catch (error) {
     res.status(500).json({ message: "Error finding user" });
   }
-})
+});
 
 const deleteUser = expressAsyncHandler(async (req, res) => {
   try {
@@ -216,5 +216,53 @@ const deleteUser = expressAsyncHandler(async (req, res) => {
   }
 });
 
+const deletePlace = expressAsyncHandler(async (req, res) => {
+  try {
+    const { itineraryId, placeId: targetPlaceId } = req.params;
 
-module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary, deleteUser };
+
+    // Fetch the itinerary
+    const itinerary = await Itinerary.findById(itineraryId);
+    if (!itinerary) {
+      console.log("Itinerary not found");
+      return res.status(404).json({ message: "Itinerary not found" });
+    }
+
+    console.log("Itinerary found:", itinerary);
+
+    // Convert targetPlaceId to ObjectId if needed
+    const targetPlaceObjectId = mongoose.Types.ObjectId.isValid(targetPlaceId)
+      ? new mongoose.Types.ObjectId(targetPlaceId)
+      : targetPlaceId;
+
+
+    // Check if the place exists in the itinerary
+    if (!itinerary.places.some(place => place.toString() === targetPlaceId)) {
+      return res.status(404).json({ message: "Place not found in itinerary." });
+    }
+
+
+    // Remove the place from the itinerary
+    const updatedItinerary = await Itinerary.findByIdAndUpdate(
+      itineraryId,
+      { $pull: { places: targetPlaceObjectId } },
+      { new: true }
+    );
+
+    if (!updatedItinerary) {
+      return res.status(404).json({ message: "Failed to delete place." });
+    }
+
+
+    return res.status(200).json({
+      message: "Place deleted successfully",
+      itinerary: updatedItinerary
+    });
+
+  } catch (error) {
+    console.error("Error deleting place:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary, deleteUser, deletePlace };

@@ -1,5 +1,5 @@
 const express = require("express");
-const {createItinerary,getSoloItineraries,getColabItineraries ,updateItinerary, addPlaceToItinerary, addUserToItinerary} = require("../controller/itineraryController");
+const {createItinerary,getSoloItineraries,getColabItineraries ,updateItinerary, addPlaceToItinerary, addUserToItinerary,deleteUser,deletePlace} = require("../controller/itineraryController");
 const router = express.Router();
 const {protect} = require("../middleware/errorHandler")
 

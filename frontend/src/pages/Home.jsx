@@ -722,12 +722,12 @@ export default function Home() {
               fontFamily: "P2P",
               fontWeight: "lighter",
               color: "white",
-              textShadow: "0 0 10px rgb(170, 202, 224)",
+              textShadow: "0 0 5px rgb(170, 202, 224)",
               fontSize: "2.5vw",
-              backgroundColor: "rgb(16, 50, 82)",
+              backgroundColor: "rgb(12, 37, 82)",
               borderStyle: "none",
               borderRadius: "10px",
-              boxShadow: "0 0 15px rgba(166, 200, 228, 0.86)",
+              boxShadow: "0 0 15px rgba(7, 42, 70, 0.86)",
               transition: "all 0.2s ease-in-out",
               cursor: "pointer",
               zIndex: "1",
@@ -757,7 +757,7 @@ export default function Home() {
                   borderStyle: "dotted",
                   borderRadius: "10px",
                   margin: "20px 5% 0 7%",
-                  backgroundColor: "rgba(169, 184, 199, 0.65)",
+                  backgroundColor: "rgba(142, 184, 226, 0.65)",
                   fontSize: "2.5vw",
                   textAlign: "center",
                   marginBottom: "5%",
@@ -814,7 +814,7 @@ export default function Home() {
                     style={{
                       margin: "2%",
                       textShadow: "1px 1px 10px rgba(226, 71, 205, 0.5)",
-                      color: "rgb(78, 8, 112)",
+                      color: "rgb(18, 19, 66)",
                     }}
                   >
                     Zahab Jahangir
@@ -826,7 +826,7 @@ export default function Home() {
                     style={{
                       margin: "2%",
                       textShadow: "1px 1px 10px rgba(226, 71, 205, 0.5)",
-                      color: "rgb(78, 8, 112)",
+                      color: "rgb(18, 19, 66)",
                     }}
                   >
                     Syeda Fizza
@@ -838,7 +838,7 @@ export default function Home() {
                     style={{
                       margin: "2%",
                       textShadow: "1px 1px 10px rgba(226, 71, 205, 0.5)",
-                      color: "rgb(78, 8, 112)",
+                      color: "rgb(18, 19, 66)",
                     }}
                   >
                     Zehra Waqar
@@ -850,12 +850,12 @@ export default function Home() {
                     style={{
                       marginTop: "5%",
                       textShadow: "1px 1px 3px rgba(0,0,0,0.6)",
-                      fontFamily: "P2P",
-                      fontSize: "70%",
-                      fontWeight: "lighter",
+                      fontFamily: "Inter",
+                      fontSize: "100%",
+                      fontWeight: "bold",
                     }}
                   >
-                    Backend Developer
+                    BACKEND DEVELOPER
                   </p>
                 </div>
 
@@ -864,12 +864,12 @@ export default function Home() {
                     style={{
                       marginTop: "5%",
                       textShadow: "1px 1px 3px rgba(0,0,0,0.6)",
-                      fontFamily: "P2P",
-                      fontSize: "70%",
-                      fontWeight: "lighter",
+                      fontFamily: "Inter",
+                      fontSize: "100%",
+                      fontWeight: "bold",
                     }}
                   >
-                    Lead Developer
+                    LEAD DEVELOPER
                   </p>
                 </div>
 
@@ -878,12 +878,12 @@ export default function Home() {
                     style={{
                       marginTop: "5%",
                       textShadow: "1px 1px 3px rgb(0,0,0,0.6)",
-                      fontFamily: "P2P",
-                      fontSize: "70%",
-                      fontWeight: "lighter",
+                      fontFamily: "Inter",
+                      fontSize: "100%",
+                      fontWeight: "bold",
                     }}
                   >
-                    Frontend Developer
+                    FRONTEND DEVELOPER
                   </p>
                 </div>
 
@@ -893,7 +893,7 @@ export default function Home() {
                     style={{
                       marginTop: "5%",
                       fontFamily: "Inter",
-                      fontSize: "70%",
+                      fontSize: "80%",
                       fontWeight: "bold",
                       color: "rgb(10, 37, 63)",
                       textDecoration: "none",
@@ -909,7 +909,7 @@ export default function Home() {
                     style={{
                       marginTop: "5%",
                       fontFamily: "Inter",
-                      fontSize: "70%",
+                      fontSize: "80%",
                       fontWeight: "bold",
                       color: "rgb(10, 37, 63)",
                       textDecoration: "none",
@@ -925,7 +925,7 @@ export default function Home() {
                     style={{
                       marginTop: "5%",
                       fontFamily: "Inter",
-                      fontSize: "70%",
+                      fontSize: "80%",
                       fontWeight: "bold",
                       color: "rgb(10, 37, 63)",
                       textDecoration: "none",

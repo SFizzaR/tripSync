@@ -2,15 +2,13 @@ import React from "react";
 import { useState, useEffect } from "react";
 import Header from "../assets/headerBg.jpg";
 import logo from "../assets/plane.PNG";
-import plane from "../assets/plane.PNG";
 import { Link } from "react-router-dom";
 import "../font.css";
-import axios from "axios";
-import menu from "../assets/icons/ellipsis-vertical-solid.svg";
-import home from "../assets/icons/house-solid.svg";
-import list from "../assets/icons/list-check-solid.svg";
-import settings from "../assets/icons/gear-solid.svg";
-import logout from "../assets/icons/right-from-bracket-solid.svg";
+import menu from "../assets/icons/options/ellipsis-vertical-solid.svg";
+import home from "../assets/icons/options/house-solid.svg";
+import list from "../assets/icons/options/list-check-solid.svg";
+import settings from "../assets/icons/options/gear-solid.svg";
+import logout from "../assets/icons/options/right-from-bracket-solid.svg";
 import { useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import "./CustomCalendar.css";
@@ -259,6 +257,7 @@ export default function Dashboard() {
                         gap: "10px",
                         padding: "8px 15px",
                         cursor: "pointer",
+                        borderRadius: "8px"
                       }}
                       onMouseEnter={(e) =>
                         (e.target.style.background = "rgba(255, 255, 255, 0.1)")

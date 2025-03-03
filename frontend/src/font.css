@@ -66,7 +66,7 @@ nav a:hover {
 }
 
 body{
-  background-color: rgb(0, 17, 19);
+  background: linear-gradient(180deg, rgb(6, 35, 49), rgb(86, 144, 167));
 }
 
 @keyframes flashing {
@@ -103,4 +103,14 @@ body{
 .collab-itineraries {
   scrollbar-width: thin; 
   scrollbar-color: rgb(101, 140, 175) #1e1e1e;
+}
+
+.filters {
+  scrollbar-width: thin; 
+  scrollbar-color: rgb(62, 16, 95) #1e1e1e;
+}
+
+.filters::-webkit-scrollbar-thumb {
+  background: rgb(62, 16, 95); 
+  border-radius: 10px;
 }

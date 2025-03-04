@@ -1,4 +1,5 @@
 cd frontend
 npm i 
-npm i react-router-dom react-icons framer-motion axios react-calendar
+npm i react-router-dom react-icons framer-motion axios react-calendar jwt-decode @fontsource/inter
+
 npm run dev

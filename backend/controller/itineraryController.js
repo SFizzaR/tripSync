@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 const Itinerary = require("../models/ItinerariesModel");
 const Place = require("../models/placesModel");
-const { fetchCityFromCoordinates } = require('../utils/findCity');
+const { fetchCityFromCoordinates } = require('../utils/geocoding');
 
 
 const createItinerary = expressAsyncHandler(async (req, res) => {

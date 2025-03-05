@@ -15,7 +15,6 @@ const getPlaces = expressAsyncHandler(async (req, res) => {
 
         // 🔹 Step 1: Try Geolocation Search
         const cityCoordinates = await getCoordinates(search);
-        console.log("City Coordinates:", cityCoordinates);
 
         if (cityCoordinates?.lat && cityCoordinates?.lng) {
             const radiusInKm = 10;
@@ -35,8 +34,6 @@ const getPlaces = expressAsyncHandler(async (req, res) => {
                 { categories: { $regex: search, $options: "i" } }
             ]
         };
-        console.log("Search Query:", search);
-        console.log("MongoDB Query:", JSON.stringify(query, null, 2));
 
         const nameCategoryMatches = await placesModel.find(query);
 

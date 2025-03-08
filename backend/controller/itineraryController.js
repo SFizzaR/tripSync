@@ -279,4 +279,26 @@ const deletePlace = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary, deleteUser, deletePlace };
+const deleteItinerary = expressAsyncHandler(async (req, res) => {
+  try {
+    const { itineraryId } = req.params;
+    const user_id = req.user._id;
+    const itinerary = await Itinerary.findById(itineraryId);
+    if (!itinerary) {
+      console.log("Itinerary not found");
+      return res.status(404).json({ message: "Itinerary not found" });
+    }
+    const isAdmin = user_id.toString() === itinerary.admin.toString();
+    if (!isAdmin) return res.status(403).json({ message: "Access Denied: Only admin can delete itinerary." });
+    await Itinerary.findByIdAndDelete(itineraryId);
+
+    res.status(200).json({ message: "Itinerary deleted successfully" });
+
+  }
+  catch (error) {
+    console.error("Error deleting itinerary:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary, deleteUser, deletePlace, deleteItinerary};

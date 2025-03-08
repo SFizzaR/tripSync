@@ -152,28 +152,39 @@ const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
 });
 
 const addUserToItinerary = expressAsyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { userId } = req.body;
+  const { Itineraryid, userId } = req.params;
+
   try {
-    const itinerary = await Itinerary.findById(id);
-    if (!itinerary) return res.status(404).json({ message: "Itinerary not found" });
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" })
-
-    if (!itinerary.users.includes(userId)) {
-      const updatedItinerary = await Itinerary.findByIdAndUpdate(
-        id,
-        { $addToSet: { users: userId } },
-        { new: true }
-      )
+    const itinerary = await Itinerary.findById(Itineraryid);
+    if (!itinerary) {
+      return res.status(404).json({ message: "Itinerary not found" });
     }
-    res.json({ message: "User added", itinerary });
+    if (!itinerary.collaborative) {
+      return res.status(409).json({ message: "Cannot invite users to a solo itinerary" });
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (itinerary.users.includes(userId)) {
+      return res.status(200).json({ message: "User is already in the itinerary", itinerary });
+    }
+
+    const updatedItinerary = await Itinerary.findByIdAndUpdate(
+      Itineraryid,
+      { $addToSet: { users: userId } }, 
+      { new: true }
+    );
+
+    return res.status(201).json({ message: "User added", itinerary: updatedItinerary });
+
+  } catch (error) {
+    console.error("Error adding user to itinerary:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-  catch (error) {
-    res.status(500).json({ message: "Error finding user" });
-  }
-})
+});
+
 
 const deleteUser = expressAsyncHandler(async (req, res) => {
   try {

@@ -117,11 +117,11 @@ const updateItinerary = expressAsyncHandler(async (req, res) => {
 
 
 const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { placeId } = req.body;
+  const { Itineraryid, placeId } = req.params;
+
 
   try {
-    const itinerary = await Itinerary.findById(id);
+    const itinerary = await Itinerary.findById(Itineraryid);
     if (!itinerary) return res.status(404).json({ message: "Itinerary not found" });
 
     const place = await Place.findById(placeId);
@@ -134,7 +134,7 @@ const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
     }
     if (!itinerary.places.includes(placeId)) {
       const updatedItinerary = await Itinerary.findByIdAndUpdate(
-        id,
+        Itineraryid,
         {
           $addToSet: { places: placeId }
         },
@@ -150,7 +150,6 @@ const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
     res.status(500).json({ message: "Error adding place", error: error.message });
   }
 });
-
 
 const addUserToItinerary = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;

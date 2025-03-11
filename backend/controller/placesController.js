@@ -28,19 +28,19 @@ const getPlaces = expressAsyncHandler(async (req, res) => {
 
     const params = {
       near: city,
-      limit: 1000,
+      limit: 50,
     };
 
     if (filter) {
       const categoryId = categoryMapping[filter.toLowerCase()];
       if (categoryId) {
-        params.categories = categoryId; // Use category ID for filtering
+        params.categories = categoryId.toString(); // Use category ID for filtering
       }
     }
 
     const response = await axios.get(url, {
       headers: {
-        Authorization: process.env.FOURSQUARE_API,
+        Authorization: process.env.FOURSQUARE_API.trim(),
       },
       params: params,
     });
@@ -57,3 +57,39 @@ const getPlaces = expressAsyncHandler(async (req, res) => {
 });
 
 module.exports = { getPlaces };
+
+
+/*
+const expressAsyncHandler = require("express-async-handler");
+const axios = require("axios");
+require("dotenv").config();
+
+//FOURSQUARE_API='fsq3kPHD7I0QVpqXg6ENkf1tD6eUkDvQI0EZ8XohpEMOeEw='
+
+const getPlaces = expressAsyncHandler(async (req, res) => {
+  const { city } = req.query;
+
+  if (!city) {
+    return res.status(400).json({ message: "City is required" });
+  }
+
+  try {
+    const url = `https://api.foursquare.com/v3/places/search?near=${city}`;
+
+    const options = {
+      headers: {
+        Authorization: ` ${process.env.FOURSQUARE_API}`,
+      },
+    };
+
+    const { data } = await axios.get(url, options);
+
+    res.json(data.results);
+  } catch (error) {
+    console.error("Error:", error.message);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+module.exports = { getPlaces };
+*/

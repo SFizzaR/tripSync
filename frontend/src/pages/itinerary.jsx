@@ -61,6 +61,7 @@ export default function Itinerary() {
   const [places, setPlaces] = useState([]);
 
 
+
   const [selectedFilter, setSelectedFilter] = useState(null);
   const [allPlaces, setAllPlaces] = useState([]); 
 
@@ -69,10 +70,10 @@ export default function Itinerary() {
 
 
   const filters = [
-    { id: "historical", src: hist, label: "Historical" },
-    { id: "restaurants", src: rest, label: "Restaurants" },
-    { id: "shopping", src: malls, label: "Shopping" },
-    { id: "cafes", src: cafes, label: "Cafes" },
+    { id: "history", src: hist, label: "Historical" },
+    { id: "restaurant", src: rest, label: "Restaurants" },
+    { id: "mall", src: malls, label: "Shopping" },
+    { id: "cafe", src: cafes, label: "Cafes" },
   ];
 
   const options = ["Option 1", "Option 2", "Option 3", "Option 4"];
@@ -171,33 +172,7 @@ export default function Itinerary() {
       console.error("Failed to fetch itineraries:", error);
     }
   };
-  
-  const fetchPlaces = async (city) => {
-    try {
-      const response = await axios.get(`http://localhost:5001/api/places/getplaces?city=${city}`);
-      console.log("Fetched Places:", response.data);
-      setAllPlaces(response.data);
-      setPlaces(response.data); // Set initially as full data
-    } catch (error) {
-      console.error("Failed to fetch places:", error);
-    }
-  };
-  
-  const handleFilterClick = (id) => {
-    setSelectedFilter(id); // Update the selected filter
-  
-    if (!id) {
-      setPlaces(allPlaces); // Show all places when no filter is selected
-    } else {
-      const filtered = allPlaces.filter((place) =>
-        place.categories.some((cat) => {
-          return cat?.name?.toLowerCase() === categoryMapping[id]?.toLowerCase();
-        })
-      );
-      setPlaces(filtered);
-    }
-  };
-  
+
   const handleItineraryClick = (itineraryId) => {
     console.log("Clicked Itinerary ID:", itineraryId);
   
@@ -222,15 +197,65 @@ export default function Itinerary() {
     console.log("✅ Found Itinerary:", selected);
     setSelectedItinerary(selected);
     setSelectedOption(selected.collaborative ? "collaborative" : "solo");
+
+    if (selected.city) {
+      setCity(selected.city); // Ensure city is set before fetching
+      fetchPlaces(selected.city);
+    } else {
+      console.error("❌ Error: City not found in itinerary");
+    }
   
-    fetchPlaces(selected.city);
   };
 
+  useEffect(() => {
+    console.log("Updated places:", places);
+  }, [places]);
+  
+
+  
+  const fetchPlaces = async (city, filter = "") => {
+    try {
+      console.log("Fetching places for city:", city, "with filter:", filter);
+  
+      const response = await axios.get(
+        `http://localhost:5001/api/places/getplaces?city=${city}&filter=${filter}`
+      );
+  
+      console.log("Fetched Places:", response.data); // Debugging
+  
+      setAllPlaces(response.data);
+      setPlaces(response.data); // Ensure correct data is set
+    } catch (error) {
+      console.error("Failed to fetch places:", error);
+    }
+  };
+  
+  const handleFilterClick = (id) => {
+    console.log("Filter clicked:", id);
+    if (!city) {
+      console.error("❌ Error: City is not selected!");
+      return;
+    }
+    
+    setSelectedFilter(id);
+    fetchPlaces(city, id);
+  };
+  
+  
+    
+  const clearFilter = () => {
+    console.log("Clearing filter...");
+    setSelectedFilter(null);
+    fetchPlaces(city); // Fetch all places again
+  };
+    
+  
+  
   //my coded
 
-const categoryMapping = {
+/*const categoryMapping = {
   cafes: "Coffee Shop",
-  historical: "Monument",
+  history: "Monument",
   restaurants: "Restaurant",
   shopping: "Shopping Mall",
 };
@@ -248,7 +273,7 @@ const filteredPlaces = selectedFilter
       })
     )
   : allPlaces;
-
+/*/
 
   const handleSearch = (e) => {
     const searchValue = e.target.value.toLowerCase();
@@ -2436,6 +2461,7 @@ const filteredPlaces = selectedFilter
                                 {filter.label}
                               </button>
                             ))}
+
                           </div>
 
                           <div>
@@ -2450,8 +2476,8 @@ const filteredPlaces = selectedFilter
                               marginTop: "15px",
                             }}
                           >
-                            {Array.isArray(filteredPlaces) && filteredPlaces.length > 0 ? (
-                              filteredPlaces.map((allPlaces, index) => (
+                            {Array.isArray(places) && places.length > 0 ? (
+                              places.map((place, index) => (
                                 <li
                                   key={index}
                                   style={{
@@ -2474,7 +2500,7 @@ const filteredPlaces = selectedFilter
                                       alert("Place added");
                                     }}
                                   />
-                                  {allPlaces.name}
+                                  {place.name}
                                 </li>
                               ))
                             ) : (

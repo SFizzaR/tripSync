@@ -1,7 +1,10 @@
 const express = require("express");
-const router = express.Router();
-const { getPlaces } = require("../controller/placesController");
+const {getPlaces} = require("../controller/placeController");
 
-router.get('/getplaces', getPlaces);
+const router = express.Router();
+
+
+router.get('/getplaces',getPlaces);
 
 module.exports = router;
+

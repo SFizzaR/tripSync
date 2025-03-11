@@ -107,4 +107,29 @@ const loginUser = expressAsyncHandler(async (req, res) => {
     }
 });
 
-module.exports = {registerUser, loginUser, getFirstname};
+const getUsers = expressAsyncHandler(async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    const users = await User.find({
+      $or: [
+        { username: { $regex: name, $options: "i" } }
+      ]
+    }).select("_id username"); // Select only necessary fields
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+
+module.exports = {registerUser, loginUser, getFirstname, getUsers};

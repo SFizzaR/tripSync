@@ -1,5 +1,5 @@
 const express = require("express");
-const {loginUser, registerUser, getFirstname} = require("../controller/UserController");
+const {loginUser, registerUser, getFirstname, getUsers} = require("../controller/UserController");
 const { protect } = require("../middleware/errorHandler");
 const jwt = require("jsonwebtoken");
 

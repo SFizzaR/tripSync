@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../assets/headerBg.jpg";
 import logo from "../assets/plane.PNG";
@@ -56,7 +58,15 @@ export default function Itinerary() {
 
   const [placesTab, setPlacesTab] = useState(false);
 
+  const [places, setPlaces] = useState([]);
+
+
   const [selectedFilter, setSelectedFilter] = useState(null);
+  const [allPlaces, setAllPlaces] = useState([]); 
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
 
   const filters = [
     { id: "historical", src: hist, label: "Historical" },
@@ -80,11 +90,12 @@ export default function Itinerary() {
   useEffect(() => {
     fetchSoloItineraries();
     fetchColabItineraries();
+   // setSelectedFilter(null);
   }, []);
 
-  const handleFilterClick = (id) => {
-    setSelectedFilter(selectedFilter === id ? null : id); // Toggle selection
-  };
+  useEffect(() => {
+    console.log("Updated Itinerary:", selectedItinerary);
+  }, [selectedItinerary]);
 
   const fetchSoloItineraries = async () => {
     const token = localStorage.getItem("accessToken");
@@ -92,28 +103,25 @@ export default function Itinerary() {
       console.log("No token found. User not authenticated.");
       return;
     }
-
+  
     try {
-      const response = await fetch(
-        "http://localhost:5001/api/itineraries/solo",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      const response = await fetch("http://localhost:5001/api/itineraries/solo", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
       const data = await response.json();
-      console.log("Fetched Solo Itineraries:", data);
-
+      console.log("Fetched Solo Itineraries:", data); 
+  
       if (response.ok) {
         if (Array.isArray(data)) {
           setSoloItineraries(
             data.map((itinerary) => ({
               ...itinerary,
-              id: itinerary._id,
+              id: itinerary._id, 
             }))
           );
         } else {
@@ -126,33 +134,31 @@ export default function Itinerary() {
       console.error("Failed to fetch itineraries:", error);
     }
   };
-
+  
+  
   const fetchColabItineraries = async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       console.log("No token found. User not authenticated.");
       return;
     }
-
+  
     try {
-      const response = await fetch(
-        "http://localhost:5001/api/itineraries/colab",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      const response = await fetch("http://localhost:5001/api/itineraries/colab", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
       const data = await response.json();
       if (response.ok) {
         if (Array.isArray(data)) {
           setColabItineraries(
             data.map((itinerary) => ({
               ...itinerary,
-              id: itinerary._id,
+              id: itinerary._id, 
             }))
           );
         } else {
@@ -165,15 +171,41 @@ export default function Itinerary() {
       console.error("Failed to fetch itineraries:", error);
     }
   };
-
+  
+  const fetchPlaces = async (city) => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/places/getplaces?city=${city}`);
+      console.log("Fetched Places:", response.data);
+      setAllPlaces(response.data);
+      setPlaces(response.data); // Set initially as full data
+    } catch (error) {
+      console.error("Failed to fetch places:", error);
+    }
+  };
+  
+  const handleFilterClick = (id) => {
+    setSelectedFilter(id); // Update the selected filter
+  
+    if (!id) {
+      setPlaces(allPlaces); // Show all places when no filter is selected
+    } else {
+      const filtered = allPlaces.filter((place) =>
+        place.categories.some((cat) => {
+          return cat?.name?.toLowerCase() === categoryMapping[id]?.toLowerCase();
+        })
+      );
+      setPlaces(filtered);
+    }
+  };
+  
   const handleItineraryClick = (itineraryId) => {
     console.log("Clicked Itinerary ID:", itineraryId);
-
+  
     if (!itineraryId) {
       console.error("❌ Error: Itinerary ID is null or undefined!");
       return;
     }
-
+  
     const selected =
       soloItineraries.find(
         (itinerary) => String(itinerary.id) === String(itineraryId)
@@ -181,15 +213,42 @@ export default function Itinerary() {
       colabItineraries.find(
         (itinerary) => String(itinerary.id) === String(itineraryId)
       );
-
+  
     if (!selected) {
       console.error("❌ Error: No itinerary found with this ID!");
       return;
     }
-
+  
     console.log("✅ Found Itinerary:", selected);
     setSelectedItinerary(selected);
+    setSelectedOption(selected.collaborative ? "collaborative" : "solo");
+  
+    fetchPlaces(selected.city);
   };
+
+  //my coded
+
+const categoryMapping = {
+  cafes: "Coffee Shop",
+  historical: "Monument",
+  restaurants: "Restaurant",
+  shopping: "Shopping Mall",
+};
+  
+  console.log("Selected filter:", selectedFilter);
+console.log("All places:", allPlaces);
+
+const filteredPlaces = selectedFilter
+  ? allPlaces.filter((place) =>
+      place.categories.some((cat) => {
+        if (!cat || !cat.name) return false;
+        return categoryMapping[selectedFilter]
+          ?.toLowerCase()
+          .includes(cat.name.toLowerCase());
+      })
+    )
+  : allPlaces;
+
 
   const handleSearch = (e) => {
     const searchValue = e.target.value.toLowerCase();
@@ -265,6 +324,7 @@ export default function Itinerary() {
     }
   };
 
+
   const handleNext = () => {
     if (step === 1 && !selectedOption) {
       alert("Please select an option");
@@ -295,6 +355,9 @@ export default function Itinerary() {
   };
 
   const handleStatusChange = (event) => {};
+
+  console.log("Selected Option:", selectedOption);
+
 
   return (
     <div style={{ paddingBottom: "0", overflowX: "hidden" }}>
@@ -1662,7 +1725,7 @@ export default function Itinerary() {
                       </div>
 
                       <div>
-                        {!selectedItinerary.collaborative && (
+                        {selectedItinerary.collaborative && (
                           <button
                             style={{
                               backgroundColor: "transparent",
@@ -2338,7 +2401,7 @@ export default function Itinerary() {
                             )}
 
                             {/* FILTER BUTTON COMPONENT */}
-                            {filters.map((filter, index) => (
+                            {filters.map((filter) => (
                               <button
                                 key={filter.id}
                                 onClick={() => handleFilterClick(filter.id)}
@@ -2376,63 +2439,58 @@ export default function Itinerary() {
                           </div>
 
                           <div>
-                            <ul
-                              className="filters"
-                              style={{
-                                height: "45vh",
-                                padding: "0",
-                                overflowY: "auto",
-                                overflowX: "hidden",
-                                fontSize: "110%",
-                                padding: "0",
-                                paddingBottom: "-20px",
-                                marginTop: "15px",
-                              }}
-                            >
-                              {soloItineraries &&
-                              Array.isArray(soloItineraries) &&
-                              soloItineraries.length > 0 ? (
-                                soloItineraries.map((itinerary) => (
-                                  <li
-                                    key={itinerary.id}
-                                    style={{
-                                      color: "white",
-                                      display: "block",
-                                      borderTop: "1px solid",
-                                      listStyle: "none",
-                                      width: "100%",
-                                      padding: "10px",
-                                      margin: 0,
-                                      cursor: "pointer",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "5px",
-                                    }}
-                                    onClick={() => {}}
-                                  >
-                                    <img
-                                      src={addPlaces}
-                                      style={{
-                                        width: "5%",
-                                      }}
-                                      onClick={() => alert("place added")}
-                                    />
-                                    PLACE NAME
-                                  </li>
-                                ))
-                              ) : (
+                          <ul
+                            className="filters"
+                            style={{
+                              height: "45vh",
+                              padding: "0",
+                              overflowY: "auto",
+                              overflowX: "hidden",
+                              fontSize: "110%",
+                              marginTop: "15px",
+                            }}
+                          >
+                            {Array.isArray(filteredPlaces) && filteredPlaces.length > 0 ? (
+                              filteredPlaces.map((allPlaces, index) => (
                                 <li
+                                  key={index}
                                   style={{
-                                    color: "gray",
-                                    textAlign: "center",
-                                    padding: "10px",
+                                    color: "white",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "5px",
+                                    borderTop: "1px solid",
                                     listStyle: "none",
+                                    padding: "10px",
+                                    cursor: "pointer",
                                   }}
+                                  //onClick={() => addPlaces(allPlaces)}
                                 >
-                                  No Places found.
+                                  <img
+                                    src={addPlaces}
+                                    style={{ width: "5%" }}
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Prevents the parent click
+                                      alert("Place added");
+                                    }}
+                                  />
+                                  {allPlaces.name}
                                 </li>
-                              )}
-                            </ul>
+                              ))
+                            ) : (
+                              <li
+                                style={{
+                                  color: "gray",
+                                  textAlign: "center",
+                                  padding: "10px",
+                                  listStyle: "none",
+                                }}
+                              >
+                                No Places found.
+                              </li>
+                            )}
+                          </ul>
+
                           </div>
                         </div>
                       )}

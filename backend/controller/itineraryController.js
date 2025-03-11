@@ -1,304 +1,141 @@
 const expressAsyncHandler = require("express-async-handler");
-const User = require("../models/userModel");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv").config();
-const Itinerary = require("../models/ItinerariesModel");
-const Place = require("../models/placesModel");
-const { fetchCityFromCoordinates } = require('../utils/geocoding');
+const axios = require("axios");
+require("dotenv").config();
 
+const categoryMapping = {
+  restaurant:["13065", "13377", "13298"],
+  music: ["10039"],
+  cafe:["13032", "13383"],
+  hotel: ["19014"],
+  shopping: ["17069", "17070"],
+  attraction: ["10000", "12042"],
+  nature: ["16011","16032"], // Handle plural case
+  entertainment: ["19016", "10039","19046"],
+  history: ["10030", "10027", "12003", "12106", "12108","10027"],
+};
 
-const createItinerary = expressAsyncHandler(async (req, res) => {
+const getPlaces = expressAsyncHandler(async (req, res) => {
+  let { city, filter } = req.query;
+
+  if (!city) {
+    return res.status(400).json({ message: "City is required" });
+  }
+
+  if (filter && !categoryMapping[filter.toLowerCase()]) {
+    return res.status(400).json({ message: "Invalid category filter" });
+  }
+
   try {
-    const { collaborative, status, city, startDate, endDate, budget,title } = req.body;
-     
-    console.log("Data recieved: ",req.body)
+    const url = "https://api.foursquare.com/v3/places/search";
+    let params = { near: city, limit: 50 };
 
-    // Validate status
-    const validStatuses = ["planning", "in-progress", "complete"];
-    if (status && !validStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status value." });
+    if (filter) {
+      const categoryIds = categoryMapping[filter.toLowerCase()];
+      if (categoryIds) {
+        params.categories = categoryIds.join(",");
+      }
     }
 
-    // Create itinerary with the logged-in user's ID
-    const itinerary = new Itinerary({
-      users: [req.user._id], // First user is the logged-in user
-      admin: req.user._id,
-      city,
-      collaborative : collaborative || false,
-      status: status || "planning",
-      startDate: startDate || null,
-      endDate: endDate || null,
-      budget: budget || null,
-      title,
+    console.log("Requesting Foursquare API with:", params);
+    const response = await axios.get(url, {
+      headers: { Authorization: process.env.FOURSQUARE_API.trim() },
+      params: params,
     });
 
-    await itinerary.save();
+    let places = response.data.results || [];
 
-    res.status(201).json(itinerary);
-  } catch (error) {
-    res.status(500).json({ message: "Error creating itinerary", error: error.message });
-  }
-});
-
-const getSoloItineraries = expressAsyncHandler(async (req, res) => {
-  try {
-    const userId = req.user._id;
-
-    const itineraries = await Itinerary.find
-    ({ 
-      users: userId,
-      collaborative: false
-     })
-      .select("_id title city status budget") 
-      .lean();
- 
-    res.status(200).json(itineraries);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching itineraries", error: error.message });
-  }
-});
-
-const getColabItineraries = expressAsyncHandler(async (req, res) => {
-  try {
-    const userId = req.user._id;
-
-    const itineraries = await Itinerary.find({ 
-        users: userId,
-      collaborative:true 
-    })
-      .select("_id title") 
-      .lean();
-
-    res.status(200).json(itineraries);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching collaborative itineraries", error: error.message });
-  }
-});
-
-const updateItinerary = expressAsyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { title, status, startDate, endDate, budget } = req.body;
-
-  try {
-    // Validate dates
-    let parsedStartDate = startDate ? new Date(startDate) : undefined;
-    let parsedEndDate = endDate ? new Date(endDate) : undefined;
-
-    if (parsedStartDate && isNaN(parsedStartDate.getTime())) {
-      return res.status(400).json({ message: "Invalid start date format" });
-    }
-
-    if (parsedEndDate && isNaN(parsedEndDate.getTime())) {
-      return res.status(400).json({ message: "Invalid end date format" });
-    }
-
-    if (parsedStartDate && parsedEndDate && parsedStartDate > parsedEndDate) {
-      return res.status(400).json({ message: "Start date cannot be after end date" });
-    }
-
-    // Use findByIdAndUpdate to modify the document in one step
-    const updatedItinerary = await Itinerary.findByIdAndUpdate(
-      id,
-      { title, status, startDate: parsedStartDate, endDate: parsedEndDate, budget },
-      { new: true, runValidators: true } // Returns the updated document & enforces validation
-    );
-
-    if (!updatedItinerary) {
-      return res.status(404).json({ message: "Itinerary not found" });
-    }
-
-    res.json({ message: "Itinerary updated successfully", itinerary: updatedItinerary });
-  } catch (error) {
-    console.error("Error updating itinerary:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-});
-
-
-const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
-  const { Itineraryid, placeId } = req.params;
-
-
-  try {
-    const itinerary = await Itinerary.findById(Itineraryid);
-    if (!itinerary) return res.status(404).json({ message: "Itinerary not found" });
-
-    const place = await Place.findById(placeId);
-    if (!place) return res.status(404).json({ message: "Place not found" });
-
-
-    const city = await fetchCityFromCoordinates(place.latitude, place.longitude)
-    if (city.toLowerCase() !== itinerary.city.toLowerCase()) {
-      return res.status(400).json({ message: `Place does not belong to ${itinerary.city}` })
-    }
-    if (!itinerary.places.includes(placeId)) {
-      const updatedItinerary = await Itinerary.findByIdAndUpdate(
-        Itineraryid,
-        {
-          $addToSet: { places: placeId }
-        },
-        { new: true }
+    // ✅ Fix: Ensure `categories` exist before filtering
+    if (filter) {
+      places = places.filter((place) => 
+        place.categories && // Ensure categories exist
+        Array.isArray(place.categories) && // Ensure it's an array
+        place.categories.some((cat) => 
+          categoryMapping[filter.toLowerCase()]?.includes(String(cat.id))
+        )
       );
-
-      return res.json({ message: "Place added", itinerary: updatedItinerary });
     }
 
-    res.json({ message: "Place already exists in the itinerary", itinerary });
+    if (places.length > 0) {
+      res.json(places);
+    } else {
+      console.warn("⚠ No places found for filter:", filter);
+      res.status(404).json({ message: "No places found for the selected category" });
+    }
   } catch (error) {
-    console.error("Error adding place:", error);
-    res.status(500).json({ message: "Error adding place", error: error.message });
+    console.error("❌ Foursquare API Error:", error.response?.data || error.message);
+    res.status(500).json({ message: "Server error", error: error.response?.data || error.message });
   }
 });
 
-const addUserToItinerary = expressAsyncHandler(async (req, res) => {
-  const { Itineraryid, userId } = req.params;
+module.exports = { getPlaces };
 
-  try {
-    const itinerary = await Itinerary.findById(Itineraryid);
-    if (!itinerary) {
-      return res.status(404).json({ message: "Itinerary not found" });
-    }
-    if (!itinerary.collaborative) {
-      return res.status(409).json({ message: "Cannot invite users to a solo itinerary" });
-    }
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
 
-    if (itinerary.users.includes(userId)) {
-      return res.status(200).json({ message: "User is already in the itinerary", itinerary });
-    }
+/*
 
-    const updatedItinerary = await Itinerary.findByIdAndUpdate(
-      Itineraryid,
-      { $addToSet: { users: userId } }, 
-      { new: true }
-    );
+sahiii wala codeeee
 
-    return res.status(201).json({ message: "User added", itinerary: updatedItinerary });
+const expressAsyncHandler = require("express-async-handler");
+const axios = require("axios");
+require("dotenv").config();
 
-  } catch (error) {
-    console.error("Error adding user to itinerary:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+const categoryMapping = {
+  restaurant: "13065",
+  music: "10039",
+  cafe: "13032",
+  park: "16032",
+  hotel: "19014",
+  mall: "17069",
+  museum: "10027",
+  attraction: "10000",
+  beach: "16011",
+  zoo: "19046",
+  cinema: "19016",
+};
+
+const getPlaces = expressAsyncHandler(async (req, res) => {
+  const { city, filter } = req.query;
+
+  if (!city) {
+    return res.status(400).json({ message: "City is required" });
   }
-});
 
-
-const deleteUser = expressAsyncHandler(async (req, res) => {
   try {
-    const loggedInUserId = req.user._id; // Logged-in user (admin or normal user)
-    const { itineraryId, userId: targetUserId } = req.params; // Extract IDs
+    const url = "https://api.foursquare.com/v3/places/search";
 
-    const itinerary = await Itinerary.findById(itineraryId);
-    if (!itinerary) {
-      return res.status(404).json({ message: "Itinerary not found" });
+    let params = {
+      near: city, // Foursquare prefers 'near' over lat/lng
+      limit: 50,
+    };
+
+    if (filter) {
+      const categoryId = categoryMapping[filter.toLowerCase()];
+      if (categoryId) {
+        params.categories = categoryId; // Ensure it's a valid category
+      }
     }
 
-    // Allow users to remove themselves OR admin to remove anyone
-    const isAdmin = loggedInUserId.toString() === itinerary.admin.toString();
-    const isSelf = loggedInUserId.toString() === targetUserId;
+    console.log("Sending request to Foursquare with params:", params);
 
-    if (!isAdmin && !isSelf) {
-      return res.status(403).json({ message: "Access Denied: Only admin can remove others." });
-    }
-
-    if (!itinerary.users.includes(targetUserId)) {
-      return res.status(404).json({ message: "User not found in itinerary." });
-    }
-
-    // Prevent the last user from deleting themselves
-    if (itinerary.users.length === 1) {
-      return res.status(403).json({ message: "Cannot remove the last user. Delete itinerary instead." });
-    }
-
-    // Remove user from the users array
-    itinerary.users = itinerary.users.filter(u => u.toString() !== targetUserId);
-
-    // If the admin is deleting themselves, assign a new admin
-    if (targetUserId === itinerary.admin.toString() && itinerary.users.length > 0) {
-      itinerary.admin = itinerary.users[0]; // First user becomes new admin
-    }
-
-    await itinerary.save();
-
-    return res.status(200).json({ message: isSelf ? "You left the itinerary." : "User removed successfully", itinerary });
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-const deletePlace = expressAsyncHandler(async (req, res) => {
-  try {
-    const { itineraryId, placeId: targetPlaceId } = req.params;
-
-
-    // Fetch the itinerary
-    const itinerary = await Itinerary.findById(itineraryId);
-    if (!itinerary) {
-      console.log("Itinerary not found");
-      return res.status(404).json({ message: "Itinerary not found" });
-    }
-
-    console.log("Itinerary found:", itinerary);
-
-    // Convert targetPlaceId to ObjectId if needed
-    const targetPlaceObjectId = mongoose.Types.ObjectId.isValid(targetPlaceId)
-      ? new mongoose.Types.ObjectId(targetPlaceId)
-      : targetPlaceId;
-
-
-    // Check if the place exists in the itinerary
-    if (!itinerary.places.some(place => place.toString() === targetPlaceId)) {
-      return res.status(404).json({ message: "Place not found in itinerary." });
-    }
-
-
-    // Remove the place from the itinerary
-    const updatedItinerary = await Itinerary.findByIdAndUpdate(
-      itineraryId,
-      { $pull: { places: targetPlaceObjectId } },
-      { new: true }
-    );
-
-    if (!updatedItinerary) {
-      return res.status(404).json({ message: "Failed to delete place." });
-    }
-
-
-    return res.status(200).json({
-      message: "Place deleted successfully",
-      itinerary: updatedItinerary
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: process.env.FOURSQUARE_API.trim(),
+      },
+      params: params,
     });
 
-  } catch (error) {
-    console.error("Error deleting place:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-const deleteItinerary = expressAsyncHandler(async (req, res) => {
-  try {
-    const { itineraryId } = req.params;
-    const user_id = req.user._id;
-    const itinerary = await Itinerary.findById(itineraryId);
-    if (!itinerary) {
-      console.log("Itinerary not found");
-      return res.status(404).json({ message: "Itinerary not found" });
+    if (response.data.results && response.data.results.length > 0) {
+      res.json(response.data.results);
+    } else {
+      res.status(404).json({ message: "No places found" });
     }
-    const isAdmin = user_id.toString() === itinerary.admin.toString();
-    if (!isAdmin) return res.status(403).json({ message: "Access Denied: Only admin can delete itinerary." });
-    await Itinerary.findByIdAndDelete(itineraryId);
-
-    res.status(200).json({ message: "Itinerary deleted successfully" });
-
-  }
-  catch (error) {
-    console.error("Error deleting itinerary:", error);
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error) {
+    console.error("Foursquare API Error:", error.response?.data || error.message);
+    res.status(500).json({
+      message: "Server error",
+      error: error.response?.data || error.message,
+    });
   }
 });
 
-module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary, deleteUser, deletePlace, deleteItinerary};
+module.exports = { getPlaces };
+*/

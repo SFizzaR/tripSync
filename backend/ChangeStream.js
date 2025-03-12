@@ -11,9 +11,9 @@ invitationStream.on("change", async (change) => {
             const updatedFields = change.updateDescription.updatedFields;
 
             if (updatedFields.status === "accepted") {
-                console.log(`Invite ${inviteId} accepted. Deleting...`);
+                console.log(`Invite ${inviteId} accepted.`);
             } else if (updatedFields.status === "canceled") {
-                await invitationsModel.findByIdAndDelete(inviteId);
+                console.log(`Invite ${inviteId} canceled.`);
             } else if (updatedFields.status === "rejected") {
                 console.log(`Invite ${inviteId} rejected. Keeping in DB.`);
             }

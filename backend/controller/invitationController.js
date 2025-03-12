@@ -3,6 +3,7 @@ const blockedModel = require("../models/blockedModel");
 const userModel = require("../models/userModel");
 const invitationsModel = require("../models/invitationsModel");
 const Itinerary = require("../models/ItinerariesModel");
+const User = require("../models/userModel")
 
 const SendInvitation = expressAsyncHandler(async (req, res) => {
     try {
@@ -12,6 +13,15 @@ const SendInvitation = expressAsyncHandler(async (req, res) => {
 
         if (!Reciver) {
             return res.status(404).json({ message: "User not found" });
+        }
+
+        const rejectedInvitesCount = await invitationsModel.countDocuments({
+            reciver_id: reciver,
+            status: "rejected"
+        });
+
+        if (rejectedInvitesCount >= 2) {
+            return res.status(403).json({ message: "This user has rejected too many invites. Avoid spamming." });
         }
 
         const isblocked = await blockedModel.findOne({ blocker_id: Reciver._id, blocked_id: itinerary_id });
@@ -60,6 +70,11 @@ const acceptInvite = expressAsyncHandler(async (req, res) => {
         const itinerary = await Itinerary.findById(invite.itinerary);
         if (!itinerary) return res.status(404).json({ message: "Itinerary not found" });
 
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
         // Ensure itinerary is collaborative
         if (!itinerary.collaborative) return res.status(409).json({ message: "Cannot join a solo itinerary" });
 
@@ -72,9 +87,8 @@ const acceptInvite = expressAsyncHandler(async (req, res) => {
         itinerary.users.push(userId);
         await itinerary.save();
 
-        // Delete invite after acceptance
-        await invitationsModel.findByIdAndDelete(inviteId);
-
+        invite.status = "accepted";
+        await invite.save();
         res.status(200).json({ message: "User added to itinerary", itinerary });
     } catch (error) {
         console.error("Error accepting invite:", error);
@@ -95,10 +109,7 @@ const rejectInvite = expressAsyncHandler(async (req, res) => {
         if (invite.reciver_id.toString() !== userId.toString()) {
             return res.status(403).json({ message: "Access denied. Only the recipient can reject the invite." });
         }
-
-        // Delete the invitation
-        await invitationsModel.findByIdAndDelete(inviteId);
-        res.status(200).json({ message: "Invitation rejected and removed." });
+        invite.status = "rejected";
     } catch (error) {
         console.error("Error rejecting invite:", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
@@ -118,9 +129,8 @@ const cancelInvite = expressAsyncHandler(async (req, res) => {
         if (invite.sender_id.toString() !== userId.toString()) {
             return res.status(403).json({ message: "Access denied. Only the sender can cancel the invite." });
         }
+        invite.status = "canceled";
 
-        // Delete the invitation
-        await invitationsModel.findByIdAndDelete(inviteId);
         res.status(200).json({ message: "Invitation canceled successfully." });
     } catch (error) {
         console.error("Error canceling invite:", error);

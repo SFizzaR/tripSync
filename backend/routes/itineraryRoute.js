@@ -5,7 +5,7 @@ const {protect} = require("../middleware/errorHandler")
 
 router.post('/CreateItinerary', protect, createItinerary);
 router.put('/:id', updateItinerary);
-outer.post('/:Itineraryid/places/:placeId', addPlaceToItinerary);
+router.post('/:Itineraryid/places/:placeId', addPlaceToItinerary);
 router.post('/:Itineraryid/users/:userId', addUserToItinerary);
 router.get("/solo", protect, getSoloItineraries);
 router.get("/colab", protect, getColabItineraries);

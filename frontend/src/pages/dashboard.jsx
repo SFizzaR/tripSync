@@ -13,6 +13,9 @@ import { useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import "./CustomCalendar.css";
 import WeatherBox from "./weather";
+import { generateToken, messaging } from "../utils/firebaseUtils";
+import { onMessage } from "firebase/messaging";
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function Dashboard() {
   const [date, setDate] = useState(new Date());
@@ -20,8 +23,8 @@ export default function Dashboard() {
   const currentPath = window.location.pathname;
   const [firstName, setFirstName] = useState("");
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true); 
-  const [userLocation,setUserLocation]=useState("");
+  const [loading, setLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState("");
 
   const itineraryDates = ["2025-01-10", "2025-02-10", "2025-02-20"];
 
@@ -47,9 +50,9 @@ export default function Dashboard() {
         );
 
         const data = await response.json();
-        console.log("User Data: ",data);
+        console.log("User Data: ", data);
         setUserLocation(data.city);
-        console.log('City of user: ',data.city)
+        console.log('City of user: ', data.city)
 
         if (response.status === 401) {
           console.error("Unauthorized: Invalid token");
@@ -65,6 +68,16 @@ export default function Dashboard() {
     fetchUserData();
   }, []);
 
+  useEffect(() => {
+    generateToken();
+    onMessage(messaging, (payload) => {
+      console.log(payload)
+      toast(payload.notification.body);
+
+    })
+  }, [])
+
+
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userData");
@@ -75,6 +88,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ paddingBottom: "100px" }}>
+      <Toaster />
       {/* Navbar */}
       <nav
         style={{
@@ -401,7 +415,7 @@ export default function Dashboard() {
       </section>
 
       <section>
-      <p 
+        <p
           style={{
             fontFamily: "P2P",
             fontWeight: "bold",
@@ -421,7 +435,7 @@ export default function Dashboard() {
 
       {/* Calendar Section */}
       <section>
-        <p 
+        <p
           style={{
             fontFamily: "P2P",
             fontWeight: "bold",
@@ -443,7 +457,7 @@ export default function Dashboard() {
             const today = new Date();
             const dateStr = date.toLocaleDateString("en-CA"); // Format as YYYY-MM-DD
             const todayStr = today.toLocaleDateString("en-CA");
-            
+
             if (dateStr === todayStr) return "highlight-today"; // Highlight today
             if (itineraryDates.includes(dateStr)) return "highlight"; // Highlight itinerary dates
 

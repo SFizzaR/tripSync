@@ -131,5 +131,17 @@ const getUsers = expressAsyncHandler(async (req, res) => {
   }
 });
 
+const getAllUsersExceptCurrent = async (req, res) => {
+  try {
+    const loggedInUserId = req.user.id; // Ensure your middleware attaches user info
 
-module.exports = {registerUser, loginUser, getFirstname, getUsers};
+    const users = await User.find({ _id: { $ne: loggedInUserId } }).select("username email"); // Exclude current user
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("❌ Error fetching users:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = {registerUser, loginUser, getFirstname, getUsers,getAllUsersExceptCurrent};

@@ -1,0 +1,412 @@
+.left-column {
+  display: grid;
+  grid-template-rows: 48% 48%;
+  border-right: 1px dotted white;
+  font-size: 120%;
+  margin-top: 0;
+  padding: 6px;
+  overflow: hidden;
+  word-wrap: break-word;
+  white-space: normal;
+  margin-bottom: 2%;
+  padding-bottom: 20px;
+}
+
+.heading-types {
+  color: rgb(114, 153, 179);
+  font-size: clamp(15px, 3vw, 18px);
+}
+
+.itinerary-box {
+  border-style: dotted;
+  position: relative;
+  width: 95%;
+  max-width: 1200px;
+  height: 110vw;
+  max-height: 700px;
+  border-color: rgba(217, 228, 231, 0.6);
+  margin: 20px auto;
+  display: grid;
+  overflow: hidden;
+  grid-template-columns: clamp(19vw, 38%, 30vw) 1fr;
+  color: white;
+  border-radius: 5px;
+  background-color: rgb(0, 0, 0);
+  box-shadow: 0px 0px 10px rgba(6, 73, 106, 0.5);
+  font-family: "Montserrat", sans-serif;
+}
+
+.solo-itineraries,
+.collab-itineraries {
+  font-size: clamp(12px, 2vw, 18px);
+  padding: 1vw 0;
+}
+
+.collab-itineraries {
+  border-top: 3px dashed rgb(164, 203, 223);
+  margin-top: 3vw;
+}
+
+.deets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: linear-gradient(
+    90deg,
+    rgba(86, 39, 161, 0.72),
+    rgb(129, 56, 179)
+  );
+  border-radius: 10px;
+  padding: 2% 5%;
+  color: white;
+  text-align: center;
+  box-shadow: 1px 1px 15px rgba(42, 17, 82, 0.85);
+  font-size: clamp(12px, 1.8vw, 18px);
+  font-family: "Montserrat", sans-serif;
+  font-weight: bold;
+}
+
+.dropdown {
+  width: 90%;
+  max-height: 200px;
+  overflow-y: auto;
+  border-radius: 5px;
+  background: rgb(0, 0, 0);
+  margin-bottom: 10px;
+}
+
+.itinerary-list {
+  height: 43vh;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-size: 85%;
+  padding-bottom: 0; /* Negative padding is invalid, so set it to 0 */
+}
+
+.itinerary-list-item {
+  color: white;
+  display: block;
+  border-top: 1px solid;
+  list-style: none;
+  width: 100%;
+  padding: 10px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.create-button {
+  background-color: rgb(71, 145, 122);
+  box-shadow: 1px 1px 3px rgb(31, 63, 53);
+  border: none;
+  margin: 20px auto -10px 70%;
+  padding: 8px 15px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: bold;
+  font-size: clamp(16px, 2vw, 40px);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow-x: hidden;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+}
+
+.create-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 1);
+  padding: 20px;
+  box-shadow: 0px 0px 19px rgb(49, 16, 102);
+  border-radius: 10px;
+  border-style: dotted;
+  color: rgb(172, 120, 191);
+  font-weight: bold;
+  width: 65%;
+  font-family: "Montserrat", sans-serif;
+  max-width: 500px;
+  z-index: 1000;
+}
+
+.create-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 10px;
+  place-items: center;
+  width: 100%;
+}
+
+.create-box-buttons {
+  background-color: rgb(71, 47, 110);
+  box-shadow: 0px 0px 5px rgb(85, 51, 123);
+  border: none;
+  padding: 10px 20px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: bold;
+  font-size: 15px;
+  color: white;
+  width: 70%;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepNum {
+  font-size: 132%;
+  margin-top: 0;
+  font-family: "P2P", sans-serif;
+  font-weight: lighter;
+  margin-bottom: 20px;
+  color: purple;
+  text-shadow: 2px 2px 1px rgb(62, 8, 85);
+}
+
+.heading {
+  margin-top: -15px;
+  font-family: "P2P", sans-serif;
+  font-weight: lighter;
+  color: rgb(178, 80, 190);
+  text-shadow: 1px 2px 1px rgb(87, 14, 119);
+}
+
+.takeoff-container,
+.touchdown-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  position: relative;
+}
+
+.takeoff-container {
+  border-right: 1px solid purple;
+}
+
+.section-title {
+  color: rgb(187, 150, 218);
+  font-size: 90%;
+  font-weight: bold;
+  margin-bottom: 10%;
+}
+
+.date-input {
+  font-size: 90%;
+  text-align: center;
+  border: 1px dashed grey;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: black;
+  width: 85%;
+}
+
+.date-filled {
+  color: white;
+}
+
+.date-empty {
+  color: grey;
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 12%;
+  transform: translateY(-50%);
+  color: white;
+  pointer-events: none;
+}
+
+.calendar-icon-default {
+  top: 71%;
+}
+
+.calendar-icon-adjusted {
+  top: 49%;
+}
+
+.placeholder-text {
+  top: 60%;
+}
+
+.reset-button {
+  background-color: purple;
+  box-shadow: 0px 0px 2px rgb(85, 51, 123);
+  border-style: none;
+  padding: 8px 10px;
+  font-family: Montserrat;
+  font-weight: bold;
+  font-size: 12px;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.name-input {
+  width: 95%;
+  color: white;
+  max-height: 200px;
+  overflow-y: auto;
+  border-radius: 5px;
+  background: rgb(0, 0, 0);
+  margin-bottom: 10px;
+  border-style: solid;
+  border-width: 1px;
+  padding: 8px;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  margin-top: -10px;
+}
+
+.users-list-item {
+  color: white;
+  display: flex; /* Overwrites the first 'display: block;' */
+  border-bottom: 1px solid;
+  list-style: none;
+  width: 100%;
+  padding: 2px 4px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 150%;
+  column-gap: 10px;
+  align-items: center;
+  font-weight: lighter;
+}
+
+.header-box {
+  font-family: "P2P";
+  font-weight: lighter;
+  color: rgba(247, 253, 255, 0.86);
+  font-size: clamp(10px, 2.55vw, 35px); /* Slightly larger for emphasis */
+  text-shadow: 0 0 10px rgb(114, 153, 179);
+  margin-top: 3%;
+  margin-bottom: 0;
+}
+
+.nothing {
+  color: gray;
+  text-align: center;
+  padding: 10px;
+  font-size: large;
+}
+
+.dates {
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.5); /* Subtle border for better visibility */
+  font-family: "Montserrat", sans-serif;
+  color: white;
+  width: 92%;
+  margin-left: 4%;
+  font-weight: bold;
+  padding: 2px 0; /* Padding for better spacing */
+  border-radius: 5px; /* Rounded corners for a modern look */
+  font-size: clamp(10px, 1.5vw, 18px);
+}
+
+.status {
+    background-color: rgba(255, 255, 255, 0.1); /* Slight transparency for elegance */
+    border: 2px solid rgba(255, 255, 255, 0.5); /* Subtle border for better visibility */
+    font-family: "Montserrat", sans-serif;
+    color: white;
+    font-weight: bold;
+    padding: 2px; /* Padding for better spacing */
+    border-radius: 5px; /* Rounded corners for a modern look */
+    cursor: pointer;
+    outline: none;
+    appearance: none; /* Removes default dropdown arrow styling */
+    text-align: center;
+    font-size: clamp(10px, 1.5vw, 18px);
+}
+
+.budget {
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.5); /* Subtle border for better visibility */
+    font-family: "Montserrat", sans-serif;
+    color: white;
+    font-weight: bold;
+    padding: 2px 8px; /* Padding for better spacing */
+    border-radius: 5px; /* Rounded corners for a modern look */
+    font-size: clamp(10px, 1.5vw, 18px);
+}
+
+.places-button {
+    background-color: transparent;
+    border: none;
+    margin: 5px;
+    padding: 5px 15px;
+    font-family: "Montserrat", sans-serif;
+    font-weight: bold;
+    font-size: clamp(12px, 2vw, 30px);
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 4px;
+    overflow-x: hidden;
+    white-space: nowrap;
+}
+
+.users-box {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 1);
+  padding: 15px;
+  box-shadow: 0px 0px 19px rgb(83, 39, 139);
+  border-radius: 10px;
+  border-style: dotted;
+  color: rgb(87, 51, 134);
+  font-weight: bold;
+  width: 55%;
+  font-family: Montserrat, sans-serif;
+  max-width: 500px;
+  z-index: 1000;
+}
+
+/* Fullscreen (larger screens) */
+@media (min-width: 1024px) {
+  .left-column {
+    grid-template-rows: 1fr 1fr;
+    row-gap: px;
+  }
+
+  .collab-itineraries {
+    margin-top: 1%;
+  }
+
+  .solo-itineraries,
+  .collab-itineraries {
+    padding: 2% 0;
+  }
+
+  .itinerary-list {
+    height: 42vh;
+  }
+
+  .heading-types {
+    font-size: clamp(20px, 3vw, 25px);
+  }
+}

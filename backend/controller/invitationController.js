@@ -141,4 +141,3 @@ const cancelInvite = expressAsyncHandler(async (req, res) => {
 
 
 module.exports = { SendInvitation, acceptInvite, rejectInvite, cancelInvite }
-

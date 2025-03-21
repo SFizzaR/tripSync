@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 const Itinerary = require("../models/ItinerariesModel");
 const Place = require("../models/placesModel");
-const { fetchCityFromCoordinates } = require('../utils/geocoding');
+const { fetchCityFromCoordinates } = require('../utils/findCity');
 
 
 const createItinerary = expressAsyncHandler(async (req, res) => {
@@ -115,64 +115,64 @@ const updateItinerary = expressAsyncHandler(async (req, res) => {
 
 
 const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { placeId } = req.body;
+  const { itineraryId, placeId } = req.params;
 
   try {
-    const itinerary = await Itinerary.findById(id);
-    if (!itinerary) return res.status(404).json({ message: "Itinerary not found" });
+    console.log("🔍 Received Request:", { itineraryId, placeId });
 
-    const place = await Place.findById(placeId);
-    if (!place) return res.status(404).json({ message: "Place not found" });
-
-
-    const city = await fetchCityFromCoordinates(place.latitude, place.longitude)
-    if (city.toLowerCase() !== itinerary.city.toLowerCase()) {
-      return res.status(400).json({ message: `Place does not belong to ${itinerary.city}` })
-    }
-    if (!itinerary.places.includes(placeId)) {
-      const updatedItinerary = await Itinerary.findByIdAndUpdate(
-        id,
-        {
-          $addToSet: { places: placeId }
-        },
-        { new: true }
-      );
-
-      return res.json({ message: "Place added", itinerary: updatedItinerary });
+    if (!itineraryId || !placeId) {
+      return res.status(400).json({ message: "❌ Missing itineraryId or placeId" });
     }
 
-    res.json({ message: "Place already exists in the itinerary", itinerary });
+    const itinerary = await Itinerary.findById(itineraryId);
+    if (!itinerary) {
+      return res.status(404).json({ message: "❌ Itinerary not found" });
+    }
+
+    if (itinerary.places.includes(placeId)) {
+      return res.status(400).json({ message: "❌ Place already added" });
+    }
+
+    itinerary.places.push(placeId);
+    await itinerary.save();
+
+    console.log("✅ Updated Itinerary:", itinerary);
+    
+    // Return the full updated itinerary
+    res.json({ message: "✅ Place added successfully", itinerary });
   } catch (error) {
-    console.error("Error adding place:", error);
-    res.status(500).json({ message: "Error adding place", error: error.message });
+    console.error("❌ Error adding place:", error);
+    res.status(500).json({ message: "❌ Server error" });
   }
 });
 
-
 const addUserToItinerary = expressAsyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { userId } = req.body;
+  const { id, senderId, receiverId } = req.body; // Ensure correct spelling: receiverId
+
   try {
     const itinerary = await Itinerary.findById(id);
     if (!itinerary) return res.status(404).json({ message: "Itinerary not found" });
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" })
+    const user = await User.findById(receiverId);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (!itinerary.users.includes(userId)) {
+    if (!itinerary.users.includes(receiverId)) {
       const updatedItinerary = await Itinerary.findByIdAndUpdate(
         id,
-        { $addToSet: { users: userId } },
+        { $addToSet: { users: receiverId } }, // Use receiverId
         { new: true }
-      )
+      );
+
+      return res.json({ message: "User added", itinerary: updatedItinerary });
     }
-    res.json({ message: "User added", itinerary });
+
+    res.status(400).json({ message: "User is already in the itinerary" });
+  } catch (error) {
+    console.error("Error adding user to itinerary:", error);
+    res.status(500).json({ message: "Server error" });
   }
-  catch (error) {
-    res.status(500).json({ message: "Error finding user" });
-  }
-})
+});
+
 
 const deleteUser = expressAsyncHandler(async (req, res) => {
   try {

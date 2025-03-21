@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import "./itinerary.css";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../assets/headerBg.jpg";
 import logo from "../assets/plane.PNG";
@@ -60,14 +60,19 @@ export default function Itinerary() {
 
   const [places, setPlaces] = useState([]);
 
-
+  const [selectedPlaceId, setSelectedPlaceId] = useState(null);
 
   const [selectedFilter, setSelectedFilter] = useState(null);
-  const [allPlaces, setAllPlaces] = useState([]); 
+  const [allPlaces, setAllPlaces] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [itineraryIdnow, setitineraryIdnow] = useState([]);
+
+  const [users, setUsers] = useState([]);
+  const [showUserList, setShowUserList] = useState(false); // State for toggling list
+  const [usersList, setUsersList] = useState([]);
 
   const filters = [
     { id: "history", src: hist, label: "Historical" },
@@ -76,22 +81,31 @@ export default function Itinerary() {
     { id: "cafe", src: cafes, label: "Cafes" },
   ];
 
-  const options = ["Option 1", "Option 2", "Option 3", "Option 4"];
-  const users = ["User 1", "User 2", "User 3", "User 4"];
   const [selectedOptions, setSelectedOptions] = useState([]);
 
   const handleCheckboxChange = (option) => {
-    setSelectedOptions((prevSelected) =>
-      prevSelected.includes(option)
-        ? prevSelected.filter((item) => item !== option) // Remove if already selected
-        : [...prevSelected, option] // Add if not selected
+    setSelectedOptions(
+      (prevSelected) =>
+        prevSelected.includes(option)
+          ? prevSelected.filter((item) => item !== option) // Remove if already selected
+          : [...prevSelected, option] // Add if not selected
     );
   };
 
   useEffect(() => {
+    if (selectedItinerary) {
+      console.log("Updated Selected Itinerary:", selectedItinerary);
+      console.log(
+        "Places inside selected itinerary:",
+        selectedItinerary.places
+      );
+    }
+  }, [selectedItinerary]);
+
+  useEffect(() => {
     fetchSoloItineraries();
     fetchColabItineraries();
-   // setSelectedFilter(null);
+    // setSelectedFilter(null);
   }, []);
 
   useEffect(() => {
@@ -104,25 +118,28 @@ export default function Itinerary() {
       console.log("No token found. User not authenticated.");
       return;
     }
-  
+
     try {
-      const response = await fetch("http://localhost:5001/api/itineraries/solo", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-  
+      const response = await fetch(
+        "http://localhost:5001/api/itineraries/solo",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       const data = await response.json();
-      console.log("Fetched Solo Itineraries:", data); 
-  
+      console.log("Fetched Solo Itineraries:", data);
+
       if (response.ok) {
         if (Array.isArray(data)) {
           setSoloItineraries(
             data.map((itinerary) => ({
               ...itinerary,
-              id: itinerary._id, 
+              id: itinerary._id,
             }))
           );
         } else {
@@ -135,31 +152,33 @@ export default function Itinerary() {
       console.error("Failed to fetch itineraries:", error);
     }
   };
-  
-  
+
   const fetchColabItineraries = async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       console.log("No token found. User not authenticated.");
       return;
     }
-  
+
     try {
-      const response = await fetch("http://localhost:5001/api/itineraries/colab", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-  
+      const response = await fetch(
+        "http://localhost:5001/api/itineraries/colab",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       const data = await response.json();
       if (response.ok) {
         if (Array.isArray(data)) {
           setColabItineraries(
             data.map((itinerary) => ({
               ...itinerary,
-              id: itinerary._id, 
+              id: itinerary._id,
             }))
           );
         } else {
@@ -175,12 +194,12 @@ export default function Itinerary() {
 
   const handleItineraryClick = (itineraryId) => {
     console.log("Clicked Itinerary ID:", itineraryId);
-  
+
     if (!itineraryId) {
       console.error("❌ Error: Itinerary ID is null or undefined!");
       return;
     }
-  
+
     const selected =
       soloItineraries.find(
         (itinerary) => String(itinerary.id) === String(itineraryId)
@@ -188,14 +207,15 @@ export default function Itinerary() {
       colabItineraries.find(
         (itinerary) => String(itinerary.id) === String(itineraryId)
       );
-  
+
     if (!selected) {
       console.error("❌ Error: No itinerary found with this ID!");
       return;
     }
-  
+
     console.log("✅ Found Itinerary:", selected);
     setSelectedItinerary(selected);
+    setitineraryIdnow(selected.id);
     setSelectedOption(selected.collaborative ? "collaborative" : "solo");
 
     if (selected.city) {
@@ -204,76 +224,118 @@ export default function Itinerary() {
     } else {
       console.error("❌ Error: City not found in itinerary");
     }
-  
   };
 
   useEffect(() => {
     console.log("Updated places:", places);
   }, [places]);
-  
 
-  
+  const handleAddPlace = (placeId) => {
+    if (!placeId) {
+      console.error("❌ Error: placeId is null or undefined.");
+      alert("Error: Place data not loaded yet.");
+      return;
+    }
+
+    console.log(
+      "✅ Adding place to itinerary:",
+      itineraryIdnow,
+      "Place ID:",
+      placeId
+    );
+    addPlaceToItinerary(itineraryIdnow, placeId);
+  };
+
+  const handlePlaceClick = (placeId, placeName) => {
+    console.log("Clicked Place ID:", placeId);
+    setSelectedPlaceId(placeId); // Store the clicked place ID
+  };
+
   const fetchPlaces = async (city, filter = "") => {
     try {
       console.log("Fetching places for city:", city, "with filter:", filter);
-  
+
       const response = await axios.get(
         `http://localhost:5001/api/places/getplaces?city=${city}&filter=${filter}`
       );
-  
+
       console.log("Fetched Places:", response.data); // Debugging
-  
+
+      response.data.forEach((place, index) => {
+        if (!place.fsq_id) {
+          console.error(
+            `❌ Error: Missing _id for place at index ${index}`,
+            place
+          );
+        }
+      });
+
       setAllPlaces(response.data);
       setPlaces(response.data); // Ensure correct data is set
     } catch (error) {
       console.error("Failed to fetch places:", error);
     }
+    //addPlaceToItinerary(itineraryIdnow,placeId)
   };
-  
+
+  const addPlaceToItinerary = async (itineraryIdnow, placeId) => {
+    if (!itineraryIdnow || !placeId) {
+      console.error("❌ Error: Missing itineraryId or placeId.");
+      return;
+    }
+
+    console.log("📌 Sending request to add place:");
+    console.log("➡️ Itinerary ID:", itineraryIdnow);
+    console.log("➡️ Place ID:", placeId);
+
+    const url = `http://localhost:5001/api/itineraries/${itineraryIdnow}/places/${placeId}`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Server error: ${errorData.message}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Successfully added place:", data);
+
+      // Ensure UI updates by setting a new reference
+      if (data.itinerary) {
+        setSelectedItinerary({ ...data.itinerary });
+      }
+    } catch (error) {
+      console.error("❌ Network error:", error);
+    }
+  };
+
+  //setSelectedItinerary((prevItinerary) => ({
+  //...prevItinerary,
+  //allPlaces: [...prevItinerary.allPlaces, newPlace], // Ensure new reference
+  //}));
+
   const handleFilterClick = (id) => {
     console.log("Filter clicked:", id);
     if (!city) {
       console.error("❌ Error: City is not selected!");
       return;
     }
-    
+
     setSelectedFilter(id);
     fetchPlaces(city, id);
   };
-  
-  
-    
+
   const clearFilter = () => {
     console.log("Clearing filter...");
     setSelectedFilter(null);
     fetchPlaces(city); // Fetch all places again
   };
-    
-  
-  
-  //my coded
-
-/*const categoryMapping = {
-  cafes: "Coffee Shop",
-  history: "Monument",
-  restaurants: "Restaurant",
-  shopping: "Shopping Mall",
-};
-  
-  console.log("Selected filter:", selectedFilter);
-console.log("All places:", allPlaces);
-
-const filteredPlaces = selectedFilter
-  ? allPlaces.filter((place) =>
-      place.categories.some((cat) => {
-        if (!cat || !cat.name) return false;
-        return categoryMapping[selectedFilter]
-          ?.toLowerCase()
-          .includes(cat.name.toLowerCase());
-      })
-    )
-  : allPlaces;
-/*/
 
   const handleSearch = (e) => {
     const searchValue = e.target.value.toLowerCase();
@@ -349,7 +411,6 @@ const filteredPlaces = selectedFilter
     }
   };
 
-
   const handleNext = () => {
     if (step === 1 && !selectedOption) {
       alert("Please select an option");
@@ -383,6 +444,85 @@ const filteredPlaces = selectedFilter
 
   console.log("Selected Option:", selectedOption);
 
+  const fetchUsersList = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        console.error("❌ No token found. User not authenticated.");
+        return;
+      }
+
+      const response = await fetch("http://localhost:5001/api/users/all", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      console.log("Fetched user from data: ", data);
+
+      if (response.ok) {
+        setUsersList(data); // Store users except logged-in one
+        
+      } else {
+        console.error("❌ Error:", data.message);
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch users:", error);
+    }
+    console.log("Fetched user from users: ", usersList);
+  };
+
+  useEffect(() => {
+    console.log("Updated usersList:", usersList);
+  }, [usersList]);
+  
+
+  useEffect(() => {
+    fetchUsersList();
+  }, []);
+
+  const sendInvitation = async (itineraryIdnow, receiverId) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const user = JSON.parse(localStorage.getItem("user")); // Convert string back to object
+      const userId = user ? user._id : null; 
+
+      const response = await fetch(
+        "http://localhost:5001/api/invite/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            itinerary_id: itineraryIdnow,
+            sender_id: userId,
+            reciver: receiverId,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("✅ Invitation sent successfully!");
+      } else {
+        alert("❌ Error: " + data.message);
+      }
+    } catch (error) {
+      console.error("❌ Error sending invitation:", error);
+      alert("Failed to send invitation.");
+    }
+  };
 
   return (
     <div style={{ paddingBottom: "0", overflowX: "hidden" }}>
@@ -677,30 +817,12 @@ const filteredPlaces = selectedFilter
       </section>
 
       <button
-        style={{
-          background:
-            "linear-gradient(135deg, rgb(12, 47, 80), rgb(125, 166, 213))",
-          boxShadow: "1px 1px 3px rgb(9, 31, 51)",
-          borderStyle: "none",
-          margin: "20px auto -10px 70%",
-          padding: "8px 15px",
-          fontFamily: "Montserrat",
-          fontWeight: "bold",
-          fontSize: "clamp(16px, 2vw, 40px)",
-          color: "white",
-          borderRadius: "8px",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "8px",
-          overflowX: "hidden",
-        }}
+        className="create-button"
         onMouseEnter={(e) =>
-          (e.target.style.boxShadow = "0px 0px 15px rgb(22, 45, 66)")
+          (e.target.style.boxShadow = "0px 0px 15px rgb(78, 145, 124)")
         }
         onMouseLeave={(e) =>
-          (e.target.style.boxShadow = "1px 1px 3px rgb(9, 31, 51)")
+          (e.target.style.boxShadow = "1px 1px 3px rgb(31, 63, 53)")
         }
         onClick={() => setIsDialogOpen(true)}
       >
@@ -716,66 +838,14 @@ const filteredPlaces = selectedFilter
         CREATE
       </button>
 
-      {isDialogOpen && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-            zIndex: 999,
-          }}
-        />
-      )}
+      {isDialogOpen && <div className="overlay" />}
 
       {isDialogOpen && (
-        <div
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "rgba(0, 0, 0, 1)",
-            padding: "20px",
-            boxShadow: "0px 0px 19px rgb(49, 16, 102)",
-            borderRadius: "10px",
-            borderStyle: "dotted",
-            color: "rgb(172, 120, 191)",
-            fontWeight: "bold",
-            width: "65%",
-            fontFamily: "Montserrat",
-            maxWidth: "500px",
-            zIndex: 1000,
-          }}
-        >
+        <div className="create-container">
           {step === 1 && (
             <>
-              <h2
-                style={{
-                  fontSize: "132%",
-                  marginTop: "0",
-                  fontFamily: "P2P",
-                  fontWeight: "lighter",
-                  marginBottom: "20px",
-                  color: "purple",
-                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                }}
-              >
-                Step 1 of 4:
-              </h2>
-              <h2
-                style={{
-                  marginTop: "-15px",
-                  fontFamily: "P2P",
-                  fontWeight: "lighter",
-                  color: "rgb(178, 80, 190)",
-                  textShadow: "1px 2px 1px rgb(87, 14, 119)",
-                }}
-              >
-                Choose Mode
-              </h2>
+              <h2 className="stepNum">Step 1 of 4:</h2>
+              <h2 className="heading">Choose Mode</h2>
               <div
                 style={{
                   display: "grid",
@@ -811,14 +881,7 @@ const filteredPlaces = selectedFilter
                 </div>
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  columnGap: "10px",
-                  placeItems: "center",
-                }}
-              >
+              <div className="create-buttons-grid">
                 <button
                   onClick={() => {
                     setSelectedOption("");
@@ -828,22 +891,7 @@ const filteredPlaces = selectedFilter
                     setTouchdownDate("");
                     setTakeoffDate("");
                   }}
-                  style={{
-                    backgroundColor: "rgb(71, 47, 110)",
-                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                    borderStyle: "none",
-                    padding: "10px 20px",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "15px",
-                    color: "white",
-                    width: "70%",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="create-box-buttons"
                   onMouseEnter={(e) =>
                     (e.target.style.boxShadow =
                       "0px 0px 15px rgb(145, 117, 177)")
@@ -857,22 +905,7 @@ const filteredPlaces = selectedFilter
 
                 <button
                   onClick={handleNext}
-                  style={{
-                    backgroundColor: "rgb(71, 47, 110)",
-                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                    borderStyle: "none",
-                    padding: "10px 20px",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "15px",
-                    color: "white",
-                    width: "70%",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="create-box-buttons"
                   onMouseEnter={(e) =>
                     (e.target.style.boxShadow =
                       "0px 0px 15px rgb(145, 117, 177)")
@@ -889,30 +922,8 @@ const filteredPlaces = selectedFilter
 
           {step === 2 && (
             <>
-              <h2
-                style={{
-                  fontSize: "132%",
-                  marginTop: "0",
-                  fontFamily: "P2P",
-                  fontWeight: "lighter",
-                  marginBottom: "20px",
-                  color: "purple",
-                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                }}
-              >
-                Step 2 of 4:
-              </h2>
-              <h2
-                style={{
-                  marginTop: "-15px",
-                  fontFamily: "P2P",
-                  fontWeight: "lighter",
-                  color: "rgb(178, 80, 190)",
-                  textShadow: "1px 2px 1px rgb(87, 14, 119)",
-                }}
-              >
-                Select City
-              </h2>
+              <h2 className="stepNum">Step 2 of 4:</h2>
+              <h2 className="heading">Select City</h2>
               {/* Searchable Input Field */}
               <div
                 style={{
@@ -942,14 +953,7 @@ const filteredPlaces = selectedFilter
 
                 {/* Scrollable Dropdown */}
                 <div
-                  style={{
-                    width: "90%",
-                    maxHeight: "200px",
-                    overflowY: "auto",
-                    borderRadius: "5px",
-                    background: "rgb(0, 0, 0)",
-                    marginBottom: "10px",
-                  }}
+                  className="dropdown"
                 >
                   {filteredCities.map((item) => (
                     <div
@@ -972,33 +976,10 @@ const filteredPlaces = selectedFilter
                 </div>
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  columnGap: "10px",
-                  placeItems: "center",
-                  width: "100%",
-                }}
-              >
+              <div className="create-buttons-grid">
                 <button
                   onClick={handleBack}
-                  style={{
-                    backgroundColor: "rgb(71, 47, 110)",
-                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                    borderStyle: "none",
-                    padding: "10px 20px",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "15px",
-                    color: "white",
-                    width: "70%",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="create-box-buttons"
                   onMouseEnter={(e) =>
                     (e.target.style.boxShadow =
                       "0px 0px 15px rgb(145, 117, 177)")
@@ -1012,22 +993,7 @@ const filteredPlaces = selectedFilter
 
                 <button
                   onClick={handleNext}
-                  style={{
-                    backgroundColor: "rgb(71, 47, 110)",
-                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                    borderStyle: "none",
-                    padding: "10px 20px",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "15px",
-                    color: "white",
-                    width: "70%",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="create-box-buttons"
                   onMouseEnter={(e) =>
                     (e.target.style.boxShadow =
                       "0px 0px 15px rgb(145, 117, 177)")
@@ -1044,30 +1010,8 @@ const filteredPlaces = selectedFilter
 
           {step === 3 && (
             <>
-              <h2
-                style={{
-                  fontSize: "132%",
-                  marginTop: "0",
-                  fontFamily: "P2P",
-                  fontWeight: "lighter",
-                  marginBottom: "20px",
-                  color: "purple",
-                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                }}
-              >
-                Step 3 of 4:
-              </h2>
-              <h2
-                style={{
-                  marginTop: "-15px",
-                  fontFamily: "P2P",
-                  fontWeight: "lighter",
-                  color: "rgb(178, 80, 190)",
-                  textShadow: "1px 2px 1px rgb(87, 14, 119)",
-                }}
-              >
-                Select Dates
-              </h2>
+              <h2 className="stepNum">Step 1 of 4:</h2>
+              <h2 className="heading">Select Dates</h2>
 
               <p style={{ fontSize: "92%" }}>
                 NOTE: <i>Enter dates if decided, else continue...</i>
@@ -1083,85 +1027,26 @@ const filteredPlaces = selectedFilter
                 }}
               >
                 {/* Takeoff Section */}
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    padding: "10px",
-                    borderRight: "1px solid purple",
-                    position: "relative",
-                  }}
-                >
-                  <span
-                    style={{
-                      color: "rgb(187, 150, 218)",
-                      fontSize: "90%",
-                      fontWeight: "bold",
-                      marginBottom: "10%",
-                    }}
-                  >
-                    TAKEOFF
-                  </span>
-
+                <div className="takeoff-container">
+                  <span className="section-title">TAKEOFF</span>
                   <input
                     type="date"
                     value={takeoffDate}
                     onChange={(e) => setTakeoffDate(e.target.value)}
-                    style={{
-                      color: takeoffDate ? "white" : "black",
-                      fontSize: "90%",
-                      textAlign: "center",
-                      border: "1px dashed grey",
-                      padding: "5px",
-                      borderRadius: "5px",
-                      cursor: "pointer",
-                      backgroundColor: "black",
-                      width: "85%",
-                    }}
+                    className={`date-input ${
+                      takeoffDate ? "date-filled" : "date-empty"
+                    }`}
                   />
                   <FaCalendarAlt
-                    style={{
-                      position: "absolute",
-                      right: "12%",
-                      top: !takeoffDate && !touchdownDate ? "71%" : "49%",
-                      transform: "translateY(-50%)",
-                      color: "white",
-                      pointerEvents: "none",
-                    }}
+                    className={`calendar-icon ${
+                      !takeoffDate && !touchdownDate
+                        ? "calendar-icon-default"
+                        : "calendar-icon-adjusted"
+                    }`}
                   />
-                  {!takeoffDate && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: !takeoffDate && !touchdownDate ? "60%" : "43%",
-                        fontSize: "14px",
-                        color: "grey",
-                        pointerEvents: "none",
-                      }}
-                    >
-                      --/--/--
-                    </span>
-                  )}
-
                   {takeoffDate && (
                     <button
-                      style={{
-                        backgroundColor: "purple",
-                        boxShadow: "0px 0px 2px rgb(85, 51, 123)",
-                        borderStyle: "none",
-                        padding: "8px 10px",
-                        fontFamily: "Montserrat",
-                        fontWeight: "bold",
-                        fontSize: "12px",
-                        color: "white",
-                        borderRadius: "10px",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginTop: "10px",
-                      }}
+                      className="reset-button"
                       onClick={() => setTakeoffDate("")}
                     >
                       RESET
@@ -1170,25 +1055,8 @@ const filteredPlaces = selectedFilter
                 </div>
 
                 {/* Touchdown Section */}
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    padding: "10px",
-                    position: "relative",
-                  }}
-                >
-                  <span
-                    style={{
-                      color: "rgb(187, 150, 218)",
-                      fontSize: "90%",
-                      fontWeight: "bold",
-                      marginBottom: "10%",
-                    }}
-                  >
-                    TOUCHDOWN
-                  </span>
+                <div className="touchdown-container">
+                  <span className="section-title">TOUCHDOWN</span>
                   <input
                     type="date"
                     value={touchdownDate}
@@ -1200,67 +1068,26 @@ const filteredPlaces = selectedFilter
                         );
                         alert(
                           "Touchdown date cannot be before the takeoff date!"
-                        ); // User feedback
+                        );
                         return;
                       }
                       setTouchdownDate(selectedDate);
                     }}
-                    min={takeoffDate} // Prevents selecting past dates in the calendar UI
-                    style={{
-                      color: touchdownDate ? "white" : "black",
-                      fontSize: "90%",
-                      textAlign: "center",
-                      border: "1px dashed grey",
-                      padding: "5px",
-                      borderRadius: "5px",
-                      cursor: "pointer",
-                      backgroundColor: "black",
-                      width: "85%",
-                    }}
+                    min={takeoffDate}
+                    className={`date-input ${
+                      touchdownDate ? "date-filled" : "date-empty"
+                    }`}
                   />
-
                   <FaCalendarAlt
-                    style={{
-                      position: "absolute",
-                      right: "12%",
-                      top: !touchdownDate && !takeoffDate ? "71%" : "49%",
-                      transform: "translateY(-50%)",
-                      color: "white",
-                      pointerEvents: "none",
-                    }}
+                    className={`calendar-icon ${
+                      !takeoffDate && !touchdownDate
+                        ? "calendar-icon-default"
+                        : "calendar-icon-adjusted"
+                    }`}
                   />
-                  {!touchdownDate && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: !takeoffDate && !touchdownDate ? "60%" : "43%",
-                        fontSize: "14px",
-                        color: "grey",
-                        pointerEvents: "none",
-                      }}
-                    >
-                      --/--/--
-                    </span>
-                  )}
-
                   {touchdownDate && (
                     <button
-                      style={{
-                        backgroundColor: "purple",
-                        boxShadow: "0px 0px 2px rgb(85, 51, 123)",
-                        borderStyle: "none",
-                        padding: "8px 10px",
-                        fontFamily: "Montserrat",
-                        fontWeight: "bold",
-                        fontSize: "12px",
-                        color: "white",
-                        borderRadius: "10px",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginTop: "10px",
-                      }}
+                      className="reset-button"
                       onClick={() => setTouchdownDate("")}
                     >
                       RESET
@@ -1269,33 +1096,10 @@ const filteredPlaces = selectedFilter
                 </div>
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  columnGap: "10px",
-                  placeItems: "center",
-                  width: "100%",
-                }}
-              >
+              <div className="create-buttons-grid">
                 <button
                   onClick={handleBack}
-                  style={{
-                    backgroundColor: "rgb(71, 47, 110)",
-                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                    borderStyle: "none",
-                    padding: "10px 20px",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "15px",
-                    color: "white",
-                    width: "70%",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="create-box-buttons"
                   onMouseEnter={(e) =>
                     (e.target.style.boxShadow =
                       "0px 0px 15px rgb(145, 117, 177)")
@@ -1309,22 +1113,7 @@ const filteredPlaces = selectedFilter
 
                 <button
                   onClick={handleNext}
-                  style={{
-                    backgroundColor: "rgb(71, 47, 110)",
-                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                    borderStyle: "none",
-                    padding: "10px 20px",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "15px",
-                    color: "white",
-                    width: "70%",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="create-box-buttons"
                   onMouseEnter={(e) =>
                     (e.target.style.boxShadow =
                       "0px 0px 15px rgb(145, 117, 177)")
@@ -1341,30 +1130,8 @@ const filteredPlaces = selectedFilter
 
           {step === 4 && (
             <>
-              <h2
-                style={{
-                  fontSize: "132%",
-                  marginTop: "0",
-                  fontFamily: "P2P",
-                  fontWeight: "lighter",
-                  marginBottom: "20px",
-                  color: "purple",
-                  textShadow: "2px 2px 1px rgb(62, 8, 85)",
-                }}
-              >
-                Step 4 of 4:
-              </h2>
-              <h2
-                style={{
-                  marginTop: "-15px",
-                  fontFamily: "P2P",
-                  fontWeight: "lighter",
-                  color: "rgb(178, 80, 190)",
-                  textShadow: "1px 2px 1px rgb(87, 14, 119)",
-                }}
-              >
-                Set Name
-              </h2>
+              <h2 className="stepNum">Step 1 of 4:</h2>
+              <h2 className="heading">Set Name</h2>
 
               <div
                 style={{
@@ -1411,51 +1178,14 @@ const filteredPlaces = selectedFilter
                   value={itineraryName}
                   onChange={(e) => setItineraryName(e.target.value)}
                   placeholder="Enter itinerary name..."
-                  style={{
-                    width: "95%",
-                    color: "white",
-                    maxHeight: "200px",
-                    overflowY: "auto",
-                    borderRadius: "5px",
-                    background: "rgb(0, 0, 0)",
-                    marginBottom: "10px",
-                    borderStyle: "solid",
-                    borderWidth: "1px",
-                    padding: "8px",
-                    fontFamily: "Inter",
-                    fontSize: "14px",
-                    marginTop: "-10px",
-                  }}
+                  className="name-input"
                 />
               )}
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  columnGap: "10px",
-                  placeItems: "center",
-                  width: "100%",
-                }}
-              >
+              <div className="create-buttons-grid">
                 <button
                   onClick={handleBack}
-                  style={{
-                    backgroundColor: "rgb(71, 47, 110)",
-                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                    borderStyle: "none",
-                    padding: "10px 20px",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "15px",
-                    color: "white",
-                    width: "70%",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="create-box-buttons"
                   onMouseEnter={(e) =>
                     (e.target.style.boxShadow =
                       "0px 0px 15px rgb(145, 117, 177)")
@@ -1479,22 +1209,7 @@ const filteredPlaces = selectedFilter
                     setNameOption("");
                     setItineraryName("");
                   }}
-                  style={{
-                    backgroundColor: "rgb(71, 47, 110)",
-                    boxShadow: "0px 0px 5px rgb(85, 51, 123)",
-                    borderStyle: "none",
-                    padding: "10px 20px",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "15px",
-                    color: "white",
-                    width: "70%",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="create-box-buttons"
                   onMouseEnter={(e) =>
                     (e.target.style.boxShadow =
                       "0px 0px 15px rgb(145, 117, 177)")
@@ -1513,99 +1228,22 @@ const filteredPlaces = selectedFilter
 
       {/* ITINERARIES BOX */}
       <section>
-        <div
-          style={{
-            borderStyle: "dotted",
-            position: "relative",
-            width: "95%", // Responsive width
-            maxWidth: "1200px", // Prevents excessive stretching
-            height: "110vw", // Increased height for a longer box
-            maxHeight: "700px",
-            borderColor: "rgba(217, 228, 231, 0.6)",
-            margin: "20px auto", // Centers it horizontally
-            display: "grid",
-            gridTemplateColumns: "clamp(19vw, 38%, 30vw) 1fr",
-            color: "white",
-            borderRadius: "5px",
-            backgroundColor: "rgb(0,0,0)",
-            boxShadow: "0px 0px 10px rgba(6, 73, 106, 0.5)",
-            fontFamily: "Montserrat",
-          }}
-        >
+        <div className="itinerary-box">
           {/* Left Column */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateRows: "4% 47% 47%",
-              rowGap: "1%",
-              borderRightStyle: "dotted",
-              borderRightColor: "white",
-              fontSize: "120%", // Adjusted base font size
-              marginTop: 0,
-              padding: "6px",
-              overflow: "hidden", // Prevents text overflow
-              wordWrap: "break-word", // Wraps long words
-              whiteSpace: "normal", // Ensures text doesn't overflow
-              marginBottom: "2%",
-              paddingBottom: "20px",
-            }}
-          >
+          <div className="left-column">
             {/* HEADER ROW */}
-            <div
-              style={{
-                fontFamily: "P2P",
-                fontWeight: "lighter",
-                color: "rgba(247, 253, 255, 0.86)",
-                fontSize: "clamp(10px, 2.55vw, 35px)", // Slightly larger for emphasis
-                textShadow: "0 0 10px rgb(114, 153, 179)",
-                marginTop: "3%",
-                marginBottom: "0",
-              }}
-            >
-              ITINERARIES
-            </div>
-
             {/* SOLO ITINERARY ROW */}
-            <div
-              class="collab-itineraries"
-              style={{
-                borderTop: "3px dashed rgb(164, 203, 223)",
-                fontSize: "clamp(12px, 2vw, 18px)",
-                marginTop: "5%",
-                padding: "3% 0 0 0",
-                maxHeight: "30vh",
-              }}
-            >
-              <strong style={{ color: "rgb(114, 153, 179)" }}>
-                SOLO TRIP ITINERARIES
-              </strong>
+            <div class="solo-itineraries">
+              <strong className="heading-types">SOLO ITINERARIES</strong>
               <navbar>
-                <ul
-                  style={{
-                    height: "40vh",
-                    padding: "0",
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                    fontSize: "85%",
-                    paddingBottom: "-20px",
-                  }}
-                >
+                <ul className="itinerary-list">
                   {soloItineraries &&
                   Array.isArray(soloItineraries) &&
                   soloItineraries.length > 0 ? (
                     soloItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
-                        style={{
-                          color: "white",
-                          display: "block",
-                          borderTop: "1px solid",
-                          listStyle: "none",
-                          width: "100%",
-                          padding: "10px",
-                          margin: 0,
-                          cursor: "pointer",
-                        }}
+                        className="itinerary-list-item"
                         onClick={() => {
                           console.log("Clicked Itinerary ID:", itinerary.id); // Debugging
                           handleItineraryClick(itinerary.id);
@@ -1617,63 +1255,24 @@ const filteredPlaces = selectedFilter
                       </li>
                     ))
                   ) : (
-                    <li
-                      style={{
-                        color: "gray",
-                        textAlign: "center",
-                        padding: "10px",
-                        listStyle: "none",
-                      }}
-                    >
-                      No Itineraries found.
-                    </li>
+                    <li className="nothing">No Itineraries found.</li>
                   )}
                 </ul>
               </navbar>
             </div>
 
             {/* COLLAB ITINERARY ROW */}
-            <div
-              class="collab-itineraries"
-              style={{
-                borderTop: "3px dashed rgb(164, 203, 223)",
-                fontSize: "clamp(12px, 2vw, 18px)",
-                marginTop: "5%",
-                padding: "3% 0 0 0",
-                maxHeight: "30vh",
-              }}
-            >
-              <strong style={{ color: "rgb(114, 153, 179)" }}>
-                COLLAB ITINERARIES
-              </strong>
+            <div class="collab-itineraries">
+              <strong className="heading-types">COLLAB ITINERARIES</strong>
               <navbar>
-                <ul
-                  style={{
-                    height: "40vh",
-                    padding: "0",
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                    fontSize: "85%",
-                    padding: "0",
-                    paddingBottom: "-10px",
-                  }}
-                >
+                <ul className="itinerary-list">
                   {colabItineraries &&
                   Array.isArray(colabItineraries) &&
                   colabItineraries.length > 0 ? (
                     colabItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
-                        style={{
-                          color: "white",
-                          display: "block",
-                          borderTop: "1px solid",
-                          listStyle: "none",
-                          width: "100%",
-                          padding: "10px",
-                          margin: 0,
-                          cursor: "pointer",
-                        }}
+                        className="itinerary-list-item"
                         onClick={() => {
                           console.log("Clicked Itinerary ID:", itinerary.id); // Debugging
                           handleItineraryClick(itinerary.id);
@@ -1685,16 +1284,7 @@ const filteredPlaces = selectedFilter
                       </li>
                     ))
                   ) : (
-                    <li
-                      style={{
-                        color: "gray",
-                        textAlign: "center",
-                        padding: "10px",
-                        listStyle: "none",
-                      }}
-                    >
-                      No Itineraries found.
-                    </li>
+                    <li className="nothing">No Itineraries found.</li>
                   )}
                 </ul>
               </navbar>
@@ -1725,6 +1315,7 @@ const filteredPlaces = selectedFilter
               {selectedItinerary ? (
                 <>
                   <div
+                    className="filters"
                     style={{
                       display: "grid",
                       gridTemplateRow: "10% 15% 1fr",
@@ -1768,41 +1359,14 @@ const filteredPlaces = selectedFilter
                         )}
                       </div>
 
-                      {collabTab && (
-                        <div
-                          style={{
-                            position: "fixed",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            backgroundColor: "rgba(0, 0, 0, 0.4)",
-                            zIndex: 999,
-                          }}
-                          onClick={() => setCollabTab(false)}
-                        />
-                      )}
+                      {collabTab && <div className="overlay" />}
 
                       {collabTab && (
                         <div
-                          className="filters"
+                          className="users-box"
                           style={{
-                            position: "absolute",
-                            top: "25%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            backgroundColor: "rgba(0, 0, 0, 1)",
-                            padding: "15px",
-                            boxShadow: "0px 0px 19px rgb(83, 39, 139)",
-                            borderRadius: "10px",
-                            borderStyle: "dotted",
-                            color: "rgb(87, 51, 134)",
-                            fontWeight: "bold",
-                            width: "55%",
-                            fontFamily: "Montserrat",
-                            maxWidth: "500px",
                             height: !addUser ? "26%" : "50%",
-                            zIndex: 1000,
+                            top: addUser ? "36%" : "26%",
                           }}
                         >
                           {/* HEADER */}
@@ -1816,33 +1380,37 @@ const filteredPlaces = selectedFilter
                             <div
                               style={{
                                 display: "grid",
-                                gridTemplateColumns: "1fr 12%",
+                                gridTemplateColumns: "1fr 15%",
+                                placeContent: "center",
+                                alignContent: "center",
                               }}
                             >
                               <div
+                                className="header-box"
                                 style={{
-                                  display: "grid",
-                                  gridTemplateColumns: "1fr 10%",
+                                  color: "rgb(194, 198, 199)",
+                                  textShadow: "1px 1px 2px white",
+                                  fontSize: "clamp(10px, 2.55vw, 25px)",
                                 }}
                               >
-                                <div
-                                  style={{
-                                    fontSize: "clamp(15px, 150%, 50px)",
-                                    color: "rgb(194, 198, 199)",
-                                    fontFamily: "P2P",
-                                    fontWeight: "lighter",
-                                    paddingTop: "6px",
-                                    textShadow: "1px 1px 4px white",
-                                  }}
-                                >
-                                  COLLABORATORS
-                                </div>
+                                COLLABORATORS
+                              </div>
 
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "1fr 1fr",
+                                  columnGap: "12px",
+                                  placeContent: "center",
+                                  alignContent: "center",
+                                  marginTop: "10px",
+                                }}
+                              >
                                 <div>
                                   <img
                                     src={back}
                                     style={{
-                                      width: "80%",
+                                      width: "110%",
                                       cursor: "pointer",
                                     }}
                                     onClick={() => {
@@ -1850,22 +1418,21 @@ const filteredPlaces = selectedFilter
                                     }}
                                   />
                                 </div>
-                              </div>
 
-                              <button
-                                style={{
-                                  backgroundColor: "transparent",
-                                  borderStyle: "none",
-                                  cursor: "pointer",
-                                }}
-                                onClick={() => setAddUser(!addUser)}
-                              >
-                                <img src={add} style={{ width: "90%" }} />
-                              </button>
+                                <div>
+                                  <img
+                                    src={add}
+                                    style={{
+                                      width: "120%",
+                                      cursor: "pointer",
+                                    }}
+                                    onClick={() => setAddUser(!addUser)}
+                                  />
+                                </div>
+                              </div>
                             </div>
 
                             <div style={{ marginTop: "1px" }}>
-                              {/* USERS LIST */}
                               <ul
                                 style={{
                                   height: "85%",
@@ -1876,43 +1443,34 @@ const filteredPlaces = selectedFilter
                                   marginTop: !addUser ? "8px" : "auto",
                                 }}
                               >
-                                {users.map((user) => (
-                                  <li
-                                  key="hello"
-                                  style={{
-                                    color: "white",
-                                    display: "block",
-                                    borderBottom: "1px solid",
-                                    listStyle: "none",
-                                    width: "100%",
-                                    padding: "2px 4px",
-                                    margin: 0,
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    fontSize: "150%",
-                                    columnGap: "10px",
-                                    alignItems: "center",
-                                    fontWeight: "lighter"
-                                  }}
-                                >
-                                  <div>
-                                    <button
-                                      style={{
-                                        backgroundColor: "transparent",
-                                        borderStyle: "none",
-                                        cursor: "pointer",
-                                      }}
+                                {users.length > 0 ? (
+                                  users.map((user) => (
+                                    <li
+                                      key={user._id}
+                                      className="users-list-item"
                                     >
-                                      <img
-                                        src={userBye}
-                                        style={{ width: "25px" }}
-                                      />
-                                    </button>
-                                  </div>
-
-                                  <div>{user}</div>
-                                </li>
-                                ))}
+                                      <div>
+                                        <button
+                                          style={{
+                                            backgroundColor: "transparent",
+                                            border: "none",
+                                            cursor: "pointer",
+                                          }}
+                                        >
+                                          <img
+                                            src={userBye}
+                                            style={{ width: "15px" }}
+                                          />
+                                        </button>
+                                      </div>
+                                      <div>{user.username}</div>
+                                    </li>
+                                  ))
+                                ) : (
+                                  <p className="nothing">
+                                    No collaborators invited yet.
+                                  </p>
+                                )}
                               </ul>
                             </div>
 
@@ -1931,7 +1489,6 @@ const filteredPlaces = selectedFilter
                                 >
                                   ADD COLLABORATOR
                                 </div>
-
                                 <div
                                   style={{
                                     marginBottom: "10px",
@@ -1964,12 +1521,10 @@ const filteredPlaces = selectedFilter
                                   {/* SCROLLABLE DROPDOWN */}
                                   {showDropdown && (
                                     <div
+                                    className="dropdown"
                                       style={{
                                         width: "100%",
                                         maxHeight: "126px",
-                                        overflowY: "auto",
-                                        borderRadius: "5px",
-                                        background: "rgb(0, 0, 0)",
                                         position: "absolute",
                                         top: "100%", // Expands downward
                                         left: 0,
@@ -1979,15 +1534,18 @@ const filteredPlaces = selectedFilter
                                           "0px 4px 8px rgba(0,0,0,0.2)",
                                       }}
                                     >
-                                      {filteredCities
-                                        .filter((item) =>
-                                          item.city
-                                            .toLowerCase()
-                                            .includes(searchText.toLowerCase())
+                                      {usersList
+                                        .filter(
+                                          (user) =>
+                                            user.username
+                                              .toLowerCase()
+                                              .includes(
+                                                searchText.toLowerCase()
+                                              ) // Filter based on search input
                                         )
-                                        .map((item) => (
+                                        .map((user) => (
                                           <div
-                                            key={item.city}
+                                            key={user._id}
                                             style={{
                                               padding: "8px",
                                               display: "flex",
@@ -2000,10 +1558,7 @@ const filteredPlaces = selectedFilter
                                               fontSize: "110%",
                                             }}
                                           >
-                                            <span>
-                                              {item.flag} {item.city},{" "}
-                                              {item.country}
-                                            </span>
+                                            <span>{user.username}</span>
 
                                             {/* INVITE BUTTON */}
                                             <button
@@ -2017,12 +1572,18 @@ const filteredPlaces = selectedFilter
                                                 cursor: "pointer",
                                                 fontSize: "100%",
                                               }}
-                                              onClick={() => {
-                                                alert(
-                                                  `Invited ${item.city}, ${item.country}`
-                                                );
-                                                setShowDropdown(false); // Hide dropdown after invite
-                                              }}
+                                              //onClick={() => {
+                                              //alert(
+                                              //</div>`Invited ${item.city}, ${item.country}`
+                                              //);
+                                              //setShowDropdown(false); // Hide dropdown after invite
+                                              // }}
+                                              onClick={() =>
+                                                sendInvitation(
+                                                  selectedItinerary.id,
+                                                  user._id
+                                                )
+                                              }
                                             >
                                               Invite
                                             </button>
@@ -2079,20 +1640,7 @@ const filteredPlaces = selectedFilter
                     )}
 
                     <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                        background:
-                          "linear-gradient(90deg, rgba(86, 39, 161, 0.72), rgb(129, 56, 179))",
-                        borderRadius: "10px",
-                        padding: "2% 5%",
-                        color: "white",
-                        textAlign: "center",
-                        boxShadow: "1px 1px 15px rgba(42, 17, 82, 0.85)",
-                        fontSize: "clamp(12px, 1.8vw, 18px)",
-                        fontFamily: "Montserrat",
-                        fontWeight: "bold",
-                      }}
+                      className="deets"
                     >
                       {/* Start Date */}
                       <div onClick={() => setEditingDate("start")}>
@@ -2118,19 +1666,7 @@ const filteredPlaces = selectedFilter
                           />
                         ) : (
                           <div
-                            style={{
-                              cursor: "pointer",
-                              backgroundColor: "rgba(255, 255, 255, 0.1)",
-                              border: "2px solid rgba(255, 255, 255, 0.5)", // Subtle border for better visibility
-                              fontFamily: "Montserrat",
-                              width: "92%",
-                              marginLeft: "4%",
-                              color: "white",
-                              fontWeight: "bold",
-                              padding: "2px 0", // Padding for better spacing
-                              borderRadius: "5px", // Rounded corners for a modern look
-                              fontSize: "clamp(10px, 1.5vw, 18px)",
-                            }}
+                            className="dates"
                           >
                             {selectedItinerary.startDate
                               ? selectedItinerary.startDate
@@ -2172,19 +1708,7 @@ const filteredPlaces = selectedFilter
                           />
                         ) : (
                           <div
-                            style={{
-                              cursor: "pointer",
-                              backgroundColor: "rgba(255, 255, 255, 0.1)",
-                              border: "2px solid rgba(255, 255, 255, 0.5)", // Subtle border for better visibility
-                              fontFamily: "Montserrat",
-                              color: "white",
-                              width: "92%",
-                              marginLeft: "4%",
-                              fontWeight: "bold",
-                              padding: "2px 0", // Padding for better spacing
-                              borderRadius: "5px", // Rounded corners for a modern look
-                              fontSize: "clamp(10px, 1.5vw, 18px)",
-                            }}
+                            className="dates"
                           >
                             {selectedItinerary.endDate
                               ? selectedItinerary.endDate
@@ -2203,20 +1727,7 @@ const filteredPlaces = selectedFilter
                         <select
                           value={selectedItinerary.status || "Planning"}
                           onChange={handleStatusChange}
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.1)", // Slight transparency for elegance
-                            border: "2px solid rgba(255, 255, 255, 0.5)", // Subtle border for better visibility
-                            fontFamily: "Montserrat",
-                            color: "white",
-                            fontWeight: "bold",
-                            padding: "2px", // Padding for better spacing
-                            borderRadius: "5px", // Rounded corners for a modern look
-                            cursor: "pointer",
-                            outline: "none",
-                            appearance: "none", // Removes default dropdown arrow styling
-                            textAlign: "center",
-                            fontSize: "clamp(10px, 1.5vw, 18px)",
-                          }}
+                          className="status"
                         >
                           <option
                             value="Planning"
@@ -2250,17 +1761,7 @@ const filteredPlaces = selectedFilter
                         </div>
                         <button
                           onClick={handleBudgetToggle}
-                          style={{
-                            cursor: "pointer",
-                            backgroundColor: "rgba(255, 255, 255, 0.1)",
-                            border: "2px solid rgba(255, 255, 255, 0.5)", // Subtle border for better visibility
-                            fontFamily: "Montserrat",
-                            color: "white",
-                            fontWeight: "bold",
-                            padding: "2px 8px", // Padding for better spacing
-                            borderRadius: "5px", // Rounded corners for a modern look
-                            fontSize: "clamp(10px, 1.5vw, 18px)",
-                          }}
+                          className="budget"
                         >
                           {selectedItinerary.budget}
                         </button>
@@ -2269,37 +1770,23 @@ const filteredPlaces = selectedFilter
 
                     <div
                       style={{
-                        height: selectedItinerary.title !== selectedItinerary.city ? "min(100vw, 425px)" : "min(110vw, 500px)",
-                        maxHeight:  "495px",
+                        height:
+                          selectedItinerary.title !== selectedItinerary.city
+                            ? "min(100vw, 425px)"
+                            : "min(110vw, 500px)",
+                        maxHeight: "495px",
                         borderColor: "grey",
                         borderStyle: "solid",
                         marginTop: "5px",
                         borderWidth: "0.5px",
                         borderRadius: "8px",
                         padding: "5px",
-                        overflowY: "auto"
+                        overflowY: "auto",
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "start" }}>
                         <button
-                          style={{
-                            backgroundColor: "transparent",
-                            borderStyle: "none",
-                            margin: "5px",
-                            padding: "5px 15px",
-                            fontFamily: "Montserrat",
-                            fontWeight: "bold",
-                            fontSize: "clamp(12px, 1.2vw, 20px)",
-                            color: "white",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "start",
-                            gap: "4px",
-                            overflowX: "hidden",
-                            whiteSpace: "nowrap",
-                          }}
+                          className="places-button"
                           onClick={() => setPlacesTab(true)}
                         >
                           <img
@@ -2461,130 +1948,128 @@ const filteredPlaces = selectedFilter
                                 {filter.label}
                               </button>
                             ))}
-
                           </div>
 
                           <div>
-                          <ul
-                            className="filters"
-                            style={{
-                              height: "45vh",
-                              padding: "0",
-                              overflowY: "auto",
-                              overflowX: "hidden",
-                              fontSize: "110%",
-                              marginTop: "15px",
-                            }}
-                          >
-                            {Array.isArray(places) && places.length > 0 ? (
-                              places.map((place, index) => (
-                                <li
-                                  key={index}
-                                  style={{
-                                    color: "white",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "5px",
-                                    borderTop: "1px solid",
-                                    listStyle: "none",
-                                    padding: "10px",
-                                    cursor: "pointer",
-                                  }}
-                                  //onClick={() => addPlaces(allPlaces)}
-                                >
-                                  <img
-                                    src={addPlaces}
-                                    style={{ width: "5%" }}
-                                    onClick={(e) => {
-                                      e.stopPropagation(); // Prevents the parent click
-                                      alert("Place added");
+                            <ul
+                              className="filters"
+                              style={{
+                                height: "45vh",
+                                padding: "0",
+                                overflowY: "auto",
+                                overflowX: "hidden",
+                                fontSize: "110%",
+                                marginTop: "15px",
+                              }}
+                            >
+                              {Array.isArray(places) && places.length > 0 ? (
+                                places.map((place, index) => (
+                                  <li
+                                    key={place.fsq_id}
+                                    style={{
+                                      color: "white",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "5px",
+                                      borderTop: "1px solid",
+                                      listStyle: "none",
+                                      padding: "10px",
+                                      cursor: "pointer",
                                     }}
-                                  />
-                                  {place.name}
+                                    onClick={() =>
+                                      handlePlaceClick(place.fsq_id)
+                                    }
+                                  >
+                                    <img
+                                      src={addPlaces}
+                                      style={{ width: "5%" }}
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // Prevents the parent click
+                                        //alert("Place added");
+                                        handleAddPlace(place.fsq_id);
+                                      }}
+                                    />
+                                    {place.name}
+                                  </li>
+                                ))
+                              ) : (
+                                <li
+                                  style={{
+                                    color: "gray",
+                                    textAlign: "center",
+                                    padding: "10px",
+                                    listStyle: "none",
+                                  }}
+                                >
+                                  No Places found.
                                 </li>
-                              ))
-                            ) : (
-                              <li
-                                style={{
-                                  color: "gray",
-                                  textAlign: "center",
-                                  padding: "10px",
-                                  listStyle: "none",
-                                }}
-                              >
-                                No Places found.
-                              </li>
-                            )}
-                          </ul>
-
+                              )}
+                            </ul>
                           </div>
                         </div>
                       )}
 
-                      <div style={{
-                        marginTop: "2px",
-                        color: "purple",
-                        fontSize: "clamp(20px, 1.6vw, 25px)",
-                        textShadow: "1px 1px 10px rgb(83, 6, 118)"
-                      }}>
+                      <div
+                        style={{
+                          marginTop: "2px",
+                          color: "purple",
+                          fontSize: "clamp(20px, 1.6vw, 25px)",
+                          textShadow: "1px 1px 10px rgb(83, 6, 118)",
+                        }}
+                      >
                         NAME & CATEGORY
                       </div>
 
-                      <div style={{
-                        fontFamily: "Inter",
-                        fontSize: "clamp(12px, 1.2vw, 20px)",
-                        fontWeight: "bolder"
-                      }}>
-                        {options.map((option, index) => (
-                          <label
-                          key={index}
-                          style={{
-                            display: "block",
-                            margin: "5px 0",
-                            textDecoration: selectedOptions.includes(option) ? "line-through" : "none",
-                            color: selectedOptions.includes(option) ? "grey" : "white",
-                            padding: "6px 0",
-                            borderTop: "1px solid grey",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedOptions.includes(option)}
-                            onChange={() => handleCheckboxChange(option)}
-                            style={{ marginRight: "5px" }}
-                          />
-                          {option}
-                        </label>
-                        ))}
+                      <div
+                        style={{
+                          fontFamily: "Inter",
+                          fontSize: "clamp(12px, 1.2vw, 20px)",
+                          fontWeight: "bolder",
+                        }}
+                      >
+                        {selectedItinerary &&
+                        selectedItinerary.places?.length > 0 ? (
+                          selectedItinerary.places.map((place) => (
+                            <label
+                              key={place.fsq_id}
+                              style={{
+                                display: "block",
+                                margin: "5px 0",
+                                textDecoration: selectedOptions.includes(
+                                  place._id
+                                )
+                                  ? "line-through"
+                                  : "none",
+                                color: selectedOptions.includes(place._id)
+                                  ? "grey"
+                                  : "white",
+                                padding: "6px 0",
+                                borderTop: "1px solid grey",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedOptions.includes(place.fsq_id)}
+                                onChange={() =>
+                                  handleCheckboxChange(place.fsq_id)
+                                }
+                                style={{ marginRight: "5px" }}
+                              />
+                              {place.name}
+                            </label>
+                          ))
+                        ) : (
+                          <p>No places added yet.</p>
+                        )}
                       </div>
                     </div>
                   </div>
                 </>
               ) : soloItineraries.length > 0 ? (
-                <p
-                  style={{
-                    color: "gray",
-                    textAlign: "center",
-                    padding: "10px",
-                    listStyle: "none",
-                    marginTop: "90%",
-                  }}
-                >
-                  Select an itinerary to see details
-                </p>
+                <p className="nothing">Select an itinerary to see details</p>
               ) : (
-                <p
-                  style={{
-                    color: "gray",
-                    textAlign: "center",
-                    padding: "10px",
-                    listStyle: "none",
-                    marginTop: "50vh",
-                  }}
-                >
-                  Create your first itinerary
-                </p>
+                <p className="nothing">Create your first itinerary</p>
               )}
             </div>
           </div>

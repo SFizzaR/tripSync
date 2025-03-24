@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./itinerary.css";
-import { Link, useNavigate } from "react-router-dom";
-import Header from "../assets/headerBg.jpg";
+import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/plane.PNG";
-import menu from "../assets/icons/options/ellipsis-vertical-solid.svg";
-import home from "../assets/icons/options/house-solid.svg";
-import list from "../assets/icons/options/list-check-solid.svg";
-import settings from "../assets/icons/options/gear-solid.svg";
 import trash from "../assets/icons/options/trash-solid.svg";
 import "../font.css";
-import addPlaces from "../assets/icons/options/square-plus-regular.svg";
+import addPlaces from "../assets/icons/options/square-plus-solid.svg";
 import hist from "../assets/icons/options/building-columns-solid.svg";
 import rest from "../assets/icons/options/utensils-solid.svg";
+import attr from "../assets/icons/options/binoculars-solid.svg";
+import nature from "../assets/icons/options/tree-solid.svg";
+import music from "../assets/icons/options/music-solid.svg";
+import hotels from "../assets/icons/options/city-solid.svg";
+import enter from "../assets/icons/options/film-solid.svg";
 import loc from "../assets/icons/options/location-dot-solid.svg";
 import clear from "../assets/icons/options/minus-solid.svg";
-import back from "../assets/icons/options/right-from-bracket-solid.svg";
+import back from "../assets/icons/options/share-solid.svg";
 import cafes from "../assets/icons/options/mug-hot-solid.svg";
 import malls from "../assets/icons/options/bag-shopping-solid.svg";
 import usersss from "../assets/icons/options/users-solid.svg";
@@ -25,14 +25,15 @@ import edit from "../assets/icons/options/pen-to-square-solid.svg";
 import citiesData from "./citiesData"; // Import the city list (JSON file)
 import { FaCalendarAlt } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
+import Sidebar from "../components/sidebar";
+import Header from "../components/header";
+import Logo from "../components/logo";
 
 export default function Itinerary() {
-  const [isOpen, setIsOpen] = useState(false);
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const navigate = useNavigate();
-  const currentPath = window.location.pathname;
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   const [city, setCity] = useState("");
   const [filteredCities, setFilteredCities] = useState(citiesData);
@@ -68,28 +69,36 @@ export default function Itinerary() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [itineraryIdnow, setitineraryIdnow] = useState([]);
+  const [itineraryIdnow, setitineraryIdnow] = useState("");
 
   const [users, setUsers] = useState([]);
-  const [showUserList, setShowUserList] = useState(false); // State for toggling list
   const [usersList, setUsersList] = useState([]);
 
+  const [placesDeets, setPlacesDeets] = useState(false);
+  const [placesDeetsId, setPlaceDeetsId] = useState(null);
+
   const filters = [
-    { id: "history", src: hist, label: "Historical" },
+    { id: "history", src: hist, label: "History" },
     { id: "restaurant", src: rest, label: "Restaurants" },
-    { id: "mall", src: malls, label: "Shopping" },
+    { id: "shopping", src: malls, label: "Shopping" },
     { id: "cafe", src: cafes, label: "Cafes" },
+    { id: "music", src: music, label: "Music" },
+    { id: "hotel", src: hotels, label: "Hotels" },
+    { id: "attraction", src: attr, label: "Attraction" },
+    { id: "nature", src: nature, label: "Nature" },
+    { id: "entertainment", src: enter, label: "Entertainment" },
   ];
 
   const [selectedOptions, setSelectedOptions] = useState([]);
 
-  const handleCheckboxChange = (option) => {
-    setSelectedOptions(
-      (prevSelected) =>
-        prevSelected.includes(option)
-          ? prevSelected.filter((item) => item !== option) // Remove if already selected
-          : [...prevSelected, option] // Add if not selected
-    );
+  const handleCheckboxChange = (placeId) => {
+    setSelectedOptions((prevSelected) => {
+      if (prevSelected.includes(placeId)) {
+        return prevSelected.filter((id) => id !== placeId); // Remove if already selected
+      } else {
+        return [...prevSelected, placeId]; // Add if not selected
+      }
+    });
   };
 
   useEffect(() => {
@@ -215,7 +224,7 @@ export default function Itinerary() {
 
     console.log("✅ Found Itinerary:", selected);
     setSelectedItinerary(selected);
-    setitineraryIdnow(selected.id);
+    setitineraryIdnow(String(itineraryId));
     setSelectedOption(selected.collaborative ? "collaborative" : "solo");
 
     if (selected.city) {
@@ -231,9 +240,9 @@ export default function Itinerary() {
   }, [places]);
 
   const handleAddPlace = (placeId) => {
-    if (!placeId) {
-      console.error("❌ Error: placeId is null or undefined.");
-      alert("Error: Place data not loaded yet.");
+    if (!placeId || !itineraryIdnow) {
+      console.error("❌ Error: Missing itineraryId or placeId.");
+      alert("Error: Itinerary or Place ID is missing.");
       return;
     }
 
@@ -243,11 +252,12 @@ export default function Itinerary() {
       "Place ID:",
       placeId
     );
+
     addPlaceToItinerary(itineraryIdnow, placeId);
   };
 
   const handlePlaceClick = (placeId, placeName) => {
-    console.log("Clicked Place ID:", placeId);
+    console.log("Clicked Place ID and name:", placeId,placeName);
     setSelectedPlaceId(placeId); // Store the clicked place ID
   };
 
@@ -465,7 +475,6 @@ export default function Itinerary() {
 
       if (response.ok) {
         setUsersList(data); // Store users except logged-in one
-        
       } else {
         console.error("❌ Error:", data.message);
       }
@@ -478,7 +487,6 @@ export default function Itinerary() {
   useEffect(() => {
     console.log("Updated usersList:", usersList);
   }, [usersList]);
-  
 
   useEffect(() => {
     fetchUsersList();
@@ -493,23 +501,20 @@ export default function Itinerary() {
       }
 
       const user = JSON.parse(localStorage.getItem("user")); // Convert string back to object
-      const userId = user ? user._id : null; 
+      const userId = user ? user._id : null;
 
-      const response = await fetch(
-        "http://localhost:5001/api/invite/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            itinerary_id: itineraryIdnow,
-            sender_id: userId,
-            reciver: receiverId,
-          }),
-        }
-      );
+      const response = await fetch("http://localhost:5001/api/invite/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          itinerary_id: itineraryIdnow,
+          sender_id: userId,
+          reciver: receiverId,
+        }),
+      });
 
       const data = await response.json();
 
@@ -544,277 +549,13 @@ export default function Itinerary() {
         }}
       >
         {/* Logo Section */}
-        <div
-          style={{
-            margin: "0",
-            width: "200px",
-            display: "flex",
-            justifyContent: "start",
-            alignItems: "center",
-            columnGap: "15px",
-            left: "0",
-          }}
-        >
-          <img
-            src={logo}
-            alt="Logo"
-            style={{
-              width: "60px",
-              height: "auto",
-              margin: "0",
-              padding: "0",
-              marginTop: "1px",
-              left: "0",
-            }}
-          />
-          <p
-            style={{
-              fontFamily: "Significent",
-              color: "rgb(147, 204, 234)",
-              fontSize: "41px",
-              letterSpacing: "1px",
-              marginTop: "15%",
-              display: "block",
-              textShadow: "1px 1px 1px rgba(13, 39, 59, 0.57)",
-            }}
-          >
-            tripsync
-          </p>
-        </div>
+        <Logo />
 
         {/* Navbar Buttons */}
-        <div
-          style={{
-            width: "200px",
-            display: "flex",
-            justifyContent: "end",
-            alignContent: "center",
-            marginRight: "30px",
-            columnGap: "10px",
-            padding: "-10px",
-            position: "relative",
-          }}
-        >
-          {/* Button */}
-          <button
-            style={{
-              backgroundColor: "transparent",
-              width: "40px",
-              height: "40px",
-              padding: "0",
-              borderStyle: "none",
-              borderRadius: "10px",
-            }}
-            onMouseEnter={(e) =>
-              (e.target.style.backgroundColor = "rgba(25, 57, 78, 0.5)")
-            }
-            onMouseLeave={(e) =>
-              (e.target.style.backgroundColor = "transparent")
-            }
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            <img
-              src={menu} // Ensure 'menu' is a valid image path or import
-              style={{
-                width: "20%",
-                padding: "6% 5% 0 5%",
-              }}
-            />
-          </button>
-
-          {/* Side Panel */}
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              right: isOpen ? "-15px" : "-270px", // Slide in effect
-              width: "250px",
-              height: "100vh",
-              backgroundColor: "rgba(2, 40, 53, 0.8)",
-              transition: "right 0.3s ease-in-out",
-              borderRadius: "10px",
-              padding: "10px",
-              color: "white",
-            }}
-          >
-            <button
-              onClick={() => setIsOpen(false)}
-              onMouseEnter={(e) =>
-                (e.target.style.backgroundColor = "rgba(93, 131, 156, 0.9)")
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.backgroundColor = "transparent")
-              }
-              style={{
-                position: "absolute",
-                top: "0px",
-                fontFamily: "Montserrat",
-                right: "10px",
-                backgroundColor: "transparent",
-                color: "white",
-                fontFamily: "Inter",
-                fontWeight: "bold",
-                fontSize: "27px",
-                borderRadius: "10px",
-                border: "none",
-                padding: "5px 10px",
-                float: "right",
-              }}
-            >
-              X
-            </button>
-
-            <p
-              style={{
-                fontFamily: "Significent",
-                fontWeight: "lighter",
-                fontSize: "70px",
-                margin: "0",
-                color: "rgb(255, 255, 255)",
-                textShadow: "0 0 10px rgba(199, 217, 222, 0.89)",
-              }}
-            >
-              Menu
-            </p>
-            <ul
-              style={{ listStyle: "none", padding: "10px 0", marginTop: "0" }}
-            >
-              {[
-                { name: "Home", path: "/dashboard", icon: home },
-                { name: "My Itineraries", path: "/myitinerary", icon: list },
-                { name: "Settings", path: "/", icon: settings },
-              ].map((item) => (
-                <li
-                  key={item.name}
-                  style={{
-                    margin: "30px 0",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <Link
-                    to={item.path}
-                    style={{
-                      fontFamily: "Montserrat",
-                      fontSize: "18px",
-                      color:
-                        currentPath === item.path
-                          ? "rgb(158, 190, 211)"
-                          : "white",
-                      textShadow:
-                        currentPath === item.path
-                          ? "0 0 10px rgb(158, 190, 211)"
-                          : "none",
-                      fontWeight:
-                        currentPath === item.path ? "bolder" : "normal",
-                      textDecoration: "none",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "8px 15px",
-                      borderRadius: "8px",
-                      transition: "background 0.3s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.target.style.background = "rgba(255, 255, 255, 0.1)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.target.style.background = "transparent")
-                    }
-                  >
-                    <img
-                      src={item.icon}
-                      alt={`${item.name} icon`}
-                      style={{ width: "20px", height: "20px" }}
-                    />
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <Sidebar currentPath={window.location.pathname} />
       </nav>
 
-      {/* Header Section */}
-      <section
-        style={{
-          width: "100%",
-          padding: "0",
-          position: "relative",
-          overflow: "hidden",
-          margin: "0",
-          marginTop: "60px", // Add margin to offset fixed navbar
-        }}
-      >
-        {/* Background Image */}
-        <img
-          src={Header}
-          alt="Header"
-          style={{
-            width: "100%",
-            display: "block",
-            margin: "0",
-            padding: "0",
-          }}
-        />
-
-        {/* Overlay Text/Image */}
-        <div
-          style={{
-            position: "absolute",
-            top: "45%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            animation: "fadeIn 1s ease-in-out", // Fade-in effect for overlay text
-          }}
-        >
-          <h1
-            style={{
-              fontFamily: "Significent",
-              color: "white",
-              fontSize: "15vw",
-              fontWeight: "lighter",
-              padding: "20px",
-              overflow: "hidden",
-              textShadow: "1px 1px 5px rgb(0, 0, 0, 0.7)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            My Itineraries
-          </h1>
-        </div>
-      </section>
-
-      {/*ONE LINER*/}
-      <section
-        className="oneLiner"
-        style={{
-          backgroundColor: "rgb(114, 153, 179)",
-          margin: "0",
-          paddingLeft: "2%",
-        }}
-      >
-        <div
-          style={{
-            textAlign: "center",
-            fontFamily: "P2P",
-            fontWeight: "lighter",
-            color: "rgba(255, 255, 255, 0.8)",
-            padding: "2% 0 1% 0",
-            overflow: "hidden", // Ensures the typing effect works
-            whiteSpace: "nowrap", // Prevents wrapping
-            display: "inline-block", // Keeps text inline
-            borderRight: "2px solid white", // Cursor effect
-            fontSize: "3.5vw", // Adjust font size
-            textShadow: "0 0 4px rgba(13, 99, 99, 0.96)",
-            animation:
-              "typing 3s steps(30, end) infinite alternate, blink 0.5s step-end infinite",
-          }}
-        >
-          PLAN YOUR ITINERARIES HERE
-        </div>
-      </section>
+      <Header title="My Itineraries" text="PLAN YOUR ITINERARIES HERE" />
 
       <button
         className="create-button"
@@ -952,9 +693,7 @@ export default function Itinerary() {
                 />
 
                 {/* Scrollable Dropdown */}
-                <div
-                  className="dropdown"
-                >
+                <div className="dropdown">
                   {filteredCities.map((item) => (
                     <div
                       key={item.city}
@@ -1408,25 +1147,25 @@ export default function Itinerary() {
                               >
                                 <div>
                                   <img
-                                    src={back}
-                                    style={{
-                                      width: "110%",
-                                      cursor: "pointer",
-                                    }}
-                                    onClick={() => {
-                                      setCollabTab(false), setAddUser(false);
-                                    }}
-                                  />
-                                </div>
-
-                                <div>
-                                  <img
                                     src={add}
                                     style={{
                                       width: "120%",
                                       cursor: "pointer",
                                     }}
                                     onClick={() => setAddUser(!addUser)}
+                                  />
+                                </div>
+
+                                <div>
+                                  <img
+                                    src={back}
+                                    style={{
+                                      width: "105%",
+                                      cursor: "pointer",
+                                    }}
+                                    onClick={() => {
+                                      setCollabTab(false), setAddUser(false);
+                                    }}
                                   />
                                 </div>
                               </div>
@@ -1521,7 +1260,7 @@ export default function Itinerary() {
                                   {/* SCROLLABLE DROPDOWN */}
                                   {showDropdown && (
                                     <div
-                                    className="dropdown"
+                                      className="dropdown"
                                       style={{
                                         width: "100%",
                                         maxHeight: "126px",
@@ -1639,9 +1378,7 @@ export default function Itinerary() {
                       </div>
                     )}
 
-                    <div
-                      className="deets"
-                    >
+                    <div className="deets">
                       {/* Start Date */}
                       <div onClick={() => setEditingDate("start")}>
                         <div
@@ -1665,9 +1402,7 @@ export default function Itinerary() {
                             autoFocus
                           />
                         ) : (
-                          <div
-                            className="dates"
-                          >
+                          <div className="dates">
                             {selectedItinerary.startDate
                               ? selectedItinerary.startDate
                               : "--/--/--"}
@@ -1707,9 +1442,7 @@ export default function Itinerary() {
                             autoFocus
                           />
                         ) : (
-                          <div
-                            className="dates"
-                          >
+                          <div className="dates">
                             {selectedItinerary.endDate
                               ? selectedItinerary.endDate
                               : "--/--/--"}
@@ -1759,30 +1492,18 @@ export default function Itinerary() {
                         >
                           BUDGET
                         </div>
-                        <button
-                          onClick={handleBudgetToggle}
-                          className="budget"
-                        >
+                        <button onClick={handleBudgetToggle} className="budget">
                           {selectedItinerary.budget}
                         </button>
                       </div>
                     </div>
 
                     <div
-                      style={{
-                        height:
-                          selectedItinerary.title !== selectedItinerary.city
-                            ? "min(100vw, 425px)"
-                            : "min(110vw, 500px)",
-                        maxHeight: "495px",
-                        borderColor: "grey",
-                        borderStyle: "solid",
-                        marginTop: "5px",
-                        borderWidth: "0.5px",
-                        borderRadius: "8px",
-                        padding: "5px",
-                        overflowY: "auto",
-                      }}
+                      className={`itinerary-container ${
+                        selectedItinerary.title !== selectedItinerary.city
+                          ? "large"
+                          : "extra-large"
+                      }`}
                     >
                       <div style={{ display: "flex", alignItems: "start" }}>
                         <button
@@ -1795,6 +1516,7 @@ export default function Itinerary() {
                               width: "4.5%",
                               height: "auto",
                               boxShadow: "none",
+                              marginRight: "2%",
                             }}
                           />
                           Add to Itinerary
@@ -1820,41 +1542,25 @@ export default function Itinerary() {
 
                       {placesTab && (
                         <div
+                          className="places-container"
                           style={{
                             position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            backgroundColor: "rgba(0, 0, 0, 1)",
                             padding: "15px",
-                            boxShadow: "0px 0px 19px rgb(83, 39, 139)",
-                            borderRadius: "10px",
-                            borderStyle: "dotted",
-                            color: "rgb(87, 51, 134)",
-                            fontWeight: "bold",
-                            width: "60%",
-                            fontFamily: "Montserrat",
-                            maxWidth: "500px",
-                            height: "60%",
-                            zIndex: 1000,
                           }}
                         >
                           <div
                             style={{
                               display: "grid",
                               gridTemplateColumns: "1fr 10%",
+                              columnGap: "10px",
                             }}
                           >
                             <div
+                              className="stepNum"
                               style={{
-                                fontSize: "160%",
-                                color: "rgb(140, 87, 205)",
-                                fontFamily: "P2P",
+                                fontSize: "clamp(20px, 2vw, 40px)",
                                 marginBottom: "10px",
-                                fontWeight: "lighter",
-                                paddingTop: "6px",
-                                textShadow:
-                                  "1px 1px 4px rgba(66, 23, 118, 0.8)",
+                                color: "rgb(147, 101, 172)",
                               }}
                             >
                               ADD PLACES TO ITINERARY
@@ -1864,7 +1570,7 @@ export default function Itinerary() {
                               <img
                                 src={back}
                                 style={{
-                                  width: "90%",
+                                  width: "60%",
                                   cursor: "pointer",
                                 }}
                                 onClick={() => {
@@ -1881,6 +1587,7 @@ export default function Itinerary() {
                               display: "flex",
                               alignItems: "center",
                               gap: "8px",
+                              marginBottom: "5px",
                               overflowX: "auto",
                               whiteSpace: "nowrap",
                               padding: "5px 0", // Reduce top-bottom padding
@@ -1889,23 +1596,8 @@ export default function Itinerary() {
                           >
                             {selectedFilter && (
                               <button
-                                onClick={() => setSelectedFilter(null)}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "5px",
-                                  backgroundColor: "rgb(75, 20, 141)",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  color: "white",
-                                  padding: "10px 12px",
-                                  borderRadius: "20px",
-                                  fontFamily: "monospace",
-                                  fontSize: "13px",
-                                  fontWeight: "bold",
-                                  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-                                  transition: "background-color 0.3s ease",
-                                }}
+                                onClick={() => clearFilter()}
+                                className="filter-box"
                               >
                                 <img src={clear} style={{ width: "10px" }} />
                                 CLEAR
@@ -1916,29 +1608,13 @@ export default function Itinerary() {
                             {filters.map((filter) => (
                               <button
                                 key={filter.id}
+                                className="filter-option"
                                 onClick={() => handleFilterClick(filter.id)}
                                 style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px",
                                   backgroundColor:
                                     selectedFilter === filter.id
                                       ? "rgba(130, 90, 180, 1)"
                                       : "rgba(210, 173, 226, 0.8)",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  color: "rgb(243, 251, 255)",
-                                  padding: "6px 10px",
-                                  borderRadius: "20px",
-                                  fontFamily: "monospace",
-                                  fontSize: "13px",
-                                  boxShadow:
-                                    selectedFilter === filter.id
-                                      ? "0px 4px 8px rgba(0, 0, 0, 0.2)"
-                                      : "0px 2px 4px rgba(0, 0, 0, 0.1)",
-                                  whiteSpace: "nowrap",
-                                  textShadow: "1px 1px 5px rgb(68, 26, 103)",
-                                  boxShadow: "0px 0px 15px rgb(153, 92, 206)",
                                 }}
                               >
                                 <img
@@ -1966,30 +1642,45 @@ export default function Itinerary() {
                                 places.map((place, index) => (
                                   <li
                                     key={place.fsq_id}
-                                    style={{
-                                      color: "white",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "5px",
-                                      borderTop: "1px solid",
-                                      listStyle: "none",
-                                      padding: "10px",
-                                      cursor: "pointer",
-                                    }}
-                                    onClick={() =>
-                                      handlePlaceClick(place.fsq_id)
-                                    }
+                                    className="places-list-item"
                                   >
-                                    <img
-                                      src={addPlaces}
-                                      style={{ width: "5%" }}
-                                      onClick={(e) => {
-                                        e.stopPropagation(); // Prevents the parent click
-                                        //alert("Place added");
-                                        handleAddPlace(place.fsq_id);
+                                    <div
+                                      style={{
+                                        overflowX: "hidden",
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        alignContent: "center",
+                                        flexWrap: "space-between",
                                       }}
-                                    />
-                                    {place.name}
+                                    >
+                                      <img
+                                        src={addPlaces}
+                                        style={{
+                                          width: "5%",
+                                          marginRight: "4px",
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddPlace(place.fsq_id);
+                                          handlePlaceClick(place.fsq_id, place.name);
+                                        }}
+                                      />
+                                      {place.name}
+                                    </div>
+
+                                    <div
+                                      style={{
+                                        fontWeight: "lighter",
+                                        textDecorationLine: "underline",
+                                        color: "rgb(105, 18, 131)",
+                                      }}
+                                      onClick={() => {
+                                        setPlacesDeets(true);
+                                        setPlaceDeetsId(place.fsq_id);
+                                      }}
+                                    >
+                                      view details
+                                    </div>
                                   </li>
                                 ))
                               ) : (
@@ -2007,6 +1698,50 @@ export default function Itinerary() {
                             </ul>
                           </div>
                         </div>
+                      )}
+
+                      {placesDeets && (
+                        <div
+                          style={{
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            backgroundColor: "rgba(0, 0, 0, 0.4)",
+                            zIndex: 1999,
+                          }}
+                          onClick={() => {
+                            setPlacesDeets(false), setPlaceDeetsId(null);
+                          }}
+                        />
+                      )}
+
+                      {placesDeets && (
+                        <>
+                          <div
+                            style={{
+                              position: "fixed",
+                              top: 0,
+                              right: placesDeets ? "-5px" : "-280px", // Slide in effect
+                              height: "100vh",
+                              width: "400px",
+                              transition: "right 1s ease-in-out",
+                              backgroundColor: "rgb(0, 0, 0)",
+                              borderRadius: "10px",
+                              padding: "10px",
+                              color: "white",
+                              borderLeft: "dashed 3px rgb(77, 102, 112)",
+                              zIndex: 2000,
+                              display: "grid",
+                              gridTemplateRows: "40% 1fr",
+                            }}
+                          >
+                            <div>PICTURES</div>
+
+                            <div>REVIEWS AND STUFF</div>
+                          </div>
+                        </>
                       )}
 
                       <div
@@ -2035,12 +1770,10 @@ export default function Itinerary() {
                               style={{
                                 display: "block",
                                 margin: "5px 0",
-                                textDecoration: selectedOptions.includes(
-                                  place._id
-                                )
+                                textDecoration: selectedOptions
                                   ? "line-through"
                                   : "none",
-                                color: selectedOptions.includes(place._id)
+                                color: selectedOptions
                                   ? "grey"
                                   : "white",
                                 padding: "6px 0",
@@ -2050,13 +1783,13 @@ export default function Itinerary() {
                             >
                               <input
                                 type="checkbox"
-                                checked={selectedOptions.includes(place.fsq_id)}
+                                checked={place.name}
                                 onChange={() =>
                                   handleCheckboxChange(place.fsq_id)
                                 }
                                 style={{ marginRight: "5px" }}
                               />
-                              {place.name}
+                              {place.name ? place.name : "Unnamed Place"}
                             </label>
                           ))
                         ) : (

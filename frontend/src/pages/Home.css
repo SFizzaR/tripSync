@@ -1,0 +1,233 @@
+.signup-button {
+    background-color: rgb(126, 190, 202);
+    font-family: "Inter", sans-serif;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: none;
+    font-size: 20px;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease-in-out;
+  }  
+
+  .about-section {
+    margin: 2% 8%;
+    text-align: center;
+    color: white;
+    border: dashed 3px rgb(3, 35, 45);
+    background-color: rgba(3, 35, 45, 0.5);
+    border-radius: 10px;
+    padding: 0;
+    animation: slideInLeft 0.8s ease-out;
+  }
+  
+  .flashing-text, .mission-title{
+    font-family: "P2P";
+    font-weight: bold;
+    color: rgba(247, 253, 255, 0.86);
+    font-size: clamp(10px, 5vw, 50px);
+    text-align: left;
+    text-shadow: 0 0 10px rgb(114, 153, 179);
+    margin: 3% -2px 2% 8px;
+    padding: 7px 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .mission-title{
+    font-size: clamp(10px, 5vw, 20px);
+  }
+
+  .aboutDeets {
+    font-family: "Montserrat";
+    margin-top: -10px;
+    text-shadow: 1px 1px 3px rgba(16, 71, 103, 0.5);
+    color: rgb(167, 208, 233);
+    padding: 0px 5%;
+    font-size: 1.8vw;
+    margin-bottom: 0;
+  }
+  
+  .typing-text {
+    font-family: "P2P";
+    font-weight: bold;
+    color: rgba(247, 253, 255, 0.86);
+    font-size: clamp(20px, 3.2vw, 40px);
+    text-align: left;
+    text-shadow: 0 0 12px rgb(46, 70, 85);
+    margin-bottom: 2%;
+    margin-left: 3%;
+    padding: 7px 12px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+    animation: flashing 0.45s infinite alternate;
+  }
+
+  .card {
+    width: 85%;
+    max-width: 800px;
+    height: 150%;
+    background-size: cover;
+    background-position: center;
+    color: rgb(240, 238, 238);
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: start;
+    border-radius: 10px;
+    padding: 8px;
+    box-shadow: 2px 5px 8px rgba(114, 153, 179, 0.4);
+    transition: transform 0.5s ease-in-out;
+    text-align: center;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+  }
+  
+  .cityname {
+    font-size: 50px;
+    font-family: "Significent";
+    font-weight: 200;
+    text-shadow: 0 1px 4px rgb(0, 0, 0, 1);
+    margin: -10px 0 0 10px;
+  }
+
+  .country {
+    font-size: 20px;
+    font-family: "Inter";
+    font-weight: 800;
+    margin: -8px 0 0 15px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    letter-spacing: 2px;
+    padding: 0 10px;
+  }
+  
+  .arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+
+  .types {
+    font-family: "Montserrat";
+    font-weight: bolder;
+    color: white;
+    font-size: 2.5vw;
+    text-shadow: 1px 1px 2px rgba(26, 92, 114, 0.5);
+  }
+  
+  .images-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .motion-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .animated-image {
+    width: 80%;
+    max-width: 450px;
+    border-style: dotted;
+    border-width: 5px;
+    border-color: rgb(247, 253, 255);
+    border-radius: 15px;
+    box-shadow: 0px 0px 20px rgba(5, 39, 57, 0.62);
+  }
+
+  .mission-section {
+    border: dashed 2px rgb(5, 81, 104);
+    margin: 0 6%;
+    background-color: rgba(5, 80, 105, 0.5);
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    padding: 0;
+    animation: slideInLeft 0.8s ease-out;
+  }
+  
+  .mission-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 2px;
+    margin-bottom: 0;
+  }
+  
+  .mission-content {
+    display: grid;
+    grid-template-columns: 15% 1fr;
+    padding-bottom: 15px;
+  }
+  
+  .mission-image {
+    width: 100%;
+    margin: 0px 25px;
+    opacity: 0.75;
+  }
+  
+  .mission-details {
+    font-family: "Montserrat";
+    margin-top: -2.5%;
+    text-shadow: 1px 1px 3px rgba(28, 111, 117, 0.5);
+    color: rgb(167, 208, 233);
+    padding: 0px 5%;
+    font-size: clamp(13.5px, 1.8vw, 30px);
+    margin-left: 10px;
+    text-align: left;
+  }  
+
+
+
+  
+  
+  
+  
+  @keyframes blink {
+    50% {
+      border-right: 2px solid rgba(247, 253, 255, 0.86);
+    }
+  }  
+  
+  /* Add the flashing animation */
+  @keyframes flashing {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0.2;
+    }
+  }
+  
+
+
+/* Slide-in animation */
+@keyframes slideIn {
+    from {
+        top: -50px;
+        opacity: 0;
+    }
+    to {
+        top: 0;
+        opacity: 1;
+    }
+}
+
+
+@media (min-width: 1024px) {
+  .mission-title{
+    font-size: clamp(10px, 5vw, 50px);
+  }
+}

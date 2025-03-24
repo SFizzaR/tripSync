@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import SignUp from "./pages/createAccount";
 import Dashboard from "./pages/dashboard";
 import Itinerary from "./pages/itinerary";
+import Notifs from "./pages/Notifs";
+
 
 const AppRoutes = () => {
   return (
@@ -14,6 +16,7 @@ const AppRoutes = () => {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/myitinerary" element={<Itinerary />} />
+      <Route path="/notifications" element={<Notifs />} />
     </Routes>
   );
 };

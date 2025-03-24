@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 const Itinerary = require("../models/ItinerariesModel");
 const Place = require("../models/placesModel");
-const { fetchCityFromCoordinates } = require('../utils/findCity');
+//const { fetchCityFromCoordinates } = require('../utils/findCity');
 
 
 const createItinerary = expressAsyncHandler(async (req, res) => {
@@ -115,7 +115,8 @@ const updateItinerary = expressAsyncHandler(async (req, res) => {
 
 
 const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
-  const { itineraryId, placeId } = req.params;
+  const { itineraryId, placeId } = req.params;  
+
 
   try {
     console.log("🔍 Received Request:", { itineraryId, placeId });

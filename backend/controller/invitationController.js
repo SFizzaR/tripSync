@@ -1,5 +1,4 @@
 const expressAsyncHandler = require("express-async-handler");
-const blockedModel = require("../models/blockedModel");
 const userModel = require("../models/userModel");
 const invitationsModel = require("../models/invitationsModel");
 const Itinerary = require("../models/ItinerariesModel");
@@ -23,13 +22,6 @@ const SendInvitation = expressAsyncHandler(async (req, res) => {
         if (rejectedInvitesCount >= 2) {
             return res.status(403).json({ message: "This user has rejected too many invites. Avoid spamming." });
         }
-
-        const isblocked = await blockedModel.findOne({ blocker_id: Reciver._id, blocked_id: itinerary_id });
-
-        if (isblocked) {
-            return res.status(409).json({ message: "Itinerary has been blocked by this user" });
-        }
-
         const IsInvited = await invitationsModel.findOne({ itinerary: itinerary_id, reciver_id: reciver });
 
         if (IsInvited && IsInvited.status === "pending") { // Fix condition

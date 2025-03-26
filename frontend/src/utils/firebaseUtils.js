@@ -18,10 +18,31 @@ export const messaging = getMessaging(app);
 
 export const generateToken = async () => {
     const permission = await Notification.requestPermission();
-    console.log(permission);
-    if (permission === "granted") {
-        const token = await getToken(messaging, { vapidKey });
-        console.log(token);
-    }
-}
+    console.log("Notification permission:", permission);
 
+    if (permission === "granted") {
+        try {
+            const token = await getToken(messaging, { vapidKey }); // Replace with actual VAPID key
+            console.log("FCM Token:", token);
+
+            if (token) {
+                await fetch("http://localhost:5001/api/users/storeToken", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                    },
+                    body: JSON.stringify({ fcmToken: token }), // Use `token` instead of `currentToken`
+                });
+
+                console.log("FCM Token stored successfully!");
+            } else {
+                console.error("Failed to generate FCM token.");
+            }
+        } catch (error) {
+            console.error("Error fetching FCM token:", error);
+        }
+    } else {
+        console.log("User denied notification permissions.");
+    }
+};

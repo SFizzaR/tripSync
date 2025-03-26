@@ -31,6 +31,10 @@ const userSchema = mongoose.Schema(
     city: {
       type: String
     },
+    fcmToken: {
+      type: String,
+      default: null
+    }
   }
 );
 

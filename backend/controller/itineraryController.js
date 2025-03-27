@@ -113,55 +113,71 @@ const updateItinerary = expressAsyncHandler(async (req, res) => {
   }
 });
 
-
 const addPlaceToItinerary = expressAsyncHandler(async (req, res) => {
   const { itineraryId, placeId } = req.params;
+  const { placeName } = req.body; // ✅ Ensure this is received from frontend
 
   try {
-    console.log("🔍 Received Request:", { itineraryId, placeId });
+    console.log("🔍 Received Request:", { itineraryId, placeId, placeName });
 
-    if (!itineraryId || !placeId) {
-      return res.status(400).json({ message: "❌ Missing itineraryId or placeId" });
+    if (!itineraryId || !placeId || !placeName) {
+      return res.status(400).json({ message: "❌ Missing itineraryId, placeId, or placeName" });
     }
 
-    // 🔹 Find the itinerary in MongoDB
+    // 🔹 Find the itinerary
     const itinerary = await Itinerary.findById(itineraryId);
     if (!itinerary) {
       return res.status(404).json({ message: "❌ Itinerary not found" });
     }
 
-    // 🔹 Check if place already exists in itinerary
-    if (itinerary.places.some((place) => place.fsq_id === placeId)) {
+    // 🔹 Ensure `places` array exists
+    if (!Array.isArray(itinerary.places)) {
+      itinerary.places = [];
+    }
+
+    // 🔹 Check if place already exists
+    if (itinerary.places.some((place) => place.placeId === placeId)) {
       return res.status(400).json({ message: "❌ Place already added" });
     }
 
-    // 🔹 Fetch place details from Foursquare API
-    const foursquareResponse = await axios.get(`https://api.foursquare.com/v3/places/${placeId}`, {
-      headers: { Authorization: process.env.FOURSQUARE_API.trim() },
-    });
+    // 🔹 Add place correctly
+    const newPlace = {
+      placeId: placeId.toString(),  // ✅ Ensure string format
+      placeName: placeName.trim(),  // ✅ Trim to avoid extra spaces
+    };
 
-    const placeData = foursquareResponse.data;
-    if (!placeData || !placeData.fsq_id || !placeData.name) {
-      return res.status(404).json({ message: "❌ Place not found in Foursquare" });
-    }
-
-    console.log("✅ Fetched Place from Foursquare:", placeData.name);
-
-    // 🔹 Add place (fsq_id + name) to the itinerary
-    itinerary.places.push({
-      fsq: placeData.fsq_id,
-      placeName: placeData.name,
-    });
+    itinerary.places.push(newPlace);
 
     await itinerary.save();
 
     console.log("✅ Updated Itinerary:", itinerary);
-
-    // Return updated itinerary with the new place added
     res.json({ message: "✅ Place added successfully", itinerary });
   } catch (error) {
-    console.error("❌ Error adding place:", error.response?.data || error.message);
-    res.status(500).json({ message: "❌ Server error", error: error.response?.data || error.message });
+    console.error("❌ Error adding place:", error.message);
+    res.status(500).json({ message: "❌ Server error", error: error.message });
+  }
+});
+
+const getItineraryPlaces = expressAsyncHandler(async (req, res) => {
+  try {
+    const { itineraryId } = req.params;
+    const itinerary = await Itinerary.findById(itineraryId);
+
+    if (!itinerary) {
+      return res.status(404).json({ message: "❌ Itinerary not found" });
+    }
+
+    // 🔹 Ensure `places` exists
+    if (!Array.isArray(itinerary.places)) {
+      itinerary.places = []; // ✅ Initialize if missing
+    }
+
+    const placeNames = itinerary.places.map((place) => place.placeName);
+
+    res.json({ placeNames });
+  } catch (error) {
+    console.error("❌ Error fetching places:", error.message);
+    res.status(500).json({ message: "❌ Server error" });
   }
 });
 
@@ -286,4 +302,4 @@ const deletePlace = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary, addUserToItinerary, deleteUser, deletePlace };
+module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary,getItineraryPlaces , addUserToItinerary, deleteUser, deletePlace };

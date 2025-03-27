@@ -77,6 +77,10 @@ export default function Itinerary() {
   const [placesDeets, setPlacesDeets] = useState(false);
   const [placesDeetsId, setPlaceDeetsId] = useState(null);
 
+  const [placeName, setPlaceName] = useState("")
+  const [itineraryPlaces, setItineraryPlaces] = useState([]);
+
+
   const filters = [
     { id: "history", src: hist, label: "History" },
     { id: "restaurant", src: rest, label: "Restaurants" },
@@ -223,8 +227,9 @@ export default function Itinerary() {
     }
 
     console.log("✅ Found Itinerary:", selected);
+    //displayItineraryPlaces(selected)
     setSelectedItinerary(selected);
-    setitineraryIdnow(String(itineraryId));
+    setitineraryIdnow(selected.id);
     setSelectedOption(selected.collaborative ? "collaborative" : "solo");
 
     if (selected.city) {
@@ -239,10 +244,10 @@ export default function Itinerary() {
     console.log("Updated places:", places);
   }, [places]);
 
-  const handleAddPlace = (placeId) => {
-    if (!placeId || !itineraryIdnow) {
-      console.error("❌ Error: Missing itineraryId or placeId.");
-      alert("Error: Itinerary or Place ID is missing.");
+  const handleAddPlace = (placeId, placeName) => {
+    if (!placeId) {
+      console.error("❌ Error: placeId is null or undefined.");
+      alert("Error: Place data not loaded yet.");
       return;
     }
 
@@ -252,13 +257,14 @@ export default function Itinerary() {
       "Place ID:",
       placeId
     );
-
-    addPlaceToItinerary(itineraryIdnow, placeId);
+    displayItineraryPlaces(itineraryIdnow);
+    addPlaceToItinerary(itineraryIdnow, placeId, placeName);
   };
 
   const handlePlaceClick = (placeId, placeName) => {
-    console.log("Clicked Place ID and name:", placeId,placeName);
+    console.log("Clicked Place ID:", placeId);
     setSelectedPlaceId(placeId); // Store the clicked place ID
+    setPlaceName(placeName);
   };
 
   const fetchPlaces = async (city, filter = "") => {
@@ -288,15 +294,16 @@ export default function Itinerary() {
     //addPlaceToItinerary(itineraryIdnow,placeId)
   };
 
-  const addPlaceToItinerary = async (itineraryIdnow, placeId) => {
-    if (!itineraryIdnow || !placeId) {
-      console.error("❌ Error: Missing itineraryId or placeId.");
+  const addPlaceToItinerary = async (itineraryIdnow, placeId, placeName) => {
+    if (!itineraryIdnow || !placeId || !placeName) {
+      console.error("❌ Error: Missing itineraryId, placeId, or placeName.");
       return;
     }
 
     console.log("📌 Sending request to add place:");
     console.log("➡️ Itinerary ID:", itineraryIdnow);
     console.log("➡️ Place ID:", placeId);
+    console.log("➡️ Place Name:", placeName);
 
     const url = `http://localhost:5001/api/itineraries/${itineraryIdnow}/places/${placeId}`;
 
@@ -306,6 +313,7 @@ export default function Itinerary() {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ placeName })
       });
 
       if (!response.ok) {
@@ -325,10 +333,39 @@ export default function Itinerary() {
     }
   };
 
-  //setSelectedItinerary((prevItinerary) => ({
-  //...prevItinerary,
-  //allPlaces: [...prevItinerary.allPlaces, newPlace], // Ensure new reference
-  //}));
+
+  const displayItineraryPlaces = async (itineraryIdnow) => {
+    console.log("📌 Fetching Places for Itinerary ID:", itineraryIdnow);
+
+    const url = `http://localhost:5001/api/itineraries/${itineraryIdnow}/placeDisplay`;
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`❌ Error fetching places: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Places Retrieved:", data);
+
+      if (!data || !Array.isArray(data.placeNames)) {
+        console.error("❌ Invalid response format");
+        setItineraryPlaces([]); // Prevents crash
+        return;
+      }
+
+      setItineraryPlaces(data.placeNames);
+    } catch (error) {
+      console.error("❌ Fetch Error:", error.message);
+      setItineraryPlaces([]); // Prevent UI crash
+    }
+  };
+
+
 
   const handleFilterClick = (id) => {
     console.log("Filter clicked:", id);
@@ -1652,6 +1689,10 @@ export default function Itinerary() {
                                         alignContent: "center",
                                         flexWrap: "space-between",
                                       }}
+                                      onClick={() =>
+                                        handlePlaceClick(place.fsq_id)
+                                      }
+  
                                     >
                                       <img
                                         src={addPlaces}
@@ -1661,8 +1702,8 @@ export default function Itinerary() {
                                         }}
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleAddPlace(place.fsq_id);
-                                          handlePlaceClick(place.fsq_id, place.name);
+                                          handleAddPlace(place.fsq_id, place.name);
+                                          //handlePlaceClick(place.fsq_id, place.name);
                                         }}
                                       />
                                       {place.name}
@@ -1762,18 +1803,18 @@ export default function Itinerary() {
                           fontWeight: "bolder",
                         }}
                       >
-                        {selectedItinerary &&
-                        selectedItinerary.places?.length > 0 ? (
+                        {selectedItinerary?.places?.length > 0 ? (
                           selectedItinerary.places.map((place) => (
                             <label
-                              key={place.fsq_id}
+                              key={place.placeId || place._id}
                               style={{
                                 display: "block",
                                 margin: "5px 0",
-                                textDecoration: selectedOptions
+                                textDecoration: selectedOptions.includes(
+                                  place.placeId)
                                   ? "line-through"
                                   : "none",
-                                color: selectedOptions
+                                  color: selectedOptions.includes(place.placeId)
                                   ? "grey"
                                   : "white",
                                 padding: "6px 0",
@@ -1783,13 +1824,13 @@ export default function Itinerary() {
                             >
                               <input
                                 type="checkbox"
-                                checked={place.name}
+                                checked={selectedOptions.includes(place.placeId)}
                                 onChange={() =>
-                                  handleCheckboxChange(place.fsq_id)
+                                  handleCheckboxChange(place.placeId)
                                 }
                                 style={{ marginRight: "5px" }}
                               />
-                              {place.name ? place.name : "Unnamed Place"}
+                              {place.placeName}
                             </label>
                           ))
                         ) : (

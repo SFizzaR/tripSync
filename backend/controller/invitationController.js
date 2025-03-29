@@ -23,12 +23,18 @@ const SendInvitation = expressAsyncHandler(async (req, res) => {
         if (rejectedInvitesCount >= 2) {
             return res.status(403).json({ message: "This user has rejected too many invites. Avoid spamming." });
         }
+const itinerary = await Itinerary.findById(itinerary_id);
 
-     //   const isblocked = await blockedModel.findOne({ blocker_id: Reciver._id, blocked_id: itinerary_id });
+if (!itinerary) {
+    return res.status(404).json({ message: "Itinerary not found" });
+}
 
-      //  if (isblocked) {
-        //    return res.status(409).json({ message: "Itinerary has been blocked by this user" });
-        //}
+// Check if the user is already in the itinerary
+if (itinerary.users.includes(userId)) {
+    return res.status(400).json({ message: "User already in the itinerary" });
+}
+
+   
 
         const IsInvited = await invitationsModel.findOne({ itinerary: itinerary_id, reciver_id: reciver });
 

@@ -144,27 +144,4 @@ const getAllUsersExceptCurrent = async (req, res) => {
   }
 };
 
-const storeToken = expressAsyncHandler(async (req, res) => {
-  try {
-    const { fcmToken } = req.body;
-    const userId = req.user.id; // Assuming you have authentication middleware
-
-    if (!fcmToken) {
-      return res.status(400).json({ error: "FCM token is required" });
-    }
-
-    // Find the user and update the FCM token
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { fcmToken },
-      { new: true, upsert: true }
-    );
-
-    res.status(200).json({ message: "FCM token stored successfully", user });
-  } catch (error) {
-    console.error("Error storing FCM token:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-})
-
-module.exports = {registerUser, loginUser, getFirstname, getUsers,getAllUsersExceptCurrent, storeToken};
+module.exports = {registerUser, loginUser, getFirstname, getUsers,getAllUsersExceptCurrent};

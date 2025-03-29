@@ -1,7 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import logo from "../assets/plane.PNG";
-import "../font.css";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Calendar from "react-calendar";
 import "../components/CustomCalendar.css";
@@ -12,50 +9,43 @@ import toast, { Toaster } from "react-hot-toast";
 import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import Logo from "../components/logo";
+import { showToastWithActions, handleAccept, handleDecline } from "../components/toastNotification";
 
 export default function Dashboard() {
   const [date, setDate] = useState(new Date());
-  const [firstName, setFirstName] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [firstName, setFirstName] = useState("Guest");
   const [userLocation, setUserLocation] = useState("");
-
-  const location = useLocation();
-  const currentPath = location.pathname;
+  const [userId, setUserId] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
   const itineraryDates = ["2025-01-10", "2025-02-10", "2025-02-20"];
 
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("accessToken");
-
       if (!token) {
         console.error("No token found in localStorage.");
         return;
       }
 
       try {
-        const response = await fetch(
-          "http://localhost:5001/api/users/getname",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-        console.log("User Data: ", data);
-        setUserLocation(data.city);
-        console.log("City of user: ", data.city);
+        const response = await fetch("http://localhost:5001/api/users/getname", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (response.status === 401) {
           console.error("Unauthorized: Invalid token");
-        } else {
-          setFirstName(data.first_name);
-          setLoading(false); // Stop loading once data is set
+          return;
         }
+
+        const data = await response.json();
+        setUserId(data._id);
+        setUserLocation(data.city);
+        setFirstName(data.first_name || "Guest");
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -64,18 +54,78 @@ export default function Dashboard() {
     fetchUserData();
   }, []);
 
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("accessToken"); // Ensure you're using the correct token key
+      if (!token) {
+        console.error("No token found in localStorage.");
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5001/api/notifications/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch notifications");
+      }
+
+      const data = await response.json();
+      setNotifications(data);
+      console.log("Fetched notifications:", data);
+
+      if (data) {
+        data.forEach((notification) => {
+          if (notification.type === "invite_received") {
+            showToastWithActions(notification, handleAccept, handleDecline);
+          } else {
+            toast(notification.message);
+          }
+
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+
+
   useEffect(() => {
     generateToken();
+
     onMessage(messaging, (payload) => {
-      console.log(payload);
-      toast(payload.notification.body);
+      console.log("FCM Message Received:", payload);
+
+      const newNotification = {
+        message: payload.notification.body,
+        type: payload.data?.type || "default", // Assuming type is passed in data payload
+        _id: payload.data?.id || new Date().getTime(), // Fallback ID
+      };
+
+      setNotifications((prev) => [...prev, newNotification]);
+
+      if (newNotification.type === "invite_received") {
+        showToastWithActions(newNotification, handleAccept, handleDecline);
+      } else {
+        toast(newNotification.message);
+      }
     });
-  }, []);
+
+  }, [userId, notifications]); // Only update if userId or notifications change
+
 
   return (
     <div style={{ paddingBottom: "100px" }}>
       <Toaster />
-      {/* Navbar */}
       <nav
         style={{
           position: "fixed",
@@ -89,73 +139,31 @@ export default function Dashboard() {
           height: "43px",
           boxShadow: "0 2px 3px rgba(0, 0, 0, 0.2)",
           zIndex: "1000",
-          animation: "slideIn 0.6s ease-out", // Navbar Slide-in animation
+          animation: "slideIn 0.6s ease-out",
         }}
       >
-        {/* Logo Section */}
         <Logo />
-
-        {/* Navbar Buttons */}
-        <Sidebar currentPath={window.location.pathname} />
+        <Sidebar currentPath={useLocation().pathname} />
       </nav>
 
-      <Header
-        title={`Welcome, ${firstName ?? "Guest"}`}
-        text="WHERE ARE YOU HEADING NEXT?"
-      />
+      <Header title={`Welcome, ${firstName}`} text="WHERE ARE YOU HEADING NEXT?" />
 
       <section>
-        <p
-          style={{
-            fontFamily: "P2P",
-            fontWeight: "bold",
-            color: "rgba(247, 253, 255, 0.86)",
-            fontSize: "5vw",
-            textAlign: "left",
-            textShadow: "0 0 10px rgb(114, 153, 179)",
-            margin: "7% -2px -2% 8px",
-            padding: "7px 10px",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            display: "inline-block",
-          }}
-        >
-          WEATHER
-        </p>
+        <p className="section-title">WEATHER</p>
         <WeatherBox location={userLocation} />
       </section>
 
-      {/* Calendar Section */}
       <section>
-        <p
-          style={{
-            fontFamily: "P2P",
-            fontWeight: "bold",
-            color: "rgba(247, 253, 255, 0.86)",
-            fontSize: "5vw",
-            textAlign: "left",
-            textShadow: "0 0 10px rgb(114, 153, 179)",
-            margin: "5% -2px 0 8px",
-            padding: "7px 10px",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            display: "inline-block",
-          }}
-        >
-          YOUR CALENDAR
-        </p>
+        <p className="section-title">YOUR CALENDAR</p>
         <Calendar
           onChange={setDate}
           value={date}
           tileClassName={({ date }) => {
-            const today = new Date();
-            const dateStr = date.toLocaleDateString("en-CA"); // Format as YYYY-MM-DD
-            const todayStr = today.toLocaleDateString("en-CA");
-
-            if (dateStr === todayStr) return "highlight-today"; // Highlight today
-            if (itineraryDates.includes(dateStr)) return "highlight"; // Highlight itinerary dates
-
-            return ""; // Default case
+            const todayStr = new Date().toISOString().split("T")[0];
+            const dateStr = date.toISOString().split("T")[0];
+            if (dateStr === todayStr) return "highlight-today";
+            if (itineraryDates.includes(dateStr)) return "highlight";
+            return "";
           }}
         />
       </section>

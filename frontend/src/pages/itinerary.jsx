@@ -28,6 +28,7 @@ import { jwtDecode } from "jwt-decode";
 import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import Logo from "../components/logo";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Itinerary() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -530,44 +531,70 @@ export default function Itinerary() {
   }, []);
 
   const sendInvitation = async (itineraryIdnow, receiverId) => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        alert("User not authenticated");
-        return;
+
+    let isCancelled = false; // Track if the user cancels
+
+    // Show a toast with a "Cancel" button
+    const toastId = toast(
+      (t) => (
+        <div>
+          <p>Sending invite in 5 seconds...</p>
+          <button
+            onClick={() => {
+              isCancelled = true;
+              toast.dismiss(t.id); // Dismiss toast
+              toast.error("Invite cancelled");
+            }}
+            style={{ background: "red", color: "white", padding: "5px", borderRadius: "5px", marginTop: "5px" }}
+          >
+            Cancel Invite
+          </button>
+        </div>
+      ),
+      { duration: 5000 }
+    );
+    setTimeout(async () => {
+      if (isCancelled) return
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          alert("User not authenticated");
+          return;
+        }
+
+        const user = JSON.parse(localStorage.getItem("user")); // Convert string back to object
+        const userId = user ? user._id : null;
+
+        const response = await fetch("http://localhost:5001/api/invite/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            itinerary_id: itineraryIdnow,
+            sender_id: userId,
+            reciver: receiverId,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert("✅ Invitation sent successfully!");
+        } else {
+          alert("❌ Error: " + data.message);
+        }
+      } catch (error) {
+        console.error("❌ Error sending invitation:", error);
+        alert("Failed to send invitation.");
       }
-
-      const user = JSON.parse(localStorage.getItem("user")); // Convert string back to object
-      const userId = user ? user._id : null;
-
-      const response = await fetch("http://localhost:5001/api/invite/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          itinerary_id: itineraryIdnow,
-          sender_id: userId,
-          reciver: receiverId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert("✅ Invitation sent successfully!");
-      } else {
-        alert("❌ Error: " + data.message);
-      }
-    } catch (error) {
-      console.error("❌ Error sending invitation:", error);
-      alert("Failed to send invitation.");
-    }
+    }, 5000)
   };
 
   return (
     <div style={{ paddingBottom: "0", overflowX: "hidden" }}>
+      <Toaster />
       {/* Navbar */}
       <nav
         style={{

@@ -9,7 +9,6 @@ import toast, { Toaster } from "react-hot-toast";
 import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import Logo from "../components/logo";
-import { showToastWithActions, handleAccept, handleDecline } from "../components/toastNotification";
 
 export default function Dashboard() {
   const [date, setDate] = useState(new Date());
@@ -54,6 +53,24 @@ export default function Dashboard() {
     fetchUserData();
   }, []);
 
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      const response = await fetch("http://localhost:5001/api/notifications/", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        body: JSON.stringify({ notificationId, read: true }),
+      });
+
+      if (!response.ok) throw new Error("Failed to mark as read");
+
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  };
+
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem("accessToken"); // Ensure you're using the correct token key
@@ -80,21 +97,23 @@ export default function Dashboard() {
 
       if (data) {
         data.forEach((notification) => {
-          if (notification.type === "invite_received") {
-            showToastWithActions(notification, handleAccept, handleDecline);
-          } else {
-            toast(notification.message);
-          }
+
+          toast(notification.message);
+          markNotificationAsRead(notification._id);
 
         });
       }
+
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    fetchNotifications().then(() => {
+      console.log("✅ Fetch completed.");
+
+    });
   }, []);
 
 
@@ -113,11 +132,8 @@ export default function Dashboard() {
 
       setNotifications((prev) => [...prev, newNotification]);
 
-      if (newNotification.type === "invite_received") {
-        showToastWithActions(newNotification, handleAccept, handleDecline);
-      } else {
-        toast(newNotification.message);
-      }
+
+      toast(newNotification.message);
     });
 
   }, [userId, notifications]); // Only update if userId or notifications change

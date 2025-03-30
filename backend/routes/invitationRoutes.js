@@ -5,7 +5,7 @@ router = express.Router()
 
 router.post('/', protect, SendInvitation);
 router.put('/accept/:inviteId', protect, acceptInvite);
-router.delete('/reject/:inviteId', protect, rejectInvite);
+router.put('/reject/:inviteId', protect, rejectInvite);
 router.delete('/cancel/:inviteId', protect, cancelInvite);
 
 module.exports = router;

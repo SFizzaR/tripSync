@@ -144,6 +144,7 @@ function Notifs() {
         marginTop: "0",
       }}
     >
+      <Toaster />
       {/* Navbar */}
       <nav
         style={{

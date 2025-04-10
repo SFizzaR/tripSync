@@ -13,9 +13,9 @@ const itinerarySchema = mongoose.Schema(
         status: { type: String, enum: ["planning", "in-progress", "complete"], default: "planning" },
         collaborative: { type: Boolean, default: false },
         city: { type: String, required: true },
-        startDate: { type: Date }, // Required start date
+        startDate: { type: Date, required: true }, // Required start date
         endDate: {
-            type: Date,
+            type: Date, required: true
         },
         budget: {
             type: String,

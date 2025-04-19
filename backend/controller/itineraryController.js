@@ -211,15 +211,14 @@ const addUserToItinerary = expressAsyncHandler(async (req, res) => {
 
 const deleteUser = expressAsyncHandler(async (req, res) => {
   try {
-    const loggedInUserId = req.user._id; // Logged-in user (admin or normal user)
-    const { itineraryId, userId: targetUserId } = req.params; // Extract IDs
+    const loggedInUserId = req.user._id;
+    const { itineraryId, userId: targetUserId } = req.params;
 
     const itinerary = await Itinerary.findById(itineraryId);
     if (!itinerary) {
       return res.status(404).json({ message: "Itinerary not found" });
     }
 
-    // Allow users to remove themselves OR admin to remove anyone
     const isAdmin = loggedInUserId.toString() === itinerary.admin.toString();
     const isSelf = loggedInUserId.toString() === targetUserId;
 
@@ -227,31 +226,39 @@ const deleteUser = expressAsyncHandler(async (req, res) => {
       return res.status(403).json({ message: "Access Denied: Only admin can remove others." });
     }
 
-    if (!itinerary.users.includes(targetUserId)) {
+    if (!itinerary.users.map(u => u.toString()).includes(targetUserId)) {
       return res.status(404).json({ message: "User not found in itinerary." });
     }
 
-    // Prevent the last user from deleting themselves
     if (itinerary.users.length === 1) {
       return res.status(403).json({ message: "Cannot remove the last user. Delete itinerary instead." });
     }
 
-    // Remove user from the users array
-    itinerary.users = itinerary.users.filter(u => u.toString() !== targetUserId);
+    // Remove user
+    await Itinerary.findByIdAndUpdate(
+      itineraryId,
+      { $pull: { users: targetUserId } }
+    );
 
-    // If the admin is deleting themselves, assign a new admin
-    if (targetUserId === itinerary.admin.toString() && itinerary.users.length > 0) {
-      itinerary.admin = itinerary.users[0]; // First user becomes new admin
+    // Reload updated itinerary
+    const updatedItinerary = await Itinerary.findById(itineraryId);
+
+    // Reassign admin if needed
+    if (targetUserId === itinerary.admin.toString() && updatedItinerary.users.length > 0) {
+      updatedItinerary.admin = updatedItinerary.users[0]; // Assign new admin
+      await updatedItinerary.save();
     }
 
-    await itinerary.save();
-
-    return res.status(200).json({ message: isSelf ? "You left the itinerary." : "User removed successfully", itinerary });
+    return res.status(200).json({
+      message: isSelf ? "You left the itinerary." : "User removed successfully",
+      itinerary: updatedItinerary,
+    });
   } catch (error) {
     console.error("Error deleting user:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 const deletePlace = expressAsyncHandler(async (req, res) => {
   try {
@@ -302,4 +309,50 @@ const deletePlace = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary,getItineraryPlaces , addUserToItinerary, deleteUser, deletePlace };
+const getColabUsers = expressAsyncHandler(async (req, res) => {
+  try {
+    const { itineraryId } = req.params;
+    const currentUserId = req.user._id.toString();
+
+    const itinerary = await Itinerary.findById(itineraryId);
+    if (!itinerary) {
+      return res.status(404).json({ message: 'Itinerary not found' });
+    }
+
+    if (!itinerary.collaborative) {
+      return res.status(403).json({ message: 'Itinerary is not collaborative' });
+    }
+
+    // Combine admin and users (avoid duplication)
+    const allUserIds = new Set([
+      itinerary.admin.toString(),
+      ...itinerary.users.map(id => id.toString())
+    ]);
+
+    // Include current user if not already present
+    allUserIds.add(currentUserId);
+
+    const users = await User.find({ _id: { $in: Array.from(allUserIds) } }).select('username');
+
+    const collaborators = users.map(user => ({
+      _id: user._id,
+      username: user.username,
+      role: user._id.toString() === itinerary.admin.toString() ? 'admin' : 'collaborator',
+      isYou: user._id.toString() === currentUserId
+    }));
+
+    const isAdmin = itinerary.admin.toString() === currentUserId;
+
+    return res.status(200).json({
+      collaborators,
+      message: isAdmin ? 'You are the admin of this itinerary' : 'Collaborators list',
+      isAdmin
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error fetching users', error: error.message });
+  }
+});
+
+
+module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary,getItineraryPlaces , addUserToItinerary, deleteUser, deletePlace, getColabUsers };

@@ -29,7 +29,6 @@ import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import Logo from "../components/logo";
 import toast, { Toaster } from "react-hot-toast";
-
 export default function Itinerary() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -77,10 +76,6 @@ export default function Itinerary() {
 
   const [placesDeets, setPlacesDeets] = useState(false);
   const [placesDeetsId, setPlaceDeetsId] = useState(null);
-
-  const [placeName, setPlaceName] = useState("")
-  const [itineraryPlaces, setItineraryPlaces] = useState([]);
-
 
   const filters = [
     { id: "history", src: hist, label: "History" },
@@ -206,6 +201,109 @@ export default function Itinerary() {
     }
   };
 
+  const fetchColabUsers = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.log("No token found. User not authenticated.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/itineraries/users/${selectedItinerary._id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        if (Array.isArray(data.collaborators)) {
+          setUsers(
+            data.collaborators
+              .map((user) => ({
+                ...user,
+                id: user._id,
+                displayName: user.isAdmin ? `Admin - ${user.username}${isYou ? " (You)" : ""}`
+                  : `Admin - ${user.username}`,
+              }))
+              .sort((a, b) => {
+                const aIsAdmin = a.isAdmin || a.role === "admin";
+                const bIsAdmin = b.isAdmin || b.role === "admin";
+                return bIsAdmin - aIsAdmin; // Admins go on top
+              })
+          );
+
+        } else {
+          console.error("Expected 'collaborators' to be an array, but got:", data);
+        }
+      } else {
+        console.error("Error:", data.message || "Unknown error");
+      }
+    } catch (error) {
+      console.error("Failed to fetch itineraries:", error);
+    }
+  };
+
+  const handleDeleteUser = async (userId, isTargetAdmin) => {
+    const token = localStorage.getItem("accessToken");
+    const currentUserId = localStorage.getItem("userId");
+
+    if (!token) {
+      alert("No token found. User not authenticated.");
+      return;
+    }
+
+    // Check if the target is admin and the current user is not
+    const isCurrentUserAdmin = users.find((u) => u._id === currentUserId)?.isAdmin;
+
+    if (!isCurrentUserAdmin && isTargetAdmin) {
+      alert("Admin cannot be removed.");
+      return;
+    }
+
+    const confirmDelete = window.confirm("Are you sure you want to remove this user?");
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/itineraries/${selectedItinerary._id}/remove-user/${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
+
+        if (userId === currentUserId) {
+          alert("You left the itinerary.");
+          navigate("/dashboard");
+          // Optionally redirect or update view
+        } else {
+          alert("User removed successfully.");
+        }
+      } else {
+        alert(data.message || "Error removing user.");
+      }
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      alert("Something went wrong.");
+    }
+  };
+
+
+
   const handleItineraryClick = (itineraryId) => {
     console.log("Clicked Itinerary ID:", itineraryId);
 
@@ -228,9 +326,8 @@ export default function Itinerary() {
     }
 
     console.log("✅ Found Itinerary:", selected);
-    //displayItineraryPlaces(selected)
     setSelectedItinerary(selected);
-    setitineraryIdnow(selected.id);
+    setitineraryIdnow(String(itineraryId));
     setSelectedOption(selected.collaborative ? "collaborative" : "solo");
 
     if (selected.city) {
@@ -245,10 +342,10 @@ export default function Itinerary() {
     console.log("Updated places:", places);
   }, [places]);
 
-  const handleAddPlace = (placeId, placeName) => {
-    if (!placeId) {
-      console.error("❌ Error: placeId is null or undefined.");
-      alert("Error: Place data not loaded yet.");
+  const handleAddPlace = (placeId) => {
+    if (!placeId || !itineraryIdnow) {
+      console.error("❌ Error: Missing itineraryId or placeId.");
+      alert("Error: Itinerary or Place ID is missing.");
       return;
     }
 
@@ -258,14 +355,13 @@ export default function Itinerary() {
       "Place ID:",
       placeId
     );
-    displayItineraryPlaces(itineraryIdnow);
-    addPlaceToItinerary(itineraryIdnow, placeId, placeName);
+
+    addPlaceToItinerary(itineraryIdnow, placeId);
   };
 
   const handlePlaceClick = (placeId, placeName) => {
-    console.log("Clicked Place ID:", placeId);
+    console.log("Clicked Place ID and name:", placeId, placeName);
     setSelectedPlaceId(placeId); // Store the clicked place ID
-    setPlaceName(placeName);
   };
 
   const fetchPlaces = async (city, filter = "") => {
@@ -295,16 +391,15 @@ export default function Itinerary() {
     //addPlaceToItinerary(itineraryIdnow,placeId)
   };
 
-  const addPlaceToItinerary = async (itineraryIdnow, placeId, placeName) => {
-    if (!itineraryIdnow || !placeId || !placeName) {
-      console.error("❌ Error: Missing itineraryId, placeId, or placeName.");
+  const addPlaceToItinerary = async (itineraryIdnow, placeId) => {
+    if (!itineraryIdnow || !placeId) {
+      console.error("❌ Error: Missing itineraryId or placeId.");
       return;
     }
 
     console.log("📌 Sending request to add place:");
     console.log("➡️ Itinerary ID:", itineraryIdnow);
     console.log("➡️ Place ID:", placeId);
-    console.log("➡️ Place Name:", placeName);
 
     const url = `http://localhost:5001/api/itineraries/${itineraryIdnow}/places/${placeId}`;
 
@@ -314,7 +409,6 @@ export default function Itinerary() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ placeName })
       });
 
       if (!response.ok) {
@@ -334,39 +428,10 @@ export default function Itinerary() {
     }
   };
 
-
-  const displayItineraryPlaces = async (itineraryIdnow) => {
-    console.log("📌 Fetching Places for Itinerary ID:", itineraryIdnow);
-
-    const url = `http://localhost:5001/api/itineraries/${itineraryIdnow}/placeDisplay`;
-
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) {
-        throw new Error(`❌ Error fetching places: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("✅ Places Retrieved:", data);
-
-      if (!data || !Array.isArray(data.placeNames)) {
-        console.error("❌ Invalid response format");
-        setItineraryPlaces([]); // Prevents crash
-        return;
-      }
-
-      setItineraryPlaces(data.placeNames);
-    } catch (error) {
-      console.error("❌ Fetch Error:", error.message);
-      setItineraryPlaces([]); // Prevent UI crash
-    }
-  };
-
-
+  //setSelectedItinerary((prevItinerary) => ({
+  //...prevItinerary,
+  //allPlaces: [...prevItinerary.allPlaces, newPlace], // Ensure new reference
+  //}));
 
   const handleFilterClick = (id) => {
     console.log("Filter clicked:", id);
@@ -488,7 +553,7 @@ export default function Itinerary() {
     setSelectedItinerary({ ...selectedItinerary, budget: newBudget });
   };
 
-  const handleStatusChange = (event) => {};
+  const handleStatusChange = (event) => { };
 
   console.log("Selected Option:", selectedOption);
 
@@ -529,7 +594,9 @@ export default function Itinerary() {
   useEffect(() => {
     fetchUsersList();
   }, []);
-
+  useEffect(() => {
+    fetchColabUsers()
+  })
   const sendInvitation = async (itineraryIdnow, receiverId) => {
 
     let isCancelled = false; // Track if the user cancels
@@ -698,8 +765,8 @@ export default function Itinerary() {
                   }}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(145, 117, 177)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(145, 117, 177)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
@@ -712,8 +779,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(145, 117, 177)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(145, 117, 177)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
@@ -784,8 +851,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(145, 117, 177)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(145, 117, 177)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
@@ -798,8 +865,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(145, 117, 177)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(145, 117, 177)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
@@ -836,16 +903,14 @@ export default function Itinerary() {
                     type="date"
                     value={takeoffDate}
                     onChange={(e) => setTakeoffDate(e.target.value)}
-                    className={`date-input ${
-                      takeoffDate ? "date-filled" : "date-empty"
-                    }`}
+                    className={`date-input ${takeoffDate ? "date-filled" : "date-empty"
+                      }`}
                   />
                   <FaCalendarAlt
-                    className={`calendar-icon ${
-                      !takeoffDate && !touchdownDate
-                        ? "calendar-icon-default"
-                        : "calendar-icon-adjusted"
-                    }`}
+                    className={`calendar-icon ${!takeoffDate && !touchdownDate
+                      ? "calendar-icon-default"
+                      : "calendar-icon-adjusted"
+                      }`}
                   />
                   {takeoffDate && (
                     <button
@@ -877,16 +942,14 @@ export default function Itinerary() {
                       setTouchdownDate(selectedDate);
                     }}
                     min={takeoffDate}
-                    className={`date-input ${
-                      touchdownDate ? "date-filled" : "date-empty"
-                    }`}
+                    className={`date-input ${touchdownDate ? "date-filled" : "date-empty"
+                      }`}
                   />
                   <FaCalendarAlt
-                    className={`calendar-icon ${
-                      !takeoffDate && !touchdownDate
-                        ? "calendar-icon-default"
-                        : "calendar-icon-adjusted"
-                    }`}
+                    className={`calendar-icon ${!takeoffDate && !touchdownDate
+                      ? "calendar-icon-default"
+                      : "calendar-icon-adjusted"
+                      }`}
                   />
                   {touchdownDate && (
                     <button
@@ -904,8 +967,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(145, 117, 177)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(145, 117, 177)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
@@ -918,8 +981,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(145, 117, 177)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(145, 117, 177)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
@@ -990,8 +1053,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(145, 117, 177)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(145, 117, 177)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
@@ -1014,8 +1077,8 @@ export default function Itinerary() {
                   }}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(145, 117, 177)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(145, 117, 177)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
@@ -1041,8 +1104,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {soloItineraries &&
-                  Array.isArray(soloItineraries) &&
-                  soloItineraries.length > 0 ? (
+                    Array.isArray(soloItineraries) &&
+                    soloItineraries.length > 0 ? (
                     soloItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1070,8 +1133,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {colabItineraries &&
-                  Array.isArray(colabItineraries) &&
-                  colabItineraries.length > 0 ? (
+                    Array.isArray(colabItineraries) &&
+                    colabItineraries.length > 0 ? (
                     colabItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1248,10 +1311,7 @@ export default function Itinerary() {
                               >
                                 {users.length > 0 ? (
                                   users.map((user) => (
-                                    <li
-                                      key={user._id}
-                                      className="users-list-item"
-                                    >
+                                    <li key={user._id} className="users-list-item">
                                       <div>
                                         <button
                                           style={{
@@ -1259,10 +1319,12 @@ export default function Itinerary() {
                                             border: "none",
                                             cursor: "pointer",
                                           }}
+                                          onClick={() => handleDeleteUser(user._id, user.isAdmin)} // <-- put it here
                                         >
                                           <img
                                             src={userBye}
                                             style={{ width: "15px" }}
+                                            alt="Remove user"
                                           />
                                         </button>
                                       </div>
@@ -1270,10 +1332,9 @@ export default function Itinerary() {
                                     </li>
                                   ))
                                 ) : (
-                                  <p className="nothing">
-                                    No collaborators invited yet.
-                                  </p>
+                                  <li>No users found</li>
                                 )}
+
                               </ul>
                             </div>
 
@@ -1563,11 +1624,10 @@ export default function Itinerary() {
                     </div>
 
                     <div
-                      className={`itinerary-container ${
-                        selectedItinerary.title !== selectedItinerary.city
-                          ? "large"
-                          : "extra-large"
-                      }`}
+                      className={`itinerary-container ${selectedItinerary.title !== selectedItinerary.city
+                        ? "large"
+                        : "extra-large"
+                        }`}
                     >
                       <div style={{ display: "flex", alignItems: "start" }}>
                         <button
@@ -1716,10 +1776,6 @@ export default function Itinerary() {
                                         alignContent: "center",
                                         flexWrap: "space-between",
                                       }}
-                                      onClick={() =>
-                                        handlePlaceClick(place.fsq_id)
-                                      }
-  
                                     >
                                       <img
                                         src={addPlaces}
@@ -1729,8 +1785,8 @@ export default function Itinerary() {
                                         }}
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleAddPlace(place.fsq_id, place.name);
-                                          //handlePlaceClick(place.fsq_id, place.name);
+                                          handleAddPlace(place.fsq_id);
+                                          handlePlaceClick(place.fsq_id, place.name);
                                         }}
                                       />
                                       {place.name}
@@ -1830,18 +1886,18 @@ export default function Itinerary() {
                           fontWeight: "bolder",
                         }}
                       >
-                        {selectedItinerary?.places?.length > 0 ? (
+                        {selectedItinerary &&
+                          selectedItinerary.places?.length > 0 ? (
                           selectedItinerary.places.map((place) => (
                             <label
-                              key={place.placeId || place._id}
+                              key={place.fsq_id}
                               style={{
                                 display: "block",
                                 margin: "5px 0",
-                                textDecoration: selectedOptions.includes(
-                                  place.placeId)
+                                textDecoration: selectedOptions
                                   ? "line-through"
                                   : "none",
-                                  color: selectedOptions.includes(place.placeId)
+                                color: selectedOptions
                                   ? "grey"
                                   : "white",
                                 padding: "6px 0",
@@ -1851,13 +1907,13 @@ export default function Itinerary() {
                             >
                               <input
                                 type="checkbox"
-                                checked={selectedOptions.includes(place.placeId)}
+                                checked={place.name}
                                 onChange={() =>
-                                  handleCheckboxChange(place.placeId)
+                                  handleCheckboxChange(place.fsq_id)
                                 }
                                 style={{ marginRight: "5px" }}
                               />
-                              {place.placeName}
+                              {place.name ? place.name : "Unnamed Place"}
                             </label>
                           ))
                         ) : (

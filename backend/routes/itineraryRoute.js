@@ -1,6 +1,6 @@
 
 const express = require("express");
-const {createItinerary,getSoloItineraries,getColabItineraries ,updateItinerary, addPlaceToItinerary,getItineraryPlaces ,addUserToItinerary, deleteUser, deletePlace} = require("../controller/itineraryController");
+const {createItinerary,getSoloItineraries,getColabItineraries ,updateItinerary, addPlaceToItinerary,getItineraryPlaces ,addUserToItinerary, deleteUser, deletePlace, getColabUsers} = require("../controller/itineraryController");
 const router = express.Router();
 const {protect} = require("../middleware/errorHandler")
 
@@ -12,6 +12,7 @@ router.get("/:itineraryId/placeDisplay", getItineraryPlaces);
 router.get("/solo", protect, getSoloItineraries);
 router.get("/colab", protect, getColabItineraries);
 router.delete('/:itineraryId/remove-user/:userId', protect, deleteUser);
-router.delete('/:itineraryId/remove-place/:placeId', deletePlace)
+router.delete('/:itineraryId/remove-place/:placeId', deletePlace);
+router.get('/users/:itineraryId', protect, getColabUsers);
 
 module.exports = router;

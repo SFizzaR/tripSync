@@ -129,15 +129,31 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0, 1);
+  background-color: rgba(0, 11, 20, 1);
   padding: 20px;
-  box-shadow: 0px 0px 19px rgb(49, 16, 102);
+  box-shadow: 0px 0px 35px rgb(0, 9, 12);
   border-radius: 10px;
-  border-style: dotted;
-  color: rgb(172, 120, 191);
+  border: dashed 5px rgb(80, 117, 146);
   font-weight: bold;
   width: 65%;
   font-family: "Montserrat", sans-serif;
+  max-width: 500px;
+  z-index: 1000;
+}
+
+.users-box {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgb(0, 11, 20);
+  padding: 15px;
+  box-shadow: 0px 0px 35px rgb(0, 9, 12);
+  border-radius: 10px;
+  border: dashed 5px rgb(80, 117, 146);
+  font-weight: bold;
+  width: 55%;
+  font-family: Montserrat, sans-serif;
   max-width: 500px;
   z-index: 1000;
 }
@@ -367,24 +383,6 @@
     gap: 4px;
     overflow-x: hidden;
     white-space: nowrap;
-}
-
-.users-box {
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgb(5, 9, 12);
-  padding: 15px;
-  box-shadow: 0px 0px 35px rgb(24, 82, 103);
-  border-radius: 10px;
-  border-style: dotted;
-  color: rgb(30, 77, 110);
-  font-weight: bold;
-  width: 55%;
-  font-family: Montserrat, sans-serif;
-  max-width: 500px;
-  z-index: 1000;
 }
 
 .filter-box {

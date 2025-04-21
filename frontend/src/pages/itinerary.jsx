@@ -94,9 +94,9 @@ export default function Itinerary() {
   const handleCheckboxChange = (placeId) => {
     setSelectedOptions((prevSelected) => {
       if (prevSelected.includes(placeId)) {
-        return prevSelected.filter((id) => id !== placeId); // Remove if already selected
+        return prevSelected.filter((id) => id !== placeId);
       } else {
-        return [...prevSelected, placeId]; // Add if not selected
+        return [...prevSelected, placeId];
       }
     });
   };
@@ -463,7 +463,7 @@ export default function Itinerary() {
   };
 
   const handleFinish = async () => {
-    console.log("CAllledddddddd");
+
     const token = localStorage.getItem("accessToken");
     console.log("TOken from hnadlefimish: ", token);
     if (!token) {
@@ -524,6 +524,31 @@ export default function Itinerary() {
     }
   };
 
+  const handleFieldUpdate = async (field, value) => {
+    const confirmed = window.confirm(`Are you sure you want to update ${field} to "${value}"?`);
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/itineraries/${selectedItinerary._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Update successful!");
+      } else {
+        alert(`Update failed: ${data.message}`);
+      }
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("An error occurred. Please try again.");
+    }
+  };
+
+
+
   const handleNext = () => {
     if (step === 1 && !selectedOption) {
       alert("Please select an option");
@@ -551,9 +576,19 @@ export default function Itinerary() {
     );
     const newBudget = budgetOptions[(currentIndex + 1) % budgetOptions.length];
     setSelectedItinerary({ ...selectedItinerary, budget: newBudget });
+    handleFieldUpdate("budget", newBudget);
   };
 
-  const handleStatusChange = (event) => { };
+  const handleStatusChange = (e) => {
+    const newStatus = e.target.value;
+    setSelectedItinerary((prev) => ({
+      ...prev,
+      status: newStatus,
+    }));
+    handleFieldUpdate("status", newStatus);
+  };
+
+
 
   console.log("Selected Option:", selectedOption);
 
@@ -658,6 +693,7 @@ export default function Itinerary() {
       }
     }, 5000)
   };
+
 
   return (
     <div style={{ paddingBottom: "0", overflowX: "hidden" }}>
@@ -1523,7 +1559,11 @@ export default function Itinerary() {
                                 startDate: e.target.value,
                               })
                             }
-                            onBlur={() => setEditingDate(null)}
+                            onBlur={(e) => {
+                              setEditingDate(null);
+                              if (selectedItinerary.startDate)
+                                handleFieldUpdate("startDate", selectedItinerary.startDate);
+                            }}
                             autoFocus
                           />
                         ) : (
@@ -1563,7 +1603,12 @@ export default function Itinerary() {
                                 endDate: e.target.value,
                               })
                             }
-                            onBlur={() => setEditingDate(null)}
+                            onBlur={(e) => {
+                              setEditingDate(null);
+                              if (selectedItinerary.endDate)
+                                handleFieldUpdate("endDate", selectedItinerary.endDate);
+                            }}
+
                             autoFocus
                           />
                         ) : (

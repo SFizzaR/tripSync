@@ -10,7 +10,7 @@ const itinerarySchema = mongoose.Schema(
             }
         ],
         title: { type: String, required: true, default: function () { return this.city; } }, // Will be set dynamically
-        status: { type: String, enum: ["planning", "in-progress", "complete"], default: "planning" },
+       status: { type: String, enum: ["Planning", "Experiencing", "Completed"], default: "Planning" },
         collaborative: { type: Boolean, default: false },
         city: { type: String, required: true },
         startDate: { type: Date, required: true }, // Required start date

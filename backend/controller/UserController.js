@@ -26,8 +26,8 @@ const registerUser = expressAsyncHandler(async (req, res) => {
   const user = await User.create({
     first_name,
     last_name,
-    age, 
-    city, 
+    age,
+    city,
     username,
     email,
     password: hashPassword,
@@ -76,35 +76,35 @@ const loginUser = expressAsyncHandler(async (req, res) => {
       process.env.ACCESS_SECRET_TOKEN,
       { expiresIn: "1h" }
     );
-    
-    
+
+
     res.status(200).json({
       _id: user.id,
       username: user.username,
       email: user.email,
-      accessToken, 
+      accessToken,
     });
 
-   // console.log("Stored Token:", localStorage.getItem("accessToken"));
+    // console.log("Stored Token:", localStorage.getItem("accessToken"));
 
-    
+
   } else {
     res.status(401).json({ message: "Invalid credentials" });
   }
 });
 
-  const getFirstname = expressAsyncHandler(async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select("first_name username email city"); // Fetch first_name
+const getFirstname = expressAsyncHandler(async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("first_name username email city"); // Fetch first_name
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        res.status(200).json({ first_name: user.first_name, username: user.username, email: user.email, city: user.city });
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    res.status(200).json({ first_name: user.first_name, username: user.username, email: user.email, city: user.city });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 });
 
 const getUsers = expressAsyncHandler(async (req, res) => {
@@ -166,5 +166,4 @@ const storeToken = expressAsyncHandler(async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 })
-
-module.exports = {registerUser, loginUser, getFirstname, getUsers,getAllUsersExceptCurrent, storeToken};
+module.exports = { registerUser, loginUser, getFirstname, getUsers, getAllUsersExceptCurrent, storeToken };

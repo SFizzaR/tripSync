@@ -10,9 +10,9 @@ const axios = require("axios");
 
 const createItinerary = expressAsyncHandler(async (req, res) => {
   try {
-    const { collaborative, status, city, startDate, endDate, budget,title } = req.body;
-     
-    console.log("Data recieved: ",req.body)
+    const { collaborative, status, city, startDate, endDate, budget, title } = req.body;
+
+    console.log("Data recieved: ", req.body)
 
     // Validate status
     const validStatuses = ["planning", "in-progress", "complete"];
@@ -25,7 +25,7 @@ const createItinerary = expressAsyncHandler(async (req, res) => {
       users: [req.user._id], // First user is the logged-in user
       admin: req.user._id,
       city,
-      collaborative : collaborative || false,
+      collaborative: collaborative || false,
       status: status || "planning",
       startDate: startDate || null,
       endDate: endDate || null,
@@ -45,7 +45,7 @@ const getSoloItineraries = expressAsyncHandler(async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const itineraries = await Itinerary.find({ 
+    const itineraries = await Itinerary.find({
       users: userId,
       collaborative: false
     })
@@ -61,9 +61,9 @@ const getColabItineraries = expressAsyncHandler(async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const itineraries = await Itinerary.find({ 
+    const itineraries = await Itinerary.find({
       users: userId,
-      collaborative: true 
+      collaborative: true
     })
       .lean(); // Fetches the full itinerary without field selection
 
@@ -355,4 +355,5 @@ const getColabUsers = expressAsyncHandler(async (req, res) => {
 });
 
 
-module.exports = { createItinerary, getSoloItineraries,getColabItineraries, updateItinerary, addPlaceToItinerary,getItineraryPlaces , addUserToItinerary, deleteUser, deletePlace, getColabUsers };
+
+module.exports = { createItinerary, getSoloItineraries, getColabItineraries, updateItinerary, addPlaceToItinerary, getItineraryPlaces, addUserToItinerary, deleteUser, deletePlace, getColabUsers };

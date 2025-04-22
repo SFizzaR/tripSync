@@ -1,4 +1,4 @@
 cd backend
 npm i
-npm i cors
+npm i cors axios firebase firebaseAdmin
 npm run dev

@@ -10,6 +10,13 @@
     transition: all 0.3s ease-in-out;
   }  
 
+  .about-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    place-content: start;
+    padding: 1rem;
+  }
+
   .about-section {
     margin: 2% 8%;
     text-align: center;
@@ -17,7 +24,7 @@
     border: dashed 3px rgb(3, 35, 45);
     background-color: rgba(3, 35, 45, 0.5);
     border-radius: 10px;
-    padding: 0;
+    padding: 1rem;
     animation: slideInLeft 0.8s ease-out;
   }
   
@@ -26,13 +33,12 @@
     font-weight: bold;
     color: rgba(247, 253, 255, 0.86);
     font-size: clamp(10px, 5vw, 50px);
-    text-align: left;
-    text-shadow: 0 0 10px rgb(114, 153, 179);
+    text-align: center;
+    text-shadow: 3px 3px 1px rgb(114, 153, 179);
     margin: 3% -2px 2% 8px;
     padding: 7px 10px;
     overflow: hidden;
     white-space: nowrap;
-    display: inline-block;
   }
 
   .mission-title{
@@ -41,10 +47,8 @@
 
   .aboutDeets {
     font-family: "Montserrat";
-    margin-top: -10px;
     text-shadow: 1px 1px 3px rgba(16, 71, 103, 0.5);
     color: rgb(167, 208, 233);
-    padding: 0px 5%;
     font-size: 1.8vw;
     margin-bottom: 0;
   }
@@ -55,14 +59,14 @@
     color: rgba(247, 253, 255, 0.86);
     font-size: clamp(20px, 3.2vw, 40px);
     text-align: left;
-    text-shadow: 0 0 12px rgb(46, 70, 85);
+    text-shadow: 4px 4px 1px rgb(7, 44, 68);
     margin-bottom: 2%;
     margin-left: 3%;
     padding: 7px 12px;
     overflow: hidden;
     white-space: nowrap;
     display: inline-block;
-    animation: flashing 0.45s infinite alternate;
+    animation: flashing 0.7s infinite alternate;
   }
 
   .card {
@@ -148,7 +152,7 @@
   }
 
   .mission-section {
-    border: dashed 2px rgb(5, 81, 104);
+    border: dashed 3px rgb(5, 46, 58);
     margin: 0 6%;
     background-color: rgba(5, 80, 105, 0.5);
     border-radius: 10px;
@@ -156,6 +160,7 @@
     color: white;
     padding: 0;
     animation: slideInLeft 0.8s ease-out;
+    padding: 1rem;
   }
   
   .mission-header {
@@ -169,7 +174,7 @@
   .mission-content {
     display: grid;
     grid-template-columns: 15% 1fr;
-    padding-bottom: 15px;
+    text-align: center;
   }
   
   .mission-image {
@@ -189,11 +194,10 @@
     text-align: left;
   }  
 
-
-
-  
-  
-  
+  .cases-image{
+    width: 100%; 
+    opacity:0.75;
+  }
   
   @keyframes blink {
     50% {
@@ -211,8 +215,6 @@
     }
   }
   
-
-
 /* Slide-in animation */
 @keyframes slideIn {
     from {
@@ -227,7 +229,29 @@
 
 
 @media (min-width: 1024px) {
-  .mission-title{
-    font-size: clamp(10px, 5vw, 50px);
+  .flashing-text, .mission-title{
+    font-size: clamp(10px, 3.5vw, 30px);
+  }
+
+  .about-section{
+    padding: 1rem;
+  }
+
+  .aboutDeets{
+    font-size: 1.2vw;
+  }
+
+  .mission-details{
+    font-size: clamp(13.5px, 1.5vw, 17px);
+    margin-left: 0px;
+  }
+
+  .cases-image{
+    width: 28%;
+    opacity: 0.9;
+    left: 30.5%;
+    position: absolute;
+
   }
 }
+

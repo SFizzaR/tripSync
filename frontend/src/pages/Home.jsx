@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import plane from "../assets/divider1.PNG";
 import { Link } from "react-router-dom";
 import Header from "../assets/headerBg.jpg";
@@ -19,11 +19,9 @@ import collab from "../assets/art/collab.jpg";
 import solo from "../assets/art/solo.jpg";
 import { motion } from "framer-motion";
 import cases from "../assets/art/cases.PNG";
-import map from "../assets/art/map.PNG";
 import planeart from "../assets/art/planeart.JPG";
 import Logo from "../components/logo";
 import Creators from "../components/creator";
-
 
 export default function Home() {
   const cards = [
@@ -39,6 +37,7 @@ export default function Home() {
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 1024);
 
   const nextCard = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % cards.length);
@@ -50,7 +49,14 @@ export default function Home() {
     );
   };
 
-  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsFullScreen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div style={{ paddingBottom: "50px" }}>
@@ -158,7 +164,7 @@ export default function Home() {
         style={{
           backgroundColor: "rgb(114, 153, 179)",
           margin: "0",
-          paddingLeft: "11%",
+          paddingLeft: "7%",
         }}
       >
         <div
@@ -176,7 +182,7 @@ export default function Home() {
             textShadow: "0 0 4px rgba(13, 99, 99, 0.96)",
             boxShadow: "0px 1px 2px rgb(114, 153, 179)",
             animation:
-              "typing 2s steps(30, end) infinite alternate, blink 0.5s step-end infinite",
+              "typing 3s steps(30, end) infinite alternate, blink 0.5s step-end infinite",
           }}
         >
           PERSONAL ITINERARY MANAGER
@@ -184,22 +190,23 @@ export default function Home() {
       </section>
 
       {/* About Section */}
-      <section className="about-section">
+      <section className={isFullScreen ? "about-grid" : ""}>
+      <div className="about-section">
         <div>
           <div
             style={{
-              display: "flex",
+              display: !isFullScreen ? "flex" : "",
               justifyContent: "center",
               alignItems: "center", // Fixes alignment issue
-              columnGap: "2px",
+              columnGap: !isFullScreen? "2px" : 0,
             }}
           >
             <p className="flashing-text">ABOUT TRIPSYNC</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 30%" }}>
-            <div className="aboutDeets">
-              <p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 30%"}}>
+              <div>
+              <p className="aboutDeets">
                 <strong>TripSync</strong> is a cutting-edge itinerary creation
                 and management platform designed to simplify travel planning
                 with the power of AI. Whether you're embarking on{" "}
@@ -207,17 +214,66 @@ export default function Home() {
                 TripSync customizes itineraries tailored to your preferences,
                 budget, and schedule.
               </p>
-              <p>
+              <p className="aboutDeets">
                 Say goodbye to tedious planning and hello to effortless journeys
                 with TripSync—<strong>your ultimate travel companion!</strong>
               </p>
-            </div>
+              </div>
 
-            <div>
-              <img src={cases} style={{ width: "100%", opacity: "0.75" }} />
+              <div>
+              <img src={cases} className="cases-image"/>
             </div>
           </div>
         </div>
+      </div>
+
+      {isFullScreen && (
+        <div className="mission-section">
+          <div>
+            <div className="mission-header">
+              <p className="mission-title">MISSION STATEMENT</p>
+            </div>
+
+            <div className="mission-content" style={{
+              display: "block",
+              textAlign: "center"
+            }}>
+
+              <div className="mission-details">
+                <p>
+                  <i>
+                    "Our mission is to revolutionize travel planning by
+                    providing an
+                    <strong>
+                      {" "}
+                      intelligent, adaptive, and user-centric
+                    </strong>{" "}
+                    itinerary management platform.
+                  </i>
+                </p>
+                <p>
+                  <i>
+                    Leveraging AI-driven personalization, real-time
+                    weather-based activity adjustments, and deep
+                    learning-powered perception features, we aim to enhance the
+                    travel experience by ensuring seamless, optimized, and
+                    enjoyable journeys.
+                  </i>
+                </p>
+                <p>
+                  <i>
+                    Our platform empowers users with dynamic itinerary
+                    generation, smart recommendations, and collaborative
+                    planning, making every trip stress-free, efficient, and
+                    memorable."
+                  </i>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       </section>
 
       {/*DIVIDER*/}
@@ -231,7 +287,7 @@ export default function Home() {
           <img
             src={plane}
             style={{
-              width: "50vw",
+              width: "35vw",
               margin: "0 0 5% 0",
               transform: "rotate(15deg)",
             }}
@@ -273,11 +329,7 @@ export default function Home() {
           </Link>
 
           {/* Navigation Arrows */}
-          <button
-            onClick={prevCard}
-            className="arrow"
-            style={{ left: "10px" }}
-          >
+          <button onClick={prevCard} className="arrow" style={{ left: "10px" }}>
             ❮
           </button>
 
@@ -317,39 +369,31 @@ export default function Home() {
             }}
           >
             {/*Texts with continuous animation */}
-            <p
-              className="types"
-            >
-              Collaboratively with Friends!
-            </p>
+            <p className="types">Collaboratively with Friends!</p>
 
-            <p
-              className="types"
-            >
-              Or, for Solo Trips!
-            </p>
+            <p className="types">Or, for Solo Trips!</p>
 
             {/* Collab Image */}
-      <motion.div
-        className="motion-wrapper"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2, ease: "easeOut", delay: 0.1 }}
-        whileHover={{ scale: 1.1, rotate: -1 }}
-      >
-        <img src={collab} className="animated-image" alt="Collab" />
-      </motion.div>
+            <motion.div
+              className="motion-wrapper"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2, ease: "easeOut", delay: 0.1 }}
+              whileHover={{ scale: 1.1, rotate: -1 }}
+            >
+              <img src={collab} className="animated-image" alt="Collab" />
+            </motion.div>
 
-      {/* Solo Image */}
-      <motion.div
-        className="motion-wrapper"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2, ease: "easeOut", delay: 0.1 }}
-        whileHover={{ scale: 1.1, rotate: 1 }}
-      >
-        <img src={solo} className="animated-image" alt="Solo" />
-      </motion.div>
+            {/* Solo Image */}
+            <motion.div
+              className="motion-wrapper"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2, ease: "easeOut", delay: 0.1 }}
+              whileHover={{ scale: 1.1, rotate: 1 }}
+            >
+              <img src={solo} className="animated-image" alt="Solo" />
+            </motion.div>
           </div>
         </div>
       </section>
@@ -365,7 +409,7 @@ export default function Home() {
           <img
             src={plane}
             style={{
-              width: "50vw",
+              width: "35vw",
               margin: "5% 0 5% 0",
               transform: "scaleX(-1) rotate(20deg)",
             }}
@@ -374,48 +418,54 @@ export default function Home() {
       </section>
 
       {/*Mission Statement*/}
-      <section className="mission-section">
-      <div>
-        <div className="mission-header">
-          <p className="mission-title">MISSION STATEMENT</p>
-        </div>
-
-        <div className="mission-content">
+      {!isFullScreen && (
+        <section className="mission-section">
           <div>
-            <img src={planeart} className="mission-image" alt="Plane Art" />
+            <div className="mission-header">
+              <p className="mission-title">MISSION STATEMENT</p>
+            </div>
+
+            <div className="mission-content">
+              <div>
+                <img src={planeart} className="mission-image" alt="Plane Art" />
+              </div>
+
+              <div className="mission-details">
+                <p>
+                  <i>
+                    "Our mission is to revolutionize travel planning by
+                    providing an
+                    <strong>
+                      {" "}
+                      intelligent, adaptive, and user-centric
+                    </strong>{" "}
+                    itinerary management platform.
+                  </i>
+                </p>
+                <p>
+                  <i>
+                    Leveraging AI-driven personalization, real-time
+                    weather-based activity adjustments, and deep
+                    learning-powered perception features, we aim to enhance the
+                    travel experience by ensuring seamless, optimized, and
+                    enjoyable journeys.
+                  </i>
+                </p>
+                <p>
+                  <i>
+                    Our platform empowers users with dynamic itinerary
+                    generation, smart recommendations, and collaborative
+                    planning, making every trip stress-free, efficient, and
+                    memorable."
+                  </i>
+                </p>
+              </div>
+            </div>
           </div>
+        </section>
+      )}
 
-          <div className="mission-details">
-            <p>
-              <i>
-                "Our mission is to revolutionize travel planning by providing an
-                <strong> intelligent, adaptive, and user-centric</strong>{" "}
-                itinerary management platform.
-              </i>
-            </p>
-            <p>
-              <i>
-                Leveraging AI-driven personalization, real-time weather-based
-                activity adjustments, and deep learning-powered perception
-                features, we aim to enhance the travel experience by ensuring
-                seamless, optimized, and enjoyable journeys.
-              </i>
-            </p>
-            <p>
-              <i>
-                Our platform empowers users with dynamic itinerary generation,
-                smart recommendations, and collaborative planning, making every
-                trip stress-free, efficient, and memorable."
-              </i>
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <Creators />
-
-      
+      <Creators />
     </div>
   );
 }

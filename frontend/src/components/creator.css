@@ -61,11 +61,11 @@
     margin: 2%;
     text-shadow: 1px 1px 10px rgba(226, 71, 205, 0.5);
     color: rgb(18, 19, 66);
-    font-size: clamp(10px, 1.5vw, 30px);
+    font-size: clamp(10px, 2.1vw, 30px);
   }
   
   .creator-role {
-    margin-top: 5%;
+    margin: 2% 0;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
     font-family: "Inter";
     font-size: clamp(10px, 2vw, 30px);
@@ -89,6 +89,18 @@
     .meet-container {
       margin: 20px 20% 0 20%;
       padding: 2rem;
+    }
+
+    .creator-name{
+      font-size: clamp(10px, 1.6vw, 30px);
+    }
+
+    .creator-role{
+      font-size: clamp(10px, 1.6vw, 30px);
+    }
+
+    .creator-link{
+      font-size: clamp(10px, 1.2vw, 20px);
     }
   }
   

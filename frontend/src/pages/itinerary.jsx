@@ -159,6 +159,7 @@ export default function Itinerary() {
       }
     } catch (error) {
       console.error("Failed to fetch itineraries:", error);
+      console.error("Error:", data.message);
     }
   };
 
@@ -548,14 +549,17 @@ export default function Itinerary() {
   };
 
 
-
   const handleNext = () => {
     if (step === 1 && !selectedOption) {
       alert("Please select an option");
       return;
     }
-    if (step === 2 && !city) {
+    else if (step === 2 && !city) {
       alert("Please select a city before proceeding.");
+      return;
+    }
+    else if (step === 3 && (!takeoffDate || !touchdownDate)) {
+      alert("Please enter dates before proceeding.");
       return;
     }
     setStep(step + 1);
@@ -727,10 +731,10 @@ export default function Itinerary() {
       <button
         className="create-button"
         onMouseEnter={(e) =>
-          (e.target.style.boxShadow = "0px 0px 15px rgb(78, 145, 124)")
+          (e.target.style.boxShadow = "0px 0px 15px rgb(162, 203, 221)")
         }
         onMouseLeave={(e) =>
-          (e.target.style.boxShadow = "1px 1px 3px rgb(31, 63, 53)")
+          (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
         }
         onClick={() => setIsDialogOpen(true)}
       >
@@ -761,6 +765,8 @@ export default function Itinerary() {
                   columnGap: "5px",
                   placeItems: "start",
                   marginBottom: "20px",
+                  color: "rgb(159, 192, 204)",
+                  textShadow: "1px 1px 1px rgb(23, 71, 88)",
                 }}
               >
                 <div>
@@ -769,7 +775,7 @@ export default function Itinerary() {
                     name="myRadio"
                     value="solo"
                     required
-                    style={{ accentColor: "purple" }}
+                    style={{ accentColor: "lightblue", marginRight: "6px" }}
                     checked={selectedOption === "solo"} // Ensure the selected option stays checked
                     onChange={(e) => setSelectedOption(e.target.value)}
                   />
@@ -781,7 +787,7 @@ export default function Itinerary() {
                     name="myRadio"
                     value="collaborative"
                     required
-                    style={{ accentColor: "purple" }}
+                    style={{ accentColor: "lightblue", marginRight: "6px" }}
                     checked={selectedOption === "collaborative"} // Ensure the selected option stays checked
                     onChange={(e) => setSelectedOption(e.target.value)}
                   />
@@ -800,12 +806,14 @@ export default function Itinerary() {
                     setTakeoffDate("");
                   }}
                   className="create-box-buttons"
+                  style={{
+                    backgroundColor: "rgb(104, 163, 189)",
+                  }}
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(145, 117, 177)")
+                    (e.target.style.boxShadow = "0px 0px 18px rgb(204, 231, 243)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   CANCEL
@@ -815,11 +823,10 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(145, 117, 177)")
+                    (e.target.style.boxShadow = "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   NEXT
@@ -873,6 +880,7 @@ export default function Itinerary() {
                         borderBottom: "1px solid rgb(124, 126, 126)",
                         fontFamily: "Inter",
                         fontSize: "80%",
+                        color: "rgb(162, 182, 189)",
                       }}
                     >
                       <span style={{ marginRight: "10px" }}>{item.flag}</span>
@@ -887,11 +895,10 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(145, 117, 177)")
+                    (e.target.style.boxShadow = "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   BACK
@@ -901,11 +908,10 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(145, 117, 177)")
+                    (e.target.style.boxShadow = "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   NEXT
@@ -919,14 +925,17 @@ export default function Itinerary() {
               <h2 className="stepNum">Step 1 of 4:</h2>
               <h2 className="heading">Select Dates</h2>
 
-              <p style={{ fontSize: "92%" }}>
-                NOTE: <i>Enter dates if decided, else continue...</i>
+              <p style={{ fontSize: "92%",
+                color: "rgb(140, 163, 172)",
+                textShadow: "1px 1px 1px rgb(23, 71, 88)",
+               }}>
+                <i>Enter estimated dates for your trip</i>
               </p>
               <div
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
-                  border: "1px solid purple",
+                  border: "1px solid rgb(126, 182, 204)",
                   borderRadius: "10px",
                   padding: "10px",
                   marginBottom: "5%",
@@ -934,7 +943,7 @@ export default function Itinerary() {
               >
                 {/* Takeoff Section */}
                 <div className="takeoff-container">
-                  <span className="section-title">TAKEOFF</span>
+                  <span className="date-title">TAKEOFF</span>
                   <input
                     type="date"
                     value={takeoffDate}
@@ -960,7 +969,7 @@ export default function Itinerary() {
 
                 {/* Touchdown Section */}
                 <div className="touchdown-container">
-                  <span className="section-title">TOUCHDOWN</span>
+                  <span className="date-title">TOUCHDOWN</span>
                   <input
                     type="date"
                     value={touchdownDate}
@@ -1003,11 +1012,10 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(145, 117, 177)")
+                    (e.target.style.boxShadow = "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   BACK
@@ -1017,11 +1025,10 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(145, 117, 177)")
+                    (e.target.style.boxShadow = "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   NEXT
@@ -1041,6 +1048,8 @@ export default function Itinerary() {
                   gridTemplateColumns: "1fr 1fr",
                   placeItems: "center",
                   marginBottom: "5%",
+                  color: "rgb(159, 192, 204)",
+                  textShadow: "1px 1px 1px rgb(23, 71, 88)",
                 }}
               >
                 <div>
@@ -1049,7 +1058,7 @@ export default function Itinerary() {
                     name="myRadio"
                     value="nameIt"
                     required
-                    style={{ accentColor: "purple" }}
+                    style={{ accentColor: "lightblue", marginLeft: "8px" }}
                     checked={nameOption === "nameIt"}
                     onChange={() => setNameOption("nameIt")}
                   />
@@ -1062,7 +1071,7 @@ export default function Itinerary() {
                     name="myRadio"
                     value="default"
                     required
-                    style={{ accentColor: "purple" }}
+                    style={{ accentColor: "lightblue", marginLeft: "8px" }}
                     checked={nameOption === "default"}
                     onChange={() => {
                       setNameOption("default");
@@ -1089,11 +1098,10 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(145, 117, 177)")
+                    (e.target.style.boxShadow = "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   BACK
@@ -1112,12 +1120,14 @@ export default function Itinerary() {
                     setItineraryName("");
                   }}
                   className="create-box-buttons"
+                  style={{
+                    backgroundColor: "rgb(104, 163, 189)",
+                  }}
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(145, 117, 177)")
+                    (e.target.style.boxShadow = "0px 0px 18px rgb(198, 236, 252)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.style.boxShadow = "0px 0px 10px rgb(85, 51, 123)")
+                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   FINISH
@@ -1228,15 +1238,15 @@ export default function Itinerary() {
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 15% 10%",
+                        gridTemplateColumns: "1fr 8% 7%",
                         margin: "15px 0",
                       }}
                     >
                       <div
                         style={{
-                          fontSize: "clamp(10px, 4.2vh, 3vw)",
-                          color: "rgb(196, 164, 233)",
-                          textShadow: "0px 0px 6px rgba(158, 86, 203, 0.8)",
+                          fontSize: "clamp(10px, 3vw, 30px)",
+                          color: "rgb(164, 208, 233)",
+                          textShadow: "0px 0px 6px rgba(102, 187, 212, 0.8)",
                         }}
                       >
                         {selectedItinerary.title || "Untitled Itinerary"}
@@ -1244,20 +1254,13 @@ export default function Itinerary() {
 
                       <div>
                         {selectedItinerary.collaborative && (
-                          <button
-                            style={{
-                              backgroundColor: "transparent",
-                              borderStyle: "none",
-                              cursor: "pointer",
-                            }}
-                            onClick={() => setCollabTab(true)}
-                          >
                             <img
                               src={usersss}
-                              alt="Collaborative Trip"
-                              style={{ width: "clamp(50%, 60%, 70%)" }}
+                              style={{ width: "clamp(50%, 4vw, 70%)",
+                                padding: 0, cursor: "pointer"
+                              }}
+                              onClick={() => setCollabTab(true)}
                             />
-                          </button>
                         )}
                       </div>
 
@@ -1269,6 +1272,7 @@ export default function Itinerary() {
                           style={{
                             height: !addUser ? "26%" : "50%",
                             top: addUser ? "36%" : "26%",
+                            padding: "1rem",
                           }}
                         >
                           {/* HEADER */}
@@ -1290,9 +1294,10 @@ export default function Itinerary() {
                               <div
                                 className="header-box"
                                 style={{
-                                  color: "rgb(194, 198, 199)",
-                                  textShadow: "1px 1px 2px white",
+                                  color: "rgb(204, 230, 236)",
+                                  textShadow: "2px 2px 1px rgba(113, 147, 160, 0.71)",
                                   fontSize: "clamp(10px, 2.55vw, 25px)",
+                                  padding: "1rem"
                                 }}
                               >
                                 COLLABORATORS
@@ -1302,7 +1307,7 @@ export default function Itinerary() {
                                 style={{
                                   display: "grid",
                                   gridTemplateColumns: "1fr 1fr",
-                                  columnGap: "12px",
+                                  columnGap: "20px",
                                   placeContent: "center",
                                   alignContent: "center",
                                   marginTop: "10px",
@@ -1338,7 +1343,7 @@ export default function Itinerary() {
                               <ul
                                 style={{
                                   height: "85%",
-                                  padding: "0",
+                                  padding: "1rem 0",
                                   overflowY: "auto",
                                   overflowX: "hidden",
                                   fontSize: "75%",
@@ -1508,8 +1513,7 @@ export default function Itinerary() {
                         >
                           <img
                             src={trash}
-                            alt="Collaborative Trip"
-                            style={{ width: "clamp(60%, 70%, 70%)" }}
+                            style={{ width: "clamp(50%, 3vw, 70%)" }}
                           />
                         </button>
                       </div>
@@ -1520,7 +1524,7 @@ export default function Itinerary() {
                       <div
                         style={{
                           background:
-                            "linear-gradient(90deg, rgba(36, 6, 85, 0.67), rgba(73, 18, 161, 0.67))",
+                            "linear-gradient(90deg, rgba(6, 49, 85, 0.67), rgba(18, 92, 161, 0.67))",
                           borderRadius: "10px",
                           padding: "0 5%",
                           color: "white",
@@ -1682,10 +1686,10 @@ export default function Itinerary() {
                           <img
                             src={addPlaces}
                             style={{
-                              width: "4.5%",
+                              width: "4%",
                               height: "auto",
                               boxShadow: "none",
-                              marginRight: "2%",
+                              marginRight: "1%",
                             }}
                           />
                           Add to Itinerary
@@ -1729,7 +1733,8 @@ export default function Itinerary() {
                               style={{
                                 fontSize: "clamp(20px, 2vw, 40px)",
                                 marginBottom: "10px",
-                                color: "rgb(147, 101, 172)",
+                                color: "rgb(136, 174, 196)",
+                          textShadow: "2px 2px 1px rgba(15, 71, 88, 0.8)",
                               }}
                             >
                               ADD PLACES TO ITINERARY
@@ -1782,8 +1787,8 @@ export default function Itinerary() {
                                 style={{
                                   backgroundColor:
                                     selectedFilter === filter.id
-                                      ? "rgba(130, 90, 180, 1)"
-                                      : "rgba(210, 173, 226, 0.8)",
+                                      ? "rgb(75, 119, 148)"
+                                      : "rgba(188, 220, 247, 0.8)",
                                 }}
                               >
                                 <img
@@ -1841,7 +1846,7 @@ export default function Itinerary() {
                                       style={{
                                         fontWeight: "lighter",
                                         textDecorationLine: "underline",
-                                        color: "rgb(105, 18, 131)",
+                                        color: "rgb(111, 147, 170)",
                                       }}
                                       onClick={() => {
                                         setPlacesDeets(true);
@@ -1916,12 +1921,12 @@ export default function Itinerary() {
                       <div
                         style={{
                           marginTop: "2px",
-                          color: "purple",
-                          fontSize: "clamp(20px, 1.6vw, 25px)",
-                          textShadow: "1px 1px 10px rgb(83, 6, 118)",
+                          color: "rgb(191, 224, 243)",
+                          fontSize: "clamp(15px, 1.6vw, 18px)",
+                          textShadow: "1px 1px 10px rgb(10, 56, 83)",
                         }}
                       >
-                        NAME & CATEGORY
+                        PLACES TO VISIT
                       </div>
 
                       <div

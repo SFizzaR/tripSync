@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "../font.css";
+import "./itinerary.css";
 import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import Logo from "../components/logo";
 import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 function Notifs() {
   const [notifications, setNotifications] = useState([]); // State to store notifications
@@ -168,14 +170,8 @@ function Notifs() {
 
       <Header title="Notifications" text="ACCEPT INVITATIONS TO JOIN" />
 
-      {/* Notifications Section */}
-      <div
-        style={{
-          marginTop: "60px", // Prevent overlap with fixed navbar
-          padding: "20px",
-        }}
-      >
-        {notifications.length === 0 ? (
+      <div className="itinerary-box">
+      {notifications.length === 0 ? (
           <p
             style={{
               textAlign: "center",

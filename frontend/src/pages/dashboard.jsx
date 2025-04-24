@@ -9,6 +9,7 @@ import toast, { Toaster } from "react-hot-toast";
 import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import Logo from "../components/logo";
+import "./dashboard.css";
 
 export default function Dashboard() {
   const [date, setDate] = useState(new Date());

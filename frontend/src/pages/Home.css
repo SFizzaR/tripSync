@@ -230,15 +230,17 @@
 
 @media (min-width: 1024px) {
   .flashing-text, .mission-title{
-    font-size: clamp(10px, 3.5vw, 30px);
+    font-size: clamp(10px, 3.2vw, 28px);
   }
 
   .about-section{
     padding: 1rem;
+    width: 430px;
   }
 
   .aboutDeets{
     font-size: 1.2vw;
+    width: 390px;
   }
 
   .mission-details{
@@ -249,7 +251,7 @@
   .cases-image{
     width: 28%;
     opacity: 0.9;
-    left: 30.5%;
+    left: 31%;
     position: absolute;
 
   }

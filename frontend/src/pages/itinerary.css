@@ -4,7 +4,7 @@
   border-right: 1px dotted white;
   font-size: 120%;
   margin-top: 0;
-  padding: 6px;
+  padding: 0.5rem;
   overflow: hidden;
   word-wrap: break-word;
   white-space: normal;
@@ -129,7 +129,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba(0, 11, 20, 1);
+  background-color: rgb(0, 1, 20);
   padding: 20px;
   box-shadow: 0px 0px 35px rgb(0, 9, 12);
   border-radius: 10px;
@@ -167,8 +167,8 @@
 }
 
 .create-box-buttons {
-  background-color: rgb(71, 47, 110);
-  box-shadow: 0px 0px 5px rgb(85, 51, 123);
+  background-color: rgb(5, 87, 126);
+  box-shadow: 1px 1px 3px rgb(36, 57, 66);
   border: none;
   padding: 10px 20px;
   font-family: "Montserrat", sans-serif;
@@ -189,16 +189,16 @@
   font-family: "P2P", sans-serif;
   font-weight: lighter;
   margin-bottom: 20px;
-  color: purple;
-  text-shadow: 2px 2px 1px rgb(62, 8, 85);
+  color: rgb(199, 230, 241);
+  text-shadow: 3px 3px 1px rgb(23, 71, 88);
 }
 
 .heading {
   margin-top: -15px;
   font-family: "P2P", sans-serif;
   font-weight: lighter;
-  color: rgb(178, 80, 190);
-  text-shadow: 1px 2px 1px rgb(87, 14, 119);
+  color: rgb(74, 163, 196);
+  text-shadow: 3px 3px 1px rgb(7, 53, 70);
 }
 
 .takeoff-container,
@@ -211,11 +211,11 @@
 }
 
 .takeoff-container {
-  border-right: 1px solid purple;
+  border-right: 1px solid white;
 }
 
-.section-title {
-  color: rgb(187, 150, 218);
+.date-title {
+  color: rgb(28, 101, 134);
   font-size: 90%;
   font-weight: bold;
   margin-bottom: 10%;
@@ -370,10 +370,11 @@
     background-color: transparent;
     border: none;
     margin: 5px;
+    
     padding: 5px 15px;
     font-family: "Montserrat", sans-serif;
     font-weight: bold;
-    font-size: clamp(12px, 2vw, 22px);
+    font-size: clamp(12px, 2vw, 18px);
     color: white;
     border-radius: 5px;
     cursor: pointer;
@@ -389,7 +390,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    background-color: rgb(75, 20, 141);
+    background-color: rgb(18, 57, 80);
     border: none;
     cursor: pointer;
     color: white;
@@ -452,11 +453,11 @@
   }
   
   .itinerary-container.large {
-    height: min(120vw, 500px);
+    height: min(120vw, 515px);
   }
   
   .itinerary-container.extra-large {
-    height: min(120vw, 520px);
+    height: min(120vw, 560px);
   }
 
 
@@ -493,10 +494,10 @@
   }
 
   .itinerary-container.large {
-    height: min(100vw, 425px);
+    height: min(100vw, 450px);
   }
   
   .itinerary-container.extra-large {
-    height: min(110vw, 469px);
+    height: min(110vw, 470px);
   }
 }

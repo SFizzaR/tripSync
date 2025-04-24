@@ -42,7 +42,7 @@ const Header = ({ title, text }) => {
                     style={{
                       fontFamily: "Significent",
                       color: "white",
-                      fontSize: "15vw",
+                      fontSize: "clamp(60px, 12vw, 180px)",
                       fontWeight: "lighter",
                       padding: "20px",
                       overflow: "hidden",

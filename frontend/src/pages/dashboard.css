@@ -1,0 +1,8 @@
+.section-title {
+    font-size: 5vw;
+    margin-bottom: 10px;
+    font-family: "Press Start 2P";
+    padding: 0 1rem;
+    color: rgba(215, 248, 248, 0.89);
+    text-shadow: 3px 3px 1px rgb(106, 167, 175);
+}

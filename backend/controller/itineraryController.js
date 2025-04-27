@@ -354,6 +354,4 @@ const getColabUsers = expressAsyncHandler(async (req, res) => {
   }
 });
 
-
-
 module.exports = { createItinerary, getSoloItineraries, getColabItineraries, updateItinerary, addPlaceToItinerary, getItineraryPlaces, addUserToItinerary, deleteUser, deletePlace, getColabUsers };

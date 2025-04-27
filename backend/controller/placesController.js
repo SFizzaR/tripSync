@@ -1,6 +1,7 @@
 const expressAsyncHandler = require("express-async-handler");
 const axios = require("axios");
 require("dotenv").config();
+const Places = require("../models/placesModel"); // Import the Places model
 
 const categoryMapping = {
   restaurant:["13065", "13377", "13298"],
@@ -67,7 +68,94 @@ const getPlaces = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { getPlaces };
+const getPlaceById = expressAsyncHandler(async (req, res) => {
+  const { fsq_id } = req.params;
+
+  try {
+    // Check if the place exists in the database
+    let place = await Places.findOne({ fsq_id });
+
+    if (!place) {
+      // Fetch place details from Foursquare API
+      const placeResponse = await axios.get(
+        `https://api.foursquare.com/v3/places/${fsq_id}`,
+        {
+          headers: {
+            Authorization: process.env.FOURSQUARE_API,
+            Accept: "application/json",
+          },
+        }
+      );
+      const placeData = placeResponse.data;
+
+      // Fetch photos
+      let photos = [];
+      try {
+        const photoResponse = await axios.get(
+          `https://api.foursquare.com/v3/places/${fsq_id}/photos`,
+          {
+            headers: {
+              Authorization: process.env.FOURSQUARE_API_KEY,
+              Accept: "application/json",
+            },
+          }
+        );
+        photos = photoResponse.data.map(
+          (photo) => photo.prefix + "original" + photo.suffix
+        );
+      } catch (photoError) {
+        console.warn(`No photos found for fsq_id ${fsq_id}:`, photoError.response?.data || photoError.message);
+      }
+
+      // Fetch reviews (tips in Foursquare API)
+      let reviews = [];
+      try {
+        const reviewResponse = await axios.get(
+          `https://api.foursquare.com/v3/places/${fsq_id}/tips`,
+          {
+            headers: {
+              Authorization: process.env.FOURSQUARE_API_KEY,
+              Accept: "application/json",
+            },
+          }
+        );
+        reviews = reviewResponse.data.map((tip) => tip.text);
+      } catch (reviewError) {
+        console.warn(`No reviews found for fsq_id ${fsq_id}:`, reviewError.response?.data || reviewError.message);
+      }
+
+      // Create a new place document
+      place = new Places({
+        fsq_id: placeData.fsq_id,
+        city: placeData.location?.locality || "Unknown City",
+        name: placeData.name || "Unknown Place",
+        address: placeData.location?.formatted_address || "Unknown Address",
+        latitude: placeData.geocodes?.main?.latitude || null,
+        longitude: placeData.geocodes?.main?.longitude || null,
+        categories: placeData.categories
+          ? placeData.categories.map((cat) => cat.name)
+          : [],
+        photos: photos || [],
+        reviews: reviews || [],
+      });
+
+      // Save the place to the database
+      await place.save();
+      console.log(`Saved new place from Foursquare: ${place.name}`);
+    }
+
+    res.json(place);
+  } catch (error) {
+    console.error("Error fetching place by ID:", error.response?.data || error.message);
+    if (error.response?.status === 404) {
+      res.status(404).json({ message: "Place not found in Foursquare" });
+    } else {
+      res.status(500).json({ message: "Server error", error: error.message });
+    }
+  }
+});
+
+module.exports = { getPlaces,getPlaceById };
 
 
 /*

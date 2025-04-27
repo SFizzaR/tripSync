@@ -77,6 +77,10 @@ export default function Itinerary() {
   const [placesDeets, setPlacesDeets] = useState(false);
   const [placesDeetsId, setPlaceDeetsId] = useState(null);
 
+  const [checkedPlaces, setCheckedPlaces] = useState({});
+
+  const [placeDetails, setPlaceDetails] = useState(null);
+
   const filters = [
     { id: "history", src: hist, label: "History" },
     { id: "restaurant", src: rest, label: "Restaurants" },
@@ -89,16 +93,25 @@ export default function Itinerary() {
     { id: "entertainment", src: enter, label: "Entertainment" },
   ];
 
-  const [selectedOptions, setSelectedOptions] = useState([]);
-
+  useEffect(() => {
+    if (selectedItinerary && selectedItinerary.places) {
+      // Initialize checkedPlaces with all places set to false
+      const initialCheckedState = {};
+      selectedItinerary.places.forEach((place) => {
+        initialCheckedState[place.placeId] = false;
+      });
+      setCheckedPlaces(initialCheckedState);
+    } else {
+      setCheckedPlaces({}); // Reset to empty if no itinerary
+    }
+  }, [selectedItinerary]); // Run whenever selectedItinerary changes
+  
+  // Handle checkbox change
   const handleCheckboxChange = (placeId) => {
-    setSelectedOptions((prevSelected) => {
-      if (prevSelected.includes(placeId)) {
-        return prevSelected.filter((id) => id !== placeId);
-      } else {
-        return [...prevSelected, placeId];
-      }
-    });
+    setCheckedPlaces((prev) => ({
+      ...prev,
+      [placeId]: !prev[placeId], // Toggle the checked state
+    }));
   };
 
   useEffect(() => {
@@ -116,6 +129,28 @@ export default function Itinerary() {
     fetchColabItineraries();
     // setSelectedFilter(null);
   }, []);
+
+
+  useEffect(() => {
+    const fetchPlaceDetails = async () => {
+      if (!placesDeets || !placesDeetsId) {
+        setPlaceDetails(null); // Clear details when panel closes
+        return;
+      }
+  
+      try {
+        const response = await axios.get(
+          `http://localhost:5001/api/places/place/${placesDeetsId}`
+        );
+        setPlaceDetails(response.data);
+      } catch (error) {
+        console.error("Failed to fetch place details:", error);
+        setPlaceDetails(null);
+      }
+    };
+  
+    fetchPlaceDetails();
+  }, [placesDeets, placesDeetsId]);
 
   useEffect(() => {
     console.log("Updated Itinerary:", selectedItinerary);
@@ -159,7 +194,6 @@ export default function Itinerary() {
       }
     } catch (error) {
       console.error("Failed to fetch itineraries:", error);
-      console.error("Error:", data.message);
     }
   };
 
@@ -208,7 +242,12 @@ export default function Itinerary() {
       console.log("No token found. User not authenticated.");
       return;
     }
-
+  
+    if (!selectedItinerary || !selectedItinerary._id) {
+      console.log("No selected itinerary or itinerary ID.");
+      return;
+    }
+  
     try {
       const response = await fetch(
         `http://localhost:5001/api/itineraries/users/${selectedItinerary._id}`,
@@ -220,25 +259,26 @@ export default function Itinerary() {
           },
         }
       );
-
+  
       const data = await response.json();
       if (response.ok) {
         if (Array.isArray(data.collaborators)) {
-          setUsers(
-            data.collaborators
-              .map((user) => ({
-                ...user,
-                id: user._id,
-                displayName: user.isAdmin ? `Admin - ${user.username}${isYou ? " (You)" : ""}`
-                  : `Admin - ${user.username}`,
-              }))
-              .sort((a, b) => {
-                const aIsAdmin = a.isAdmin || a.role === "admin";
-                const bIsAdmin = b.isAdmin || b.role === "admin";
-                return bIsAdmin - aIsAdmin; // Admins go on top
-              })
-          );
-
+          const mappedUsers = data.collaborators.map((user) => ({
+            ...user,
+            id: user._id,
+            displayName: user.isYou
+              ? `${user.username} (You)`
+              : user.role === "admin"
+              ? `Admin - ${user.username}`
+              : user.username,
+          }));
+          // Sort users: admin first, then others
+          mappedUsers.sort((a, b) => {
+            if (a.role === "admin") return -1;
+            if (b.role === "admin") return 1;
+            return 0;
+          });
+          setUsers(mappedUsers);
         } else {
           console.error("Expected 'collaborators' to be an array, but got:", data);
         }
@@ -246,30 +286,34 @@ export default function Itinerary() {
         console.error("Error:", data.message || "Unknown error");
       }
     } catch (error) {
-      console.error("Failed to fetch itineraries:", error);
+      console.error("Failed to fetch collaborators:", error);
     }
   };
 
   const handleDeleteUser = async (userId, isTargetAdmin) => {
     const token = localStorage.getItem("accessToken");
     const currentUserId = localStorage.getItem("userId");
-
+  
     if (!token) {
       alert("No token found. User not authenticated.");
       return;
     }
-
+  
     // Check if the target is admin and the current user is not
-    const isCurrentUserAdmin = users.find((u) => u._id === currentUserId)?.isAdmin;
-
+    const isCurrentUserAdmin = users.some(
+      (u) => u._id === currentUserId && u.role === "admin"
+    );
+  
     if (!isCurrentUserAdmin && isTargetAdmin) {
       alert("Admin cannot be removed.");
       return;
     }
-
-    const confirmDelete = window.confirm("Are you sure you want to remove this user?");
+  
+    const confirmDelete = window.confirm(
+      "Are you sure you want to remove this user?"
+    );
     if (!confirmDelete) return;
-
+  
     try {
       const response = await fetch(
         `http://localhost:5001/api/itineraries/${selectedItinerary._id}/remove-user/${userId}`,
@@ -281,16 +325,17 @@ export default function Itinerary() {
           },
         }
       );
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
-        setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
-
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) => user._id !== userId)
+        );
+  
         if (userId === currentUserId) {
           alert("You left the itinerary.");
           navigate("/dashboard");
-          // Optionally redirect or update view
         } else {
           alert("User removed successfully.");
         }
@@ -302,8 +347,6 @@ export default function Itinerary() {
       alert("Something went wrong.");
     }
   };
-
-
 
   const handleItineraryClick = (itineraryId) => {
     console.log("Clicked Itinerary ID:", itineraryId);
@@ -343,10 +386,10 @@ export default function Itinerary() {
     console.log("Updated places:", places);
   }, [places]);
 
-  const handleAddPlace = (placeId) => {
-    if (!placeId || !itineraryIdnow) {
-      console.error("❌ Error: Missing itineraryId or placeId.");
-      alert("Error: Itinerary or Place ID is missing.");
+  const handleAddPlace = (placeId, placeName) => {
+    if (!placeId || !itineraryIdnow || !placeName) {
+      console.error("❌ Error: Missing itineraryId, placeId, or placeName.");
+      alert("Error: Itinerary, Place ID, or Place Name is missing.");
       return;
     }
 
@@ -354,10 +397,12 @@ export default function Itinerary() {
       "✅ Adding place to itinerary:",
       itineraryIdnow,
       "Place ID:",
-      placeId
+      placeId,
+      "Place Name:",
+      placeName
     );
 
-    addPlaceToItinerary(itineraryIdnow, placeId);
+    addPlaceToItinerary(itineraryIdnow, placeId, placeName);
   };
 
   const handlePlaceClick = (placeId, placeName) => {
@@ -392,24 +437,29 @@ export default function Itinerary() {
     //addPlaceToItinerary(itineraryIdnow,placeId)
   };
 
-  const addPlaceToItinerary = async (itineraryIdnow, placeId) => {
-    if (!itineraryIdnow || !placeId) {
-      console.error("❌ Error: Missing itineraryId or placeId.");
+  const addPlaceToItinerary = async (itineraryIdnow, placeId, placeName) => {
+    if (!itineraryIdnow || !placeId || !placeName) {
+      console.error("❌ Error: Missing itineraryId, placeId, or placeName.");
+      alert("Error: Itinerary, Place ID, or Place Name is missing.");
       return;
     }
 
     console.log("📌 Sending request to add place:");
     console.log("➡️ Itinerary ID:", itineraryIdnow);
     console.log("➡️ Place ID:", placeId);
+    console.log("➡️ Place Name:", placeName);
 
     const url = `http://localhost:5001/api/itineraries/${itineraryIdnow}/places/${placeId}`;
+    const token = localStorage.getItem("accessToken");
 
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ placeName }), // Include placeName in the body
       });
 
       if (!response.ok) {
@@ -420,12 +470,18 @@ export default function Itinerary() {
       const data = await response.json();
       console.log("✅ Successfully added place:", data);
 
-      // Ensure UI updates by setting a new reference
-      if (data.itinerary) {
-        setSelectedItinerary({ ...data.itinerary });
-      }
+      // Update the selected itinerary with the new place
+     if (data.itinerary) {
+      setSelectedItinerary({ ...data.itinerary });
+      // Ensure the new place is unchecked
+      setCheckedPlaces((prev) => ({
+        ...prev,
+        [placeId]: false, // Explicitly set the new place to unchecked
+      }));
+    }
     } catch (error) {
       console.error("❌ Network error:", error);
+      alert(`Failed to add place: ${error.message}`);
     }
   };
 
@@ -464,7 +520,6 @@ export default function Itinerary() {
   };
 
   const handleFinish = async () => {
-
     const token = localStorage.getItem("accessToken");
     console.log("TOken from hnadlefimish: ", token);
     if (!token) {
@@ -548,7 +603,6 @@ export default function Itinerary() {
     }
   };
 
-
   const handleNext = () => {
     if (step === 1 && !selectedOption) {
       alert("Please select an option");
@@ -562,6 +616,7 @@ export default function Itinerary() {
       alert("Please enter dates before proceeding.");
       return;
     }
+
     setStep(step + 1);
   };
 
@@ -581,6 +636,7 @@ export default function Itinerary() {
     const newBudget = budgetOptions[(currentIndex + 1) % budgetOptions.length];
     setSelectedItinerary({ ...selectedItinerary, budget: newBudget });
     handleFieldUpdate("budget", newBudget);
+
   };
 
   const handleStatusChange = (e) => {
@@ -591,8 +647,6 @@ export default function Itinerary() {
     }));
     handleFieldUpdate("status", newStatus);
   };
-
-
 
   console.log("Selected Option:", selectedOption);
 
@@ -633,11 +687,17 @@ export default function Itinerary() {
   useEffect(() => {
     fetchUsersList();
   }, []);
-  useEffect(() => {
-    fetchColabUsers()
-  })
-  const sendInvitation = async (itineraryIdnow, receiverId) => {
 
+  useEffect(() => {
+    if (collabTab && selectedItinerary?.collaborative) {
+      fetchColabUsers();
+    } else {
+      setUsers([]); // Clear users when collabTab closes
+    }
+  }, [collabTab, selectedItinerary]);
+
+
+  const sendInvitation = async (itineraryIdnow, receiverId) => {
     let isCancelled = false; // Track if the user cancels
 
     // Show a toast with a "Cancel" button
@@ -651,7 +711,13 @@ export default function Itinerary() {
               toast.dismiss(t.id); // Dismiss toast
               toast.error("Invite cancelled");
             }}
-            style={{ background: "red", color: "white", padding: "5px", borderRadius: "5px", marginTop: "5px" }}
+            style={{
+              background: "red",
+              color: "white",
+              padding: "5px",
+              borderRadius: "5px",
+              marginTop: "5px",
+            }}
           >
             Cancel Invite
           </button>
@@ -660,7 +726,7 @@ export default function Itinerary() {
       { duration: 5000 }
     );
     setTimeout(async () => {
-      if (isCancelled) return
+      if (isCancelled) return;
       try {
         const token = localStorage.getItem("accessToken");
         if (!token) {
@@ -695,9 +761,8 @@ export default function Itinerary() {
         console.error("❌ Error sending invitation:", error);
         alert("Failed to send invitation.");
       }
-    }, 5000)
+    }, 5000);
   };
-
 
   return (
     <div style={{ paddingBottom: "0", overflowX: "hidden" }}>
@@ -767,6 +832,7 @@ export default function Itinerary() {
                   marginBottom: "20px",
                   color: "rgb(159, 192, 204)",
                   textShadow: "1px 1px 1px rgb(23, 71, 88)",
+
                 }}
               >
                 <div>
@@ -788,6 +854,7 @@ export default function Itinerary() {
                     value="collaborative"
                     required
                     style={{ accentColor: "lightblue", marginRight: "6px" }}
+
                     checked={selectedOption === "collaborative"} // Ensure the selected option stays checked
                     onChange={(e) => setSelectedOption(e.target.value)}
                   />
@@ -930,6 +997,7 @@ export default function Itinerary() {
                 textShadow: "1px 1px 1px rgb(23, 71, 88)",
                }}>
                 <i>Enter estimated dates for your trip</i>
+
               </p>
               <div
                 style={{
@@ -943,13 +1011,13 @@ export default function Itinerary() {
               >
                 {/* Takeoff Section */}
                 <div className="takeoff-container">
-                  <span className="date-title">TAKEOFF</span>
+                <span className="date-title">TAKEOFF</span>
                   <input
                     type="date"
                     value={takeoffDate}
                     onChange={(e) => setTakeoffDate(e.target.value)}
                     className={`date-input ${takeoffDate ? "date-filled" : "date-empty"
-                      }`}
+                    }`}
                   />
                   <FaCalendarAlt
                     className={`calendar-icon ${!takeoffDate && !touchdownDate
@@ -969,7 +1037,8 @@ export default function Itinerary() {
 
                 {/* Touchdown Section */}
                 <div className="touchdown-container">
-                  <span className="date-title">TOUCHDOWN</span>
+                <span className="date-title">TOUCHDOWN</span>
+
                   <input
                     type="date"
                     value={touchdownDate}
@@ -988,7 +1057,7 @@ export default function Itinerary() {
                     }}
                     min={takeoffDate}
                     className={`date-input ${touchdownDate ? "date-filled" : "date-empty"
-                      }`}
+                    }`}
                   />
                   <FaCalendarAlt
                     className={`calendar-icon ${!takeoffDate && !touchdownDate
@@ -1029,6 +1098,7 @@ export default function Itinerary() {
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
+
                   }
                 >
                   NEXT
@@ -1123,6 +1193,7 @@ export default function Itinerary() {
                   style={{
                     backgroundColor: "rgb(104, 163, 189)",
                   }}
+
                   onMouseEnter={(e) =>
                     (e.target.style.boxShadow = "0px 0px 18px rgb(198, 236, 252)")
                   }
@@ -1150,8 +1221,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {soloItineraries &&
-                    Array.isArray(soloItineraries) &&
-                    soloItineraries.length > 0 ? (
+                  Array.isArray(soloItineraries) &&
+                  soloItineraries.length > 0 ? (
                     soloItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1179,8 +1250,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {colabItineraries &&
-                    Array.isArray(colabItineraries) &&
-                    colabItineraries.length > 0 ? (
+                  Array.isArray(colabItineraries) &&
+                  colabItineraries.length > 0 ? (
                     colabItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1247,20 +1318,21 @@ export default function Itinerary() {
                           fontSize: "clamp(10px, 3vw, 30px)",
                           color: "rgb(164, 208, 233)",
                           textShadow: "0px 0px 6px rgba(102, 187, 212, 0.8)",
+
                         }}
                       >
                         {selectedItinerary.title || "Untitled Itinerary"}
                       </div>
 
                       <div>
-                        {selectedItinerary.collaborative && (
-                            <img
-                              src={usersss}
-                              style={{ width: "clamp(50%, 4vw, 70%)",
-                                padding: 0, cursor: "pointer"
-                              }}
-                              onClick={() => setCollabTab(true)}
-                            />
+                      {selectedItinerary.collaborative && (
+                        <img
+                          src={usersss}
+                          style={{ width: "clamp(50%, 4vw, 70%)",
+                            padding: 0, cursor: "pointer"
+                          }}
+                          onClick={() => setCollabTab(true)}
+                          />
                         )}
                       </div>
 
@@ -1273,6 +1345,7 @@ export default function Itinerary() {
                             height: !addUser ? "26%" : "50%",
                             top: addUser ? "36%" : "26%",
                             padding: "1rem",
+
                           }}
                         >
                           {/* HEADER */}
@@ -1281,6 +1354,7 @@ export default function Itinerary() {
                               display: "grid",
                               gridTemplateRows: "15% 1fr",
                               rowGap: "5px",
+                              padding: "0.5rem",
                             }}
                           >
                             <div
@@ -1352,7 +1426,10 @@ export default function Itinerary() {
                               >
                                 {users.length > 0 ? (
                                   users.map((user) => (
-                                    <li key={user._id} className="users-list-item">
+                                    <li
+                                      key={user._id}
+                                      className="users-list-item"
+                                    >
                                       <div>
                                         <button
                                           style={{
@@ -1360,7 +1437,11 @@ export default function Itinerary() {
                                             border: "none",
                                             cursor: "pointer",
                                           }}
-                                          onClick={() => handleDeleteUser(user._id, user.isAdmin)} // <-- put it here
+                                          onClick={() =>
+                                            handleDeleteUser(
+                                              user._id, user.role === "admin"
+                                            )
+                                          } // <-- put it here
                                         >
                                           <img
                                             src={userBye}
@@ -1369,13 +1450,20 @@ export default function Itinerary() {
                                           />
                                         </button>
                                       </div>
-                                      <div>{user.username}</div>
+                                      <div>{user.displayName}</div>
                                     </li>
                                   ))
                                 ) : (
-                                  <li>No users found</li>
+                                  <li
+                                    style={{
+                                      fontSize: "1.2vw",
+                                      paddingTop: "10px",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    No users found
+                                  </li>
                                 )}
-
                               </ul>
                             </div>
 
@@ -1389,7 +1477,8 @@ export default function Itinerary() {
                                     color: "rgb(194, 198, 199)",
                                     fontFamily: "P2P",
                                     fontWeight: "lighter",
-                                    textShadow: "0px 0px 2px white",
+                                    textShadow:
+                                      "1px 1px 1px rgb(255, 255, 255, 0.5)",
                                   }}
                                 >
                                   ADD COLLABORATOR
@@ -1513,6 +1602,7 @@ export default function Itinerary() {
                         >
                           <img
                             src={trash}
+                            alt="Collaborative Trip"
                             style={{ width: "clamp(50%, 3vw, 70%)" }}
                           />
                         </button>
@@ -1524,7 +1614,7 @@ export default function Itinerary() {
                       <div
                         style={{
                           background:
-                            "linear-gradient(90deg, rgba(6, 49, 85, 0.67), rgba(18, 92, 161, 0.67))",
+                            "linear-gradient(90deg, rgba(36, 6, 85, 0.67), rgba(73, 18, 161, 0.67))",
                           borderRadius: "10px",
                           padding: "0 5%",
                           color: "white",
@@ -1566,7 +1656,10 @@ export default function Itinerary() {
                             onBlur={(e) => {
                               setEditingDate(null);
                               if (selectedItinerary.startDate)
-                                handleFieldUpdate("startDate", selectedItinerary.startDate);
+                                handleFieldUpdate(
+                                  "startDate",
+                                  selectedItinerary.startDate
+                                );
                             }}
                             autoFocus
                           />
@@ -1610,9 +1703,11 @@ export default function Itinerary() {
                             onBlur={(e) => {
                               setEditingDate(null);
                               if (selectedItinerary.endDate)
-                                handleFieldUpdate("endDate", selectedItinerary.endDate);
+                                handleFieldUpdate(
+                                  "endDate",
+                                  selectedItinerary.endDate
+                                );
                             }}
-
                             autoFocus
                           />
                         ) : (
@@ -1637,19 +1732,19 @@ export default function Itinerary() {
                           className="status"
                         >
                           <option
-                            value="Planning"
+                            value="planning"
                             style={{ backgroundColor: "black", color: "white" }}
                           >
                             Planning
                           </option>
                           <option
-                            value="Experiencing"
+                            value="in-progress"
                             style={{ backgroundColor: "black", color: "white" }}
                           >
                             Experiencing
                           </option>
                           <option
-                            value="Completed"
+                            value="complete"
                             style={{ backgroundColor: "black", color: "white" }}
                           >
                             Completed
@@ -1673,10 +1768,11 @@ export default function Itinerary() {
                     </div>
 
                     <div
-                      className={`itinerary-container ${selectedItinerary.title !== selectedItinerary.city
-                        ? "large"
-                        : "extra-large"
-                        }`}
+                      className={`itinerary-container ${
+                        selectedItinerary.title !== selectedItinerary.city
+                          ? "large"
+                          : "extra-large"
+                      }`}
                     >
                       <div style={{ display: "flex", alignItems: "start" }}>
                         <button
@@ -1787,8 +1883,8 @@ export default function Itinerary() {
                                 style={{
                                   backgroundColor:
                                     selectedFilter === filter.id
-                                      ? "rgb(75, 119, 148)"
-                                      : "rgba(188, 220, 247, 0.8)",
+                                    ? "rgb(75, 119, 148)"
+                                    : "rgba(188, 220, 247, 0.8)",
                                 }}
                               >
                                 <img
@@ -1835,8 +1931,14 @@ export default function Itinerary() {
                                         }}
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleAddPlace(place.fsq_id);
-                                          handlePlaceClick(place.fsq_id, place.name);
+                                          handleAddPlace(
+                                            place.fsq_id,
+                                            place.name
+                                          );
+                                          handlePlaceClick(
+                                            place.fsq_id,
+                                            place.name
+                                          );
                                         }}
                                       />
                                       {place.name}
@@ -1850,7 +1952,7 @@ export default function Itinerary() {
                                       }}
                                       onClick={() => {
                                         setPlacesDeets(true);
-                                        setPlaceDeetsId(place.fsq_id);
+                                        setPlaceDeetsId(place.fsq_id); // Use the setter function
                                       }}
                                     >
                                       view details
@@ -1886,37 +1988,162 @@ export default function Itinerary() {
                             zIndex: 1999,
                           }}
                           onClick={() => {
-                            setPlacesDeets(false), setPlaceDeetsId(null);
+                            setPlacesDeets(false), placesDeetsId(null);
                           }}
                         />
                       )}
 
-                      {placesDeets && (
-                        <>
-                          <div
-                            style={{
-                              position: "fixed",
-                              top: 0,
-                              right: placesDeets ? "-5px" : "-280px", // Slide in effect
-                              height: "100vh",
-                              width: "400px",
-                              transition: "right 1s ease-in-out",
-                              backgroundColor: "rgb(0, 0, 0)",
-                              borderRadius: "10px",
-                              padding: "10px",
-                              color: "white",
-                              borderLeft: "dashed 3px rgb(77, 102, 112)",
-                              zIndex: 2000,
-                              display: "grid",
-                              gridTemplateRows: "40% 1fr",
-                            }}
-                          >
-                            <div>PICTURES</div>
+{placesDeets && (
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      right: placesDeets ? "-5px" : "-280px", // Slide in effect
+      height: "100vh",
+      width: "400px",
+      transition: "right 1s ease-in-out",
+      backgroundColor: "rgb(0, 0, 0)",
+      borderRadius: "10px",
+      padding: "10px",
+      color: "white",
+      borderLeft: "dashed 3px rgb(77, 102, 112)",
+      zIndex: 2000,
+      display: "grid",
+      gridTemplateRows: "10% 40% 50%", // Adjusted rows for better spacing
+      overflowY: "auto", // Allow scrolling if content overflows
+    }}
+  >
+    {/* Place Name */}
+    <div
+      style={{
+        fontSize: "clamp(16px, 2vw, 24px)",
+        fontWeight: "bold",
+        color: "rgb(164, 208, 233)",
+        textShadow: "0px 0px 6px rgba(102, 187, 212, 0.8)",
+        textAlign: "center",
+        marginBottom: "10px",
+      }}
+    >
+      {placeDetails?.name || "Loading..."}
+    </div>
 
-                            <div>REVIEWS AND STUFF</div>
-                          </div>
-                        </>
-                      )}
+    {/* Photos Section */}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        padding: "10px",
+        borderBottom: "1px solid rgb(77, 102, 112)",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "clamp(14px, 1.5vw, 18px)",
+          color: "rgb(136, 174, 196)",
+          textShadow: "1px 1px 2px rgba(15, 71, 88, 0.8)",
+        }}
+      >
+        PICTURES
+      </div>
+      {placeDetails?.photos?.length > 0 ? (
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            overflowX: "auto",
+            padding: "5px 0",
+          }}
+        >
+          {placeDetails.photos.map((photoUrl, index) => (
+            <img
+              key={index}
+              src={photoUrl}
+              alt={`Photo ${index + 1}`}
+              style={{
+                width: "150px",
+                height: "100px",
+                objectFit: "cover",
+                borderRadius: "5px",
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <p style={{ color: "gray", fontSize: "14px" }}>
+          No photos available.
+        </p>
+      )}
+    </div>
+
+    {/* Reviews and Details Section */}
+    <div
+      style={{
+        padding: "10px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "15px",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "clamp(14px, 1.5vw, 18px)",
+          color: "rgb(136, 174, 196)",
+          textShadow: "1px 1px 2px rgba(15, 71, 88, 0.8)",
+        }}
+      >
+        DETAILS
+      </div>
+
+      {/* Address */}
+      <div>
+        <strong style={{ color: "rgb(191, 224, 243)" }}>Address:</strong>{" "}
+        {placeDetails?.address || "Not available"}
+      </div>
+
+      {/* Categories */}
+      <div>
+        <strong style={{ color: "rgb(191, 224, 243)" }}>Categories:</strong>{" "}
+        {placeDetails?.categories?.length > 0
+          ? placeDetails.categories.join(", ")
+          : "Not available"}
+      </div>
+
+      {/* Coordinates */}
+      <div>
+        <strong style={{ color: "rgb(191, 224, 243)" }}>Coordinates:</strong>{" "}
+        {placeDetails?.latitude && placeDetails?.longitude
+          ? `${placeDetails.latitude}, ${placeDetails.longitude}`
+          : "Not available"}
+      </div>
+
+      {/* Reviews */}
+      <div>
+        <strong style={{ color: "rgb(191, 224, 243)" }}>Reviews:</strong>
+        {placeDetails?.reviews?.length > 0 ? (
+          <ul style={{ margin: "5px 0", paddingLeft: "20px" }}>
+            {placeDetails.reviews.map((review, index) => (
+              <li
+                key={index}
+                style={{
+                  fontSize: "14px",
+                  marginBottom: "5px",
+                  color: "rgb(200, 200, 200)",
+                }}
+              >
+                {review}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p style={{ color: "gray", fontSize: "14px" }}>
+            No reviews available.
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
                       <div
                         style={{
@@ -1926,7 +2153,8 @@ export default function Itinerary() {
                           textShadow: "1px 1px 10px rgb(10, 56, 83)",
                         }}
                       >
-                        PLACES TO VISIT
+                      PLACES TO VISIT
+
                       </div>
 
                       <div
@@ -1937,19 +2165,17 @@ export default function Itinerary() {
                         }}
                       >
                         {selectedItinerary &&
-                          selectedItinerary.places?.length > 0 ? (
+                        selectedItinerary.places?.length > 0 ? (
                           selectedItinerary.places.map((place) => (
                             <label
-                              key={place.fsq_id}
+                            key={place.placeId}
                               style={{
                                 display: "block",
                                 margin: "5px 0",
-                                textDecoration: selectedOptions
+                                textDecoration: checkedPlaces[place.placeId]
                                   ? "line-through"
                                   : "none",
-                                color: selectedOptions
-                                  ? "grey"
-                                  : "white",
+                                color: checkedPlaces[place.placeId] ? "grey" : "white",
                                 padding: "6px 0",
                                 borderTop: "1px solid grey",
                                 cursor: "pointer",
@@ -1957,13 +2183,11 @@ export default function Itinerary() {
                             >
                               <input
                                 type="checkbox"
-                                checked={place.name}
-                                onChange={() =>
-                                  handleCheckboxChange(place.fsq_id)
-                                }
+                                checked={!!checkedPlaces[place.placeId]} // Use boolean state
+        onChange={() => handleCheckboxChange(place.placeId)} // Use placeId
                                 style={{ marginRight: "5px" }}
                               />
-                              {place.name ? place.name : "Unnamed Place"}
+                              {place.placeName || "Unnamed Place"}
                             </label>
                           ))
                         ) : (

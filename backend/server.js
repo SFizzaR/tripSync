@@ -1,6 +1,6 @@
 const express = require("express");
 const connectDB = require("./configs/dbConnections");
-const { errorHandler } = require('./middleware/errorHandler');
+const {errorHandler} = require('./middleware/errorHandler');
 
 const dotenv = require("dotenv").config();
 const cors = require('cors');
@@ -18,9 +18,10 @@ app.use("/api/users", require("./routes/UserRoute"));
 app.use("/api/itineraries", require('./routes/itineraryRoute'));
 app.use("/api/places", require("./routes/placesRoute"));
 app.use("/api/invite", require('./routes/invitationRoutes'));
+app.use("/api/invite", require('./routes/invitationRoutes'));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use(errorHandler);
 
-app.listen(port, () => {
+app.listen(port, ()=>{
     console.log(`server running on port:  ${port}`)
 })

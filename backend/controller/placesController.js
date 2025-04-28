@@ -68,16 +68,24 @@ const getPlaces = expressAsyncHandler(async (req, res) => {
   }
 });
 
+const fetchWithRetry = async (url, options, retries = 3, delay = 2000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await axios.get(url, { ...options, timeout: 10000 });
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      console.warn(`Retrying request to ${url} (Attempt ${i + 1}/${retries})`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+};
+
 const getPlaceById = expressAsyncHandler(async (req, res) => {
   const { fsq_id } = req.params;
-
   try {
-    // Check if the place exists in the database
     let place = await Places.findOne({ fsq_id });
-
     if (!place) {
-      // Fetch place details from Foursquare API
-      const placeResponse = await axios.get(
+      const placeResponse = await fetchWithRetry(
         `https://api.foursquare.com/v3/places/${fsq_id}`,
         {
           headers: {
@@ -87,15 +95,13 @@ const getPlaceById = expressAsyncHandler(async (req, res) => {
         }
       );
       const placeData = placeResponse.data;
-
-      // Fetch photos
       let photos = [];
       try {
-        const photoResponse = await axios.get(
+        const photoResponse = await fetchWithRetry(
           `https://api.foursquare.com/v3/places/${fsq_id}/photos`,
           {
             headers: {
-              Authorization: process.env.FOURSQUARE_API_KEY,
+              Authorization: process.env.FOURSQUARE_API,
               Accept: "application/json",
             },
           }
@@ -106,15 +112,13 @@ const getPlaceById = expressAsyncHandler(async (req, res) => {
       } catch (photoError) {
         console.warn(`No photos found for fsq_id ${fsq_id}:`, photoError.response?.data || photoError.message);
       }
-
-      // Fetch reviews (tips in Foursquare API)
       let reviews = [];
       try {
-        const reviewResponse = await axios.get(
+        const reviewResponse = await fetchWithRetry(
           `https://api.foursquare.com/v3/places/${fsq_id}/tips`,
           {
             headers: {
-              Authorization: process.env.FOURSQUARE_API_KEY,
+              Authorization: process.env.FOURSQUARE_API,
               Accept: "application/json",
             },
           }
@@ -123,8 +127,6 @@ const getPlaceById = expressAsyncHandler(async (req, res) => {
       } catch (reviewError) {
         console.warn(`No reviews found for fsq_id ${fsq_id}:`, reviewError.response?.data || reviewError.message);
       }
-
-      // Create a new place document
       place = new Places({
         fsq_id: placeData.fsq_id,
         city: placeData.location?.locality || "Unknown City",
@@ -138,12 +140,9 @@ const getPlaceById = expressAsyncHandler(async (req, res) => {
         photos: photos || [],
         reviews: reviews || [],
       });
-
-      // Save the place to the database
       await place.save();
       console.log(`Saved new place from Foursquare: ${place.name}`);
     }
-
     res.json(place);
   } catch (error) {
     console.error("Error fetching place by ID:", error.response?.data || error.message);

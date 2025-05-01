@@ -289,7 +289,29 @@ export default function Itinerary() {
       console.error("Failed to fetch collaborators:", error);
     }
   };
+const deleteItinerary = async (req, res) => {
+  try {
+    const { itineraryId } = req.params;
+    const userId = req.user._id;
 
+    const itinerary = await Itinerary.findById(itineraryId);
+
+    if (!itinerary) {
+      return res.status(404).json({ message: "Itinerary not found" });
+    }
+
+    if (userId.toString() !== itinerary.admin.toString()) {
+      return res.status(403).json({ message: "Access Denied: Only admin can delete itineraries." });
+    }
+
+    await Itinerary.deleteOne({ _id: itineraryId });
+
+    res.status(200).json({ message: "Itinerary deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting itinerary:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
   const handleDeleteUser = async (userId, isTargetAdmin) => {
     const token = localStorage.getItem("accessToken");
     const currentUserId = localStorage.getItem("userId");
@@ -1599,6 +1621,7 @@ export default function Itinerary() {
                             borderStyle: "none",
                             cursor: "pointer",
                           }}
+                           onClick={handleDelete}
                         >
                           <img
                             src={trash}

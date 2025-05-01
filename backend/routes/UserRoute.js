@@ -13,5 +13,6 @@ router.get("/getname", protect, getFirstname);
 router.get("/search", getUsers);
 router.get("/all", protect, getAllUsersExceptCurrent);
 router.post("/storeToken", protect, storeToken);
+router.put("/edit", protect, editProfile);
 
 module.exports = router;

@@ -12,5 +12,6 @@ router.get("/colab", protect, getColabItineraries);
 router.delete('/:itineraryId/remove-user/:userId', protect, deleteUser);
 router.delete('/:itineraryId/remove-place/:placeId', deletePlace);
 router.get('/users/:itineraryId', protect, getColabUsers);
+router.delete('/:itineraryId', protect, deleteItinerary);
 
 module.exports = router;

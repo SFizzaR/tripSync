@@ -166,4 +166,31 @@ const storeToken = expressAsyncHandler(async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 })
-module.exports = { registerUser, loginUser, getFirstname, getUsers, getAllUsersExceptCurrent, storeToken };
+
+const editProfile = expressAsyncHandler(async (req, res) => {
+  console.log('🔒 Profile update route hit');
+
+  const { username, password, email, city } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id); // req.user is populated by protect
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.username = username || user.username;
+    user.email = email || user.email;
+    user.password = password || user.password;
+    user.city = city || user.city;
+
+    await user.save();
+
+    console.log(`✅ User profile updated: ${user._id}`);
+    res.status(200).json({ message: 'Profile updated successfully', user });
+  } catch (error) {
+    console.error('❌ Error updating profile:', error);
+    res.status(500).json({ error: 'An error occurred. Please try again.' });
+  }
+})
+module.exports = { registerUser, loginUser, getFirstname, getUsers, getAllUsersExceptCurrent, storeToken, editProfile };

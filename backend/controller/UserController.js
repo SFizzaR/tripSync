@@ -193,4 +193,5 @@ const editProfile = expressAsyncHandler(async (req, res) => {
     res.status(500).json({ error: 'An error occurred. Please try again.' });
   }
 })
+
 module.exports = { registerUser, loginUser, getFirstname, getUsers, getAllUsersExceptCurrent, storeToken, editProfile };

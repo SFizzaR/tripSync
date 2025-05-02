@@ -1,7 +1,9 @@
 const expressAsyncHandler = require("express-async-handler");
 const axios = require("axios");
 require("dotenv").config();
+const jwt = require("jsonwebtoken"); 
 const Places = require("../models/placesModel"); // Import the Places model
+const UserRatings=require("../models/userRatingsModel");
 
 const categoryMapping = {
   restaurant:["13065", "13377", "13298"],
@@ -58,9 +60,6 @@ const getPlaces = expressAsyncHandler(async (req, res) => {
 
     if (places.length > 0) {
       res.json(places);
-    } else {
-      console.warn("⚠ No places found for filter:", filter);
-      res.status(404).json({ message: "No places found for the selected category" });
     }
   } catch (error) {
     console.error("❌ Foursquare API Error:", error.response?.data || error.message);
@@ -154,75 +153,100 @@ const getPlaceById = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { getPlaces,getPlaceById };
+const ratePlace = expressAsyncHandler(async (req, res) => {
+  const { user_id, place_id, rating } = req.body;
 
+  try {
+      // Validate the place_id by fetching from Foursquare
+      const foursquareResponse = await axios.get(
+          `https://api.foursquare.com/v3/places/${place_id}`,
+          {
+              headers: {
+                  Authorization: process.env.FOURSQUARE_API
+              }
+          }
+      );
 
-/*
+      const placeData = foursquareResponse.data;
+      console.log('Foursquare place data:', JSON.stringify(placeData, null, 2));
 
-sahiii wala codeeee
+      // Ensure name is provided
+      const placeName = placeData.name || placeData.title || `Place_${place_id}`;
+      if (!placeName) {
+          throw new Error('Foursquare response missing valid name or title');
+      }
 
-const expressAsyncHandler = require("express-async-handler");
-const axios = require("axios");
-require("dotenv").config();
+      // Check if the place exists in the places collection
+      const existingPlace = await Places.findOne({ fsq_id: place_id });
+      if (!existingPlace) {
+          const newPlace = new Places({
+              fsq_id: place_id,
+              name: placeName,
+              city: placeData.location?.city || 'Unknown',
+              categories: placeData.categories?.map(cat => cat.name) || ['Unknown'],
+              address: placeData.location?.address || 'Unknown',
+              latitude: placeData.geocodes?.main?.latitude || 0,
+              longitude: placeData.geocodes?.main?.longitude || 0,
+              reviews: [],
+              photos: placeData.photos || []
+          });
+          await newPlace.save();
+      }
 
-const categoryMapping = {
-  restaurant: "13065",
-  music: "10039",
-  cafe: "13032",
-  park: "16032",
-  hotel: "19014",
-  mall: "17069",
-  museum: "10027",
-  attraction: "10000",
-  beach: "16011",
-  zoo: "19046",
-  cinema: "19016",
-};
+      // Check for existing rating and update or insert
+      const updatedRating = await UserRatings.findOneAndUpdate(
+          { user_id, place_id },
+          { 
+              $set: { 
+                  rating, 
+                  updatedAt: new Date()
+              } 
+          },
+          { 
+              upsert: true,
+              new: true
+          }
+      );
 
-const getPlaces = expressAsyncHandler(async (req, res) => {
-  const { city, filter } = req.query;
+      res.status(201).json({ message: 'Rating saved successfully', rating: updatedRating });
+  } catch (error) {
+      console.error('Error saving rating:', error.message);
+      res.status(500).json({ error: 'Failed to save rating' });
+  }
+});
+const getUserRatings = expressAsyncHandler(async (req, res) => {
+  const { userId } = req.params;
 
-  if (!city) {
-    return res.status(400).json({ message: "City is required" });
+  if (!userId) {
+    return res.status(400).json({ message: "userId is required" });
+  }
+
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
   }
 
   try {
-    const url = "https://api.foursquare.com/v3/places/search";
-
-    let params = {
-      near: city, // Foursquare prefers 'near' over lat/lng
-      limit: 50,
-    };
-
-    if (filter) {
-      const categoryId = categoryMapping[filter.toLowerCase()];
-      if (categoryId) {
-        params.categories = categoryId; // Ensure it's a valid category
-      }
+    const decoded = jwt.verify(token, process.env.ACCESS_SECRET_TOKEN);
+    if (decoded.user.id !== userId) {
+      return res.status(403).json({ message: "Unauthorized user" });
     }
 
-    console.log("Sending request to Foursquare with params:", params);
+    const ratings = await UserRatings.find({ user_id: userId }).select('user_id place_id rating createdAt updatedAt');
 
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: process.env.FOURSQUARE_API.trim(),
-      },
-      params: params,
-    });
-
-    if (response.data.results && response.data.results.length > 0) {
-      res.json(response.data.results);
+    if (ratings.length > 0) {
+      res.json(ratings);
     } else {
-      res.status(404).json({ message: "No places found" });
+      res.status(404).json({ message: "No ratings found for this user" });
     }
   } catch (error) {
-    console.error("Foursquare API Error:", error.response?.data || error.message);
-    res.status(500).json({
-      message: "Server error",
-      error: error.response?.data || error.message,
-    });
+    console.error("Error fetching user ratings:", error.message);
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
-module.exports = { getPlaces };
-*/
+
+module.exports = { getPlaces,getPlaceById, ratePlace, getUserRatings};

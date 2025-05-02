@@ -442,6 +442,25 @@
     font-family: Inter;
   }
 
+  .star-rating {
+    display: flex;
+    gap: 2px;
+  }
+  
+  .star {
+    color: rgb(126, 182, 204);
+    font-size: clamp(12px, 1.5vw, 16px);
+  }
+  
+  .star.filled {
+    color: rgb(255, 204, 0);
+  }
+  
+  .star:hover {
+    color: rgb(255, 230, 100);
+  }
+  
+
   .itinerary-container {
     border-color: grey;
     border-style: solid;

@@ -14,4 +14,5 @@ router.delete('/:itineraryId/remove-place/:placeId', deletePlace);
 router.get('/users/:itineraryId', protect, getColabUsers);
 router.delete('/:itineraryId', protect, deleteItinerary);
 
+
 module.exports = router;

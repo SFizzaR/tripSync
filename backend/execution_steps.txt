@@ -1,4 +1,6 @@
 cd backend
 npm i
 npm i cors axios firebase-admin firebase
+pip install python-dotenv
+npm install node-cron
 npm run dev

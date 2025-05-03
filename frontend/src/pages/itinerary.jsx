@@ -907,6 +907,50 @@ const handleDeleteItinerary = async () => {
   }
 };
 
+const deletePlace = async (itineraryId, placeId) => {
+  if (!itineraryId || !placeId) {
+    toast.error("Itinerary ID or Place ID is missing");
+    console.log("From delete places: itineraryId and placeId:", itineraryId, placeId);
+    return;
+  }
+  const confirmDelete = window.confirm("Are you sure you want to remove this place?");
+  if (!confirmDelete) return;
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      toast.error("User not authenticated. Please log in.");
+      return;
+    }
+    const response = await fetch(
+      `http://localhost:5001/api/itineraries/${itineraryId}/remove-place/${placeId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    if (response.ok) {
+      setSelectedItinerary({ ...data.itinerary });
+      setCheckedPlaces((prev) => {
+        const updated = { ...prev };
+        delete updated[placeId];
+        return updated;
+      });
+      fetchRecommendations(itineraryId);
+      toast.success("Place removed successfully!");
+    } else {
+      toast.error(data.message || "Failed to remove place.");
+    }
+  } catch (error) {
+    console.error("Failed to delete place:", error);
+    toast.error("Something went wrong while removing the place.");
+  }
+};
+
+
   return (
     <div style={{ paddingBottom: "0", overflowX: "hidden" }}>
       <Toaster />
@@ -2263,30 +2307,52 @@ const handleDeleteItinerary = async () => {
                         {selectedItinerary &&
                         selectedItinerary.places?.length > 0 ? (
                           selectedItinerary.places.map((place) => (
-                            <label
+                            <div
                               key={place.placeId}
                               style={{
-                                display: "block",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
                                 margin: "5px 0",
-                                textDecoration: checkedPlaces[place.placeId]
-                                  ? "line-through"
-                                  : "none",
-                                color: checkedPlaces[place.placeId]
-                                  ? "grey"
-                                  : "white",
                                 padding: "6px 0",
                                 borderTop: "1px solid grey",
-                                cursor: "pointer",
                               }}
                             >
-                              <input
-                                type="checkbox"
-                                checked={!!checkedPlaces[place.placeId]}
-                                onChange={() => handleCheckboxChange(place.placeId)}
-                                style={{ marginRight: "5px" }}
-                              />
-                              {place.placeName || "Unnamed Place"}
-                            </label>
+                              <label
+                                style={{
+                                  display: "block",
+                                  textDecoration: checkedPlaces[place.placeId]
+                                    ? "line-through"
+                                    : "none",
+                                  color: checkedPlaces[place.placeId]
+                                    ? "grey"
+                                    : "white",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={!!checkedPlaces[place.placeId]}
+                                  onChange={() => handleCheckboxChange(place.placeId)}
+                                  style={{ marginRight: "5px" }}
+                                />
+                                {place.placeName || "Unnamed Place"}
+                              </label>
+                              <button
+                                style={{
+                                  backgroundColor: "transparent",
+                                  border: "none",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() => deletePlace(itineraryIdnow, place.placeId)}
+                              >
+                                <img
+                                  src={trash}
+                                  style={{ width: "20px" }}
+                                  alt="Delete place"
+                                />
+                              </button>
+                            </div>
                           ))
                         ) : (
                           <p>No places added yet.</p>

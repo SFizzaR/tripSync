@@ -6,7 +6,7 @@ const dotenv = require("dotenv").config();
 const Itinerary = require("../models/ItinerariesModel");
 const Place = require("../models/placesModel");
 const axios = require("axios");
-
+const mongoose = require("mongoose");
 
 const createItinerary = expressAsyncHandler(async (req, res) => {
   try {
@@ -264,7 +264,6 @@ const deletePlace = expressAsyncHandler(async (req, res) => {
   try {
     const { itineraryId, placeId: targetPlaceId } = req.params;
 
-
     // Fetch the itinerary
     const itinerary = await Itinerary.findById(itineraryId);
     if (!itinerary) {
@@ -274,22 +273,15 @@ const deletePlace = expressAsyncHandler(async (req, res) => {
 
     console.log("Itinerary found:", itinerary);
 
-    // Convert targetPlaceId to ObjectId if needed
-    const targetPlaceObjectId = mongoose.Types.ObjectId.isValid(targetPlaceId)
-      ? new mongoose.Types.ObjectId(targetPlaceId)
-      : targetPlaceId;
-
-
     // Check if the place exists in the itinerary
-    if (!itinerary.places.some(place => place.toString() === targetPlaceId)) {
+    if (!itinerary.places.some((place) => place.placeId === targetPlaceId)) {
       return res.status(404).json({ message: "Place not found in itinerary." });
     }
-
 
     // Remove the place from the itinerary
     const updatedItinerary = await Itinerary.findByIdAndUpdate(
       itineraryId,
-      { $pull: { places: targetPlaceObjectId } },
+      { $pull: { places: { placeId: targetPlaceId } } }, // ✅ Match placeId field
       { new: true }
     );
 
@@ -297,12 +289,10 @@ const deletePlace = expressAsyncHandler(async (req, res) => {
       return res.status(404).json({ message: "Failed to delete place." });
     }
 
-
     return res.status(200).json({
       message: "Place deleted successfully",
-      itinerary: updatedItinerary
+      itinerary: updatedItinerary,
     });
-
   } catch (error) {
     console.error("Error deleting place:", error);
     return res.status(500).json({ message: "Internal server error" });

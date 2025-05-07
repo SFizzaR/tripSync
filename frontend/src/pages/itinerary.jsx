@@ -1797,7 +1797,13 @@ const deletePlace = async (itineraryId, placeId) => {
                         ) : (
                           <div className="dates">
                             {selectedItinerary.startDate
-                              ? selectedItinerary.startDate
+                              ? new Date(selectedItinerary.startDate)
+                                  .toLocaleDateString("en-US", {
+                                    month: "2-digit",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })
+                                  .replace(/\//g, "-")
                               : "--/--/--"}
                           </div>
                         )}
@@ -1842,7 +1848,13 @@ const deletePlace = async (itineraryId, placeId) => {
                         ) : (
                           <div className="dates">
                             {selectedItinerary.endDate
-                              ? selectedItinerary.endDate
+                              ? new Date(selectedItinerary.endDate)
+                                  .toLocaleDateString("en-US", {
+                                    month: "2-digit",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })
+                                  .replace(/\//g, "-")
                               : "--/--/--"}
                           </div>
                         )}

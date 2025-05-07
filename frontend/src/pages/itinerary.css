@@ -1,7 +1,7 @@
 .left-column {
   display: grid;
   grid-template-rows: 48% 48%;
-  border-right: 1px dotted white;
+  border-right: 3px dashed white;
   font-size: 120%;
   margin-top: 0;
   padding: 0.5rem;
@@ -18,7 +18,7 @@
 }
 
 .itinerary-box {
-  border-style: dotted;
+  border: dashed 5px grey;
   position: relative;
   width: 95%;
   max-width: 1200px;
@@ -56,9 +56,10 @@
     rgb(56, 144, 179)
   );
   border-radius: 10px;
-  padding: 2% 5%;
+  padding: 1% 3%;
   color: white;
   text-align: center;
+  place-content: center;
   box-shadow: 1px 1px 15px rgba(42, 17, 82, 0.85);
   font-size: clamp(12px, 1.8vw, 18px);
   font-family: "Montserrat", sans-serif;
@@ -86,7 +87,7 @@
 .itinerary-list-item {
   color: white;
   display: block;
-  border-top: 1px solid;
+  border-top: 1px dashed;
   list-style: none;
   width: 100%;
   padding: 10px;
@@ -335,7 +336,7 @@
   margin-left: 4%;
   font-weight: bold;
   padding: 2px 0; /* Padding for better spacing */
-  border-radius: 5px; /* Rounded corners for a modern look */
+  border-radius: 5px; /* Rounded corners for aus modern look */
   font-size: clamp(10px, 1.5vw, 18px);
 }
 
@@ -472,11 +473,11 @@
   }
   
   .itinerary-container.large {
-    height: min(120vw, 515px);
+    height: min(120vw, 465px);
   }
   
   .itinerary-container.extra-large {
-    height: min(120vw, 560px);
+    height: min(120vw, 505px);
   }
 
 
@@ -505,7 +506,7 @@
   }
 
   .status{
-    padding: 2px 15px; /* Padding for better spacing */
+    padding: 2px 12px 2px 8px; /* Padding for better spacing */
   }
 
   .budget{
@@ -513,10 +514,10 @@
   }
 
   .itinerary-container.large {
-    height: min(100vw, 450px);
+    height: min(100vw, 430px);
   }
   
   .itinerary-container.extra-large {
-    height: min(110vw, 470px);
+    height: min(110vw, 500px);
   }
 }

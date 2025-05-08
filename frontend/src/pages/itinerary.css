@@ -87,7 +87,7 @@
 .itinerary-list-item {
   color: white;
   display: block;
-  border-top: 1px dashed;
+  border-top: 0.5px solid grey;
   list-style: none;
   width: 100%;
   padding: 10px;
@@ -112,6 +112,24 @@
   justify-content: center;
   gap: 8px;
   overflow-x: hidden;
+}
+
+.schedule-button{
+  background-color: rgb(151, 198, 212);
+  box-shadow: 1px 1px 3px rgb(36, 57, 66);
+  border: none;
+  padding: 4px;
+  font-family: "Inter", sans-serif;
+  font-weight: bold;
+  font-size: clamp(5px, 1.5vw, 18px);
+  color: rgb(4, 26, 41);
+  border-radius: 8px;
+  cursor: pointer;
+  max-width: 250px;
+  max-height: 4vw;
+  margin-left: 12vw;
+  overflow-x: hidden;
+  white-space: nowrap;
 }
 
 .overlay {
@@ -157,6 +175,7 @@
   font-family: Montserrat, sans-serif;
   max-width: 500px;
   z-index: 1000;
+  overflow: hidden;
 }
 
 .create-buttons-grid {
@@ -300,7 +319,7 @@
   border-bottom: 1px solid;
   list-style: none;
   width: 100%;
-  padding: 2px 4px;
+  padding: 5px;
   margin: 0;
   cursor: pointer;
   font-size: 150%;
@@ -463,21 +482,21 @@
   
 
   .itinerary-container {
-    border-color: grey;
-    border-style: solid;
+    border-color: rgb(56, 56, 56);
+    border-style: dashed;
     margin-top: 5px;
     border-width: 0.5px;
-    border-radius: 8px;
-    padding: 5px;
+    border-radius: 10px;
+    padding: 10px;
     overflow-y: auto;
   }
   
   .itinerary-container.large {
-    height: min(120vw, 465px);
+    height: min(120vw, 520px);
   }
   
   .itinerary-container.extra-large {
-    height: min(120vw, 505px);
+    height: min(120vw, 570px);
   }
 
 
@@ -514,10 +533,10 @@
   }
 
   .itinerary-container.large {
-    height: min(100vw, 430px);
+    height: min(100vw, 415px);
   }
   
   .itinerary-container.extra-large {
-    height: min(110vw, 500px);
+    height: min(110vw, 490px);
   }
 }

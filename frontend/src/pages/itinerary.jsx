@@ -103,7 +103,10 @@ export default function Itinerary() {
   useEffect(() => {
     if (selectedItinerary) {
       console.log("Updated Selected Itinerary:", selectedItinerary);
-      console.log("Places inside selected itinerary:", selectedItinerary.places);
+      console.log(
+        "Places inside selected itinerary:",
+        selectedItinerary.places
+      );
     }
   }, [selectedItinerary]);
 
@@ -149,13 +152,16 @@ export default function Itinerary() {
       return;
     }
     try {
-      const response = await fetch("http://localhost:5001/api/itineraries/solo", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "http://localhost:5001/api/itineraries/solo",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const data = await response.json();
       console.log("Fetched Solo Itineraries:", data);
       if (response.ok) {
@@ -298,7 +304,9 @@ export default function Itinerary() {
       );
       const data = await response.json();
       if (response.ok) {
-        setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) => user._id !== userId)
+        );
         if (userId === currentUserId) {
           alert("You left the itinerary.");
           navigate("/dashboard");
@@ -446,9 +454,9 @@ export default function Itinerary() {
     } else {
       setRecommendations([]);
     }
-}, [selectedItinerary, itineraryIdnow]);
+  }, [selectedItinerary, itineraryIdnow]);
 
-const fetchRecommendations = async (itineraryId) => {
+  const fetchRecommendations = async (itineraryId) => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       console.log("No token found. User not authenticated.");
@@ -467,7 +475,9 @@ const fetchRecommendations = async (itineraryId) => {
       return;
     }
     if (!itineraryId || !selectedItinerary?.city) {
-      console.error("No itinerary ID or city provided for fetching recommendations.");
+      console.error(
+        "No itinerary ID or city provided for fetching recommendations."
+      );
       setRecommendations([]);
       toast.error("Please select an itinerary with a valid city.");
       return;
@@ -503,8 +513,7 @@ const fetchRecommendations = async (itineraryId) => {
         error.response?.data?.message || "Failed to fetch recommendations."
       );
     }
-};
-
+  };
 
   const addPlaceToItinerary = async (itineraryIdnow, placeId, placeName) => {
     if (!itineraryIdnow || !placeId || !placeName) {
@@ -840,116 +849,127 @@ const fetchRecommendations = async (itineraryId) => {
       );
       setRatingSuccess(null);
     }
-};
+  };
 
-const handleDeleteItinerary = async () => {
-  const token = localStorage.getItem("accessToken");
-  if (!token) {
-    toast.error("User not authenticated. Please log in.");
-    return;
-  }
-  if (!selectedItinerary || !itineraryIdnow) {
-    toast.error("No itinerary selected.");
-    return;
-  }
-  console.log("Attempting to delete itinerary with ID:", itineraryIdnow);
-  const confirmDelete = window.confirm(
-    `Are you sure you want to delete the itinerary "${selectedItinerary.title || "Untitled Itinerary"}"?`
-  );
-  if (!confirmDelete) return;
-  try {
-    const response = await fetch(
-      `http://localhost:5001/api/itineraries/${itineraryIdnow}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    // Check Content-Type before parsing
-    const contentType = response.headers.get("Content-Type");
-    if (!contentType || !contentType.includes("application/json")) {
-      console.error("Received non-JSON response:", await response.text());
-      toast.error("Server returned an unexpected response. Please try again.");
-      return;
-    }
-    const data = await response.json();
-    if (response.ok) {
-      // Remove itinerary from state
-      if (selectedItinerary.collaborative) {
-        setColabItineraries((prev) =>
-          prev.filter((itinerary) => itinerary.id !== itineraryIdnow)
-        );
-      } else {
-        setSoloItineraries((prev) =>
-          prev.filter((itinerary) => itinerary.id !== itineraryIdnow)
-        );
-      }
-      // Clear selected itinerary
-      setSelectedItinerary(null);
-      setitineraryIdnow("");
-      toast.success("Itinerary deleted successfully!");
-      navigate("/dashboard");
-    } else {
-      if (response.status === 404) {
-        toast.error("Itinerary not found. It may have been deleted already.");
-      } else if (response.status === 403) {
-        toast.error("Access denied: Only the admin can delete this itinerary.");
-      } else {
-        toast.error(data.message || "Failed to delete itinerary.");
-      }
-    }
-  } catch (error) {
-    console.error("Failed to delete itinerary:", error);
-    toast.error("Something went wrong while deleting the itinerary.");
-  }
-};
-
-const deletePlace = async (itineraryId, placeId) => {
-  if (!itineraryId || !placeId) {
-    toast.error("Itinerary ID or Place ID is missing");
-    console.log("From delete places: itineraryId and placeId:", itineraryId, placeId);
-    return;
-  }
-  const confirmDelete = window.confirm("Are you sure you want to remove this place?");
-  if (!confirmDelete) return;
-  try {
+  const handleDeleteItinerary = async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       toast.error("User not authenticated. Please log in.");
       return;
     }
-    const response = await fetch(
-      `http://localhost:5001/api/itineraries/${itineraryId}/remove-place/${placeId}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await response.json();
-    if (response.ok) {
-      setSelectedItinerary({ ...data.itinerary });
-      setCheckedPlaces((prev) => {
-        const updated = { ...prev };
-        delete updated[placeId];
-        return updated;
-      });
-      fetchRecommendations(itineraryId);
-      toast.success("Place removed successfully!");
-    } else {
-      toast.error(data.message || "Failed to remove place.");
+    if (!selectedItinerary || !itineraryIdnow) {
+      toast.error("No itinerary selected.");
+      return;
     }
-  } catch (error) {
-    console.error("Failed to delete place:", error);
-    toast.error("Something went wrong while removing the place.");
-  }
-};
+    console.log("Attempting to delete itinerary with ID:", itineraryIdnow);
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the itinerary "${
+        selectedItinerary.title || "Untitled Itinerary"
+      }"?`
+    );
+    if (!confirmDelete) return;
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/itineraries/${itineraryIdnow}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      // Check Content-Type before parsing
+      const contentType = response.headers.get("Content-Type");
+      if (!contentType || !contentType.includes("application/json")) {
+        console.error("Received non-JSON response:", await response.text());
+        toast.error(
+          "Server returned an unexpected response. Please try again."
+        );
+        return;
+      }
+      const data = await response.json();
+      if (response.ok) {
+        // Remove itinerary from state
+        if (selectedItinerary.collaborative) {
+          setColabItineraries((prev) =>
+            prev.filter((itinerary) => itinerary.id !== itineraryIdnow)
+          );
+        } else {
+          setSoloItineraries((prev) =>
+            prev.filter((itinerary) => itinerary.id !== itineraryIdnow)
+          );
+        }
+        // Clear selected itinerary
+        setSelectedItinerary(null);
+        setitineraryIdnow("");
+        toast.success("Itinerary deleted successfully!");
+        navigate("/dashboard");
+      } else {
+        if (response.status === 404) {
+          toast.error("Itinerary not found. It may have been deleted already.");
+        } else if (response.status === 403) {
+          toast.error(
+            "Access denied: Only the admin can delete this itinerary."
+          );
+        } else {
+          toast.error(data.message || "Failed to delete itinerary.");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete itinerary:", error);
+      toast.error("Something went wrong while deleting the itinerary.");
+    }
+  };
 
+  const deletePlace = async (itineraryId, placeId) => {
+    if (!itineraryId || !placeId) {
+      toast.error("Itinerary ID or Place ID is missing");
+      console.log(
+        "From delete places: itineraryId and placeId:",
+        itineraryId,
+        placeId
+      );
+      return;
+    }
+    const confirmDelete = window.confirm(
+      "Are you sure you want to remove this place?"
+    );
+    if (!confirmDelete) return;
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast.error("User not authenticated. Please log in.");
+        return;
+      }
+      const response = await fetch(
+        `http://localhost:5001/api/itineraries/${itineraryId}/remove-place/${placeId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setSelectedItinerary({ ...data.itinerary });
+        setCheckedPlaces((prev) => {
+          const updated = { ...prev };
+          delete updated[placeId];
+          return updated;
+        });
+        fetchRecommendations(itineraryId);
+        toast.success("Place removed successfully!");
+      } else {
+        toast.error(data.message || "Failed to remove place.");
+      }
+    } catch (error) {
+      console.error("Failed to delete place:", error);
+      toast.error("Something went wrong while removing the place.");
+    }
+  };
 
   return (
     <div style={{ paddingBottom: "0", overflowX: "hidden" }}>
@@ -1457,8 +1477,8 @@ const deletePlace = async (itineraryId, placeId) => {
                     className="filters"
                     style={{
                       display: "grid",
-                      gridTemplateRows: "10% 15% 1fr",
-                      rowGap: "2px",
+                      gridTemplateRows: "5.2vw 6.2vw 1fr",
+                      rowGap: "6px",
                     }}
                   >
                     <div
@@ -1482,7 +1502,7 @@ const deletePlace = async (itineraryId, placeId) => {
                           <img
                             src={usersss}
                             style={{
-                              width: "clamp(50%, 4vw, 70%)",
+                              width: "clamp(50%, 4vw, 100%)",
                               padding: 0,
                               cursor: "pointer",
                             }}
@@ -1490,12 +1510,12 @@ const deletePlace = async (itineraryId, placeId) => {
                           />
                         )}
                       </div>
-                      {collabTab && <div className="overlay" />}
+                      {collabTab && <div className="overlay" onClick={() => setCollabTab(false)}/>}
                       {collabTab && (
                         <div
                           className="users-box"
                           style={{
-                            height: !addUser ? "26%" : "50%",
+                            height: !addUser ? "26%" : "60%",
                             top: addUser ? "36%" : "26%",
                             padding: "1rem",
                           }}
@@ -1523,7 +1543,7 @@ const deletePlace = async (itineraryId, placeId) => {
                                   textShadow:
                                     "2px 2px 1px rgba(113, 147, 160, 0.71)",
                                   fontSize: "clamp(10px, 2.55vw, 25px)",
-                                  padding: "1rem",
+                                  padding: "0.2rem",
                                 }}
                               >
                                 COLLABORATORS
@@ -1535,7 +1555,7 @@ const deletePlace = async (itineraryId, placeId) => {
                                   columnGap: "20px",
                                   placeContent: "center",
                                   alignContent: "center",
-                                  marginTop: "10px",
+                                  marginTop: "0px",
                                 }}
                               >
                                 <div>
@@ -1565,8 +1585,8 @@ const deletePlace = async (itineraryId, placeId) => {
                             <div style={{ marginTop: "1px" }}>
                               <ul
                                 style={{
-                                  height: "85%",
-                                  padding: "1rem 0",
+                                  height: "45%",
+                                  padding: !addUser ? "1rem 0" : "10px 0",
                                   overflowY: "auto",
                                   overflowX: "hidden",
                                   fontSize: "75%",
@@ -1620,7 +1640,7 @@ const deletePlace = async (itineraryId, placeId) => {
                               <>
                                 <div
                                   style={{
-                                    margin: "-10px 0 5px 0",
+                                    margin: "-30px 0 5px 0",
                                     fontSize: "130%",
                                     color: "rgb(194, 198, 199)",
                                     fontFamily: "P2P",
@@ -1706,6 +1726,8 @@ const deletePlace = async (itineraryId, placeId) => {
                                                 borderRadius: "5px",
                                                 cursor: "pointer",
                                                 fontSize: "100%",
+                                                fontFamily: "'Inter'",
+                                                fontWeight: "bold"
                                               }}
                                               onClick={() =>
                                                 sendInvitation(
@@ -1714,7 +1736,7 @@ const deletePlace = async (itineraryId, placeId) => {
                                                 )
                                               }
                                             >
-                                              Invite
+                                              INVITE
                                             </button>
                                           </div>
                                         ))}
@@ -1738,7 +1760,7 @@ const deletePlace = async (itineraryId, placeId) => {
                           <img
                             src={trash}
                             alt="Collaborative Trip"
-                            style={{ width: "clamp(50%, 3vw, 70%)" }}
+                            style={{ width: "clamp(50%, 3vw, 100%)" }}
                           />
                         </button>
                       </div>
@@ -1749,10 +1771,10 @@ const deletePlace = async (itineraryId, placeId) => {
                           background:
                             "linear-gradient(90deg, rgba(36, 6, 85, 0.67), rgba(73, 18, 161, 0.67))",
                           borderRadius: "10px",
-                          padding: "0 5%",
+                          padding: "-5px 5%",
                           color: "white",
                           textAlign: "center",
-                          marginBottom: "10px",
+                          marginBottom: "5px",
                           fontWeight: "lighter",
                           fontSize: "clamp(12px, 1.7vw, 18px)",
                           display: "flex",
@@ -1762,7 +1784,7 @@ const deletePlace = async (itineraryId, placeId) => {
                         }}
                       >
                         <img src={loc} style={{ width: "4%" }} />
-                        <p>City: {selectedItinerary.city}</p>
+                        City: {selectedItinerary.city}
                       </div>
                     )}
                     <div className="deets">
@@ -1910,21 +1932,45 @@ const deletePlace = async (itineraryId, placeId) => {
                           : "extra-large"
                       }`}
                     >
-                      <div style={{ display: "flex", alignItems: "start" }}>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "start" }}>
+                          <button
+                            className="places-button"
+                            onClick={() => setPlacesTab(true)}
+                          >
+                            <img
+                              src={addPlaces}
+                              style={{
+                                width: "clamp(20px, 1.5vw, 70%)",
+                                height: "auto",
+                                boxShadow: "none",
+                                marginRight: "1%",
+                              }}
+                            />
+                            ADD TO ITINERARY
+                          </button>
+                        </div>
+
                         <button
-                          className="places-button"
-                          onClick={() => setPlacesTab(true)}
+                          className="schedule-button"
+                          onMouseEnter={(e) => {
+                            e.target.style.boxShadow =
+                              "0px 0px 5px rgb(162, 203, 221)";
+                            e.target.style.textShadow =
+                              "0px 0px 5px rgb(22, 70, 92)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.boxShadow =
+                              "1px 1px 3px rgb(36, 57, 66)";
+                            e.target.style.textShadow = "none";
+                          }}
                         >
-                          <img
-                            src={addPlaces}
-                            style={{
-                              width: "4%",
-                              height: "auto",
-                              boxShadow: "none",
-                              marginRight: "1%",
-                            }}
-                          />
-                          Add to Itinerary
+                          SCHEDULE ITINERARY
                         </button>
                       </div>
                       {placesTab && (
@@ -1964,8 +2010,7 @@ const deletePlace = async (itineraryId, placeId) => {
                                 fontSize: "clamp(20px, 2vw, 40px)",
                                 marginBottom: "10px",
                                 color: "rgb(136, 174, 196)",
-                                textShadow:
-                                  "2px 2px 1px rgba(15, 71, 88, 0.8)",
+                                textShadow: "2px 2px 1px rgba(15, 71, 88, 0.8)",
                               }}
                             >
                               ADD PLACES TO ITINERARY
@@ -2194,8 +2239,7 @@ const deletePlace = async (itineraryId, placeId) => {
                               style={{
                                 fontSize: "clamp(14px, 1.5vw, 18px)",
                                 color: "rgb(136, 174, 196)",
-                                textShadow:
-                                  "1px 1px 2px rgba(15, 71, 88, 0.8)",
+                                textShadow: "1px 1px 2px rgba(15, 71, 88, 0.8)",
                               }}
                             >
                               PICTURES
@@ -2241,8 +2285,7 @@ const deletePlace = async (itineraryId, placeId) => {
                               style={{
                                 fontSize: "clamp(14px, 1.5vw, 18px)",
                                 color: "rgb(136, 174, 196)",
-                                textShadow:
-                                  "1px 1px 2px rgba(15, 71, 88, 0.8)",
+                                textShadow: "1px 1px 2px rgba(15, 71, 88, 0.8)",
                               }}
                             >
                               DETAILS
@@ -2275,7 +2318,10 @@ const deletePlace = async (itineraryId, placeId) => {
                               </strong>
                               {placeDetails?.reviews?.length > 0 ? (
                                 <ul
-                                  style={{ margin: "5px 0", paddingLeft: "20px" }}
+                                  style={{
+                                    margin: "5px 0",
+                                    paddingLeft: "20px",
+                                  }}
                                 >
                                   {placeDetails.reviews.map((review, index) => (
                                     <li
@@ -2301,10 +2347,11 @@ const deletePlace = async (itineraryId, placeId) => {
                       )}
                       <div
                         style={{
-                          marginTop: "2px",
+                          marginTop: "2%",
                           color: "rgb(191, 224, 243)",
-                          fontSize: "clamp(15px, 1.6vw, 18px)",
+                          fontSize: "clamp(15px, 3vw, 24px)",
                           textShadow: "1px 1px 10px rgb(10, 56, 83)",
+                          marginBottom: "10px",
                         }}
                       >
                         PLACES TO VISIT
@@ -2312,7 +2359,7 @@ const deletePlace = async (itineraryId, placeId) => {
                       <div
                         style={{
                           fontFamily: "Inter",
-                          fontSize: "clamp(12px, 1.2vw, 20px)",
+                          fontSize: "clamp(12px, 1.2vw, 18px)",
                           fontWeight: "bolder",
                         }}
                       >
@@ -2326,13 +2373,12 @@ const deletePlace = async (itineraryId, placeId) => {
                                 justifyContent: "space-between",
                                 alignItems: "center",
                                 margin: "5px 0",
-                                padding: "6px 0",
-                                borderTop: "1px solid grey",
+                                padding: "5px 0",
+                                borderTop: "0.5px solid grey",
                               }}
                             >
                               <label
                                 style={{
-                                  display: "block",
                                   textDecoration: checkedPlaces[place.placeId]
                                     ? "line-through"
                                     : "none",
@@ -2340,12 +2386,15 @@ const deletePlace = async (itineraryId, placeId) => {
                                     ? "grey"
                                     : "white",
                                   cursor: "pointer",
+                                  placeContent: "center",
                                 }}
                               >
                                 <input
                                   type="checkbox"
                                   checked={!!checkedPlaces[place.placeId]}
-                                  onChange={() => handleCheckboxChange(place.placeId)}
+                                  onChange={() =>
+                                    handleCheckboxChange(place.placeId)
+                                  }
                                   style={{ marginRight: "5px" }}
                                 />
                                 {place.placeName || "Unnamed Place"}
@@ -2356,11 +2405,16 @@ const deletePlace = async (itineraryId, placeId) => {
                                   border: "none",
                                   cursor: "pointer",
                                 }}
-                                onClick={() => deletePlace(itineraryIdnow, place.placeId)}
+                                onClick={() =>
+                                  deletePlace(itineraryIdnow, place.placeId)
+                                }
                               >
                                 <img
                                   src={trash}
-                                  style={{ width: "20px" }}
+                                  style={{
+                                    width: "clamp(5px, 1.9vw, 20px)",
+                                    marginRight: "-5px",
+                                  }}
                                   alt="Delete place"
                                 />
                               </button>
@@ -2374,8 +2428,9 @@ const deletePlace = async (itineraryId, placeId) => {
                         style={{
                           marginTop: "20px",
                           color: "rgb(191, 224, 243)",
-                          fontSize: "clamp(15px, 1.6vw, 18px)",
+                          fontSize: "clamp(15px, 3vw, 24px)",
                           textShadow: "1px 1px 10px rgb(10, 56, 83)",
+                          marginBottom: "15px",
                         }}
                       >
                         RECOMMENDED PLACES
@@ -2383,7 +2438,7 @@ const deletePlace = async (itineraryId, placeId) => {
                       <div
                         style={{
                           fontFamily: "Inter",
-                          fontSize: "clamp(12px, 1.2vw, 20px)",
+                          fontSize: "clamp(12px, 1.2vw, 18px)",
                           fontWeight: "bolder",
                         }}
                       >
@@ -2396,7 +2451,7 @@ const deletePlace = async (itineraryId, placeId) => {
                                 justifyContent: "space-between",
                                 alignItems: "center",
                                 margin: "5px 0",
-                                padding: "6px 0",
+                                padding: "8px 0",
                                 borderTop: "1px solid grey",
                               }}
                             >
@@ -2416,7 +2471,7 @@ const deletePlace = async (itineraryId, placeId) => {
                               <img
                                 src={addPlaces}
                                 style={{
-                                  width: "20px",
+                                  width: "clamp(5px, 1.9vw, 20px)",
                                   cursor: "pointer",
                                 }}
                                 onClick={() =>

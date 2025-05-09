@@ -368,4 +368,26 @@ const deleteItinerary = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { createItinerary, getSoloItineraries, getColabItineraries, updateItinerary, addPlaceToItinerary, getItineraryPlaces, addUserToItinerary, deleteUser, deletePlace, getColabUsers, deleteItinerary };
+const getUserCalendarItineraries = async (req, res) => {
+  try {
+    const userId = req.user._id; // assuming you're using middleware to attach the logged-in user
+
+    const itineraries = await Itinerary.find({ users: userId })
+      .select("startDate endDate title city");
+
+    const calendarEvents = itineraries.map(it => ({
+      title: it.title,
+      start: it.startDate,
+      end: it.endDate,
+      city: it.city,
+      id: it._id
+    }));
+
+    res.status(200).json(calendarEvents);
+  } catch (error) {
+    console.error("Error fetching calendar itineraries:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = { createItinerary, getSoloItineraries, getColabItineraries, updateItinerary, addPlaceToItinerary, getItineraryPlaces, addUserToItinerary, deleteUser, deletePlace, getColabUsers, deleteItinerary, getUserCalendarItineraries };

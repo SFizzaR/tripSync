@@ -196,7 +196,7 @@
 
   .cases-image{
     width: 100%; 
-    opacity:0.75;
+    opacity: 0.75;
   }
   
   @keyframes blink {

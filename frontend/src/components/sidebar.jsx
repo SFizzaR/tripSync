@@ -121,8 +121,8 @@ const Sidebar = ({ currentPath }) => {
           {[
             { name: "Home", path: "/dashboard", icon: home },
             { name: "My Itineraries", path: "/myitinerary", icon: list },
-            { name: "Notifications", path: "/notifications", icon: notifs, showBadge: true },
-            { name: "Settings", path: "/settings", icon: settings },
+            { name: "Invites", path: "/notifications", icon: notifs, showBadge: true },
+            { name: "Settings", path: "/profile", icon: settings },
             { name: "Log Out", icon: logout }, // No path for logout
           ].map((item) => (
             <li key={item.name} style={{ margin: "30px 0", display: "flex", alignItems: "center" }}>
@@ -169,7 +169,7 @@ const Sidebar = ({ currentPath }) => {
                   {item.showBadge && unreadCount > 0 && (
                     <span
                       style={{
-                        backgroundColor: "red",
+                        backgroundColor: "rgb(104, 134, 143)",
                         color: "white",
                         fontSize: "12px",
                         fontWeight: "bold",
@@ -180,6 +180,7 @@ const Sidebar = ({ currentPath }) => {
                         alignItems: "center",
                         justifyContent: "center",
                         marginLeft: "5px",
+                        padding: "2px"
                       }}
                     >
                       {unreadCount}

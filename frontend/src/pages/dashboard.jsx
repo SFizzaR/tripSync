@@ -17,7 +17,8 @@ export default function Dashboard() {
   const [userLocation, setUserLocation] = useState("");
   const [userId, setUserId] = useState(null);
   const [notifications, setNotifications] = useState([]);
-  const [events, setEvents] = useState([]);
+
+  const itineraryDates = ["2025-01-10", "2025-02-10", "2025-02-20"];
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -26,7 +27,6 @@ export default function Dashboard() {
         console.error("No token found in localStorage.");
         return;
       }
-
 
       try {
         const response = await fetch("http://localhost:5001/api/users/getname", {
@@ -53,63 +53,6 @@ export default function Dashboard() {
 
     fetchUserData();
   }, []);
-
-  useEffect(() => {
-    const fetchItineraries = async () => {
-      try {
-        const response = await fetch('http://localhost:5001/api/itineraries/calender', {
-          method: "GET",
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch itineraries");
-        }
-
-        const rawData = await response.json();
-        console.log("Calendar API response:", rawData);
-
-        const formattedEvents = rawData.map(event => ({
-          title: event.title,
-          start: new Date(event.start),
-          end: new Date(event.end),
-          extendedProps: {
-            city: event.city,
-            id: event.id
-          }
-        }));
-
-        setEvents(formattedEvents);
-      } catch (error) {
-        console.error('Error fetching calendar itineraries:', error);
-      }
-    };
-
-    fetchItineraries();
-  }, []);
-
-
-  // Filter events by selected date
-  const isSameDay = (d1, d2) =>
-
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate();
-
-  const eventsForSelectedDate = events.filter(event =>
-    isSameDay(event.start, date)
-  );
-  console.log("All Events:", events);
-  console.log("Selected Date:", date);
-  console.log("Events For Selected Date:", eventsForSelectedDate);
-
-  const eventDates = new Set(events.map(event => {
-    const d = new Date(event.start);
-    return d.toISOString().split("T")[0]; // Format: YYYY-MM-DD
-  }));
-
 
   const markNotificationAsRead = async (notificationId) => {
     try {
@@ -229,39 +172,17 @@ export default function Dashboard() {
 
       <section>
         <p className="section-title">YOUR CALENDAR</p>
-        <div className="calendar-container">
-          <h3>Select a Date</h3>
-          <Calendar
-            onChange={setDate}
-            value={date}
-            tileClassName={({ date }) => {
-              const todayStr = new Date().toISOString().split("T")[0];
-              const dateStr = date.toISOString().split("T")[0];
-              if (dateStr === todayStr) return "highlight-today";
-              return "";
-            }}
-            tileContent={({ date }) => {
-              const dateStr = date.toISOString().split("T")[0];
-              return eventDates.has(dateStr) ? <div className="dot-marker"></div> : null;
-            }}
-          />
-
-          <div className="event-list">
-            <h4>Events on {date.toDateString()}:</h4>
-            {eventsForSelectedDate.length > 0 ? (
-              <ul>
-                {eventsForSelectedDate.map((event, index) => (
-                  <li key={index}>
-                    <strong>{event.title}</strong> ({event.extendedProps.city})<br />
-                    {event.start.toLocaleTimeString()} - {event.end.toLocaleTimeString()}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No events on this day.</p>
-            )}
-          </div>
-        </div>
+        <Calendar
+          onChange={setDate}
+          value={date}
+          tileClassName={({ date }) => {
+            const todayStr = new Date().toISOString().split("T")[0];
+            const dateStr = date.toISOString().split("T")[0];
+            if (dateStr === todayStr) return "highlight-today";
+            if (itineraryDates.includes(dateStr)) return "highlight";
+            return "";
+          }}
+        />
       </section>
     </div>
   );

@@ -59,7 +59,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div style={{ paddingBottom: "50px" }}>
+    <div className="homepagescroll" style={{ paddingBottom: "50px" }}>
       {/* Navbar */}
       <nav
         style={{
@@ -195,7 +195,7 @@ export default function Home() {
         <div>
           <div
             style={{
-              display: !isFullScreen ? "flex" : "",
+              display: !isFullScreen ? "flex" : "block",
               justifyContent: "center",
               alignItems: "center", // Fixes alignment issue
               columnGap: !isFullScreen? "2px" : 0,

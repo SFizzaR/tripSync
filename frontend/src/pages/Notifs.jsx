@@ -168,9 +168,23 @@ function Notifs() {
         <Sidebar currentPath={window.location.pathname} />
       </nav>
 
-      <Header title="Notifications" text="ACCEPT INVITATIONS TO JOIN" />
+      <Header title="Invites" text="ACCEPT INVITATIONS TO JOIN" />
 
-      <div className="itinerary-box">
+      <div style={{
+        border: "dashed 5px grey",
+        position: "relative",
+        width: "95%",
+        maxWidth: "1200px",
+        height: "110vw",
+        maxHeight: "700px",
+        borderColor: "rgba(217, 228, 231, 0.6)",
+        margin: "20px auto",
+        color: "white",
+        borderRadius: "5px",
+        backgroundColor: "rgb(0, 0, 0)",
+        boxShadow: "0px 0px 10px rgba(6, 73, 106, 0.5)",
+        fontFamily: '"Montserrat", sans-serif'
+      }}>
       {notifications.length === 0 ? (
           <p
             style={{
@@ -179,65 +193,77 @@ function Notifs() {
               color: "gray",
             }}
           >
-            No notifications available.
+            No invites yet.
           </p>
         ) : (
           <ul
             style={{
               listStyle: "none",
               padding: 0,
+              padding: "0 1rem",
             }}
           >
             {notifications.map((notif) => (
               <li
                 key={notif._id} // Use unique ID instead of index
                 style={{
-                  backgroundColor: "rgb(230, 240, 250)",
-                  padding: "10px",
+                  backgroundColor: "transparent",
                   marginBottom: "10px",
                   borderRadius: "5px",
                   boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                  display: "flex",
-                  flexDirection: "row", // Keep text and buttons in the same row
-                  justifyContent: "space-between", // Text on left, buttons on right
-                  alignItems: "center", // Align items vertically
+                  display: "grid",
+                  fontSize: "clamp(12px, 1.8vw, 20px)",
+                  gridTemplateColumns: "1fr 30vw",
+                  alignItems: "center",
+                  columnGap: "10px",
+                  borderBottom: "0.5px solid grey",
+                  padding: "10px 0"
                 }}
               >
                 <span>{notif.message}</span>
-
-                {/* Buttons Section */}
                 <div
                   style={{
                     display: "flex",
                     flexDirection: "row",
-                    gap: "10px", // Space between buttons
+                    gap: "2vw", // Space between buttons
+                    position: "center",
                   }}
                 >
                   <button
                     style={{
-                      backgroundColor: "#008000",
+                      backgroundColor: "#0bbe92",
                       border: "none",
-                      padding: "5px 10px",
                       color: "white",
+                      fontFamily: "'Press Start 2P'",
                       cursor: "pointer",
                       borderRadius: "4px",
+                      padding: "1.2vw",
+                      fontSize: "clamp(5px, 1.6vw, 20px)",
+                      width: "12vw",
+                      textShadow: "0px 0px 10px black"
                     }}
                     onClick={() => handleAccept(notif)} // Pass notif object
                   >
-                    Accept
+                    ACCEPT
                   </button>
                   <button
                     style={{
-                      backgroundColor: "#ff0000",
+                      backgroundColor: "#8b0404",
                       border: "none",
-                      padding: "5px 10px",
                       cursor: "pointer",
                       color: "white",
                       borderRadius: "4px",
+                      fontFamily: "'Press Start 2P'",
+                      cursor: "pointer",
+                      borderRadius: "4px",
+                      padding: "1.2vw",
+                      fontSize: "clamp(5px, 1.6vw, 20px)",
+                      width: "13vw",
+                      textShadow: "0px 0px 10px black"
                     }}
                     onClick={() => handleDecline(notif)} // Pass notif object
                   >
-                    Decline
+                    DECLINE
                   </button>
                 </div>
               </li>

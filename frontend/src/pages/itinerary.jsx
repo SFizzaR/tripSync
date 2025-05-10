@@ -68,6 +68,8 @@ export default function Itinerary() {
   const [ratingError, setRatingError] = useState(null);
   const [ratingSuccess, setRatingSuccess] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
+  const [adjustedItinerary, setAdjustedItinerary] = useState(null);
+  const [showAdjustedItinerary, setShowAdjustedItinerary] = useState(false);
 
   const filters = [
     { id: "history", src: hist, label: "History" },
@@ -350,7 +352,6 @@ export default function Itinerary() {
       console.error("❌ Error: City not found in itinerary");
       setRecommendations([]);
     }
-    // Remove direct call to fetchRecommendations
   };
 
   const handleAddPlace = (placeId, placeName) => {
@@ -501,7 +502,6 @@ export default function Itinerary() {
       );
       console.log("Recommendations response:", response.data);
       setRecommendations(response.data);
-      toast.success("Recommendations fetched successfully!");
     } catch (error) {
       console.error("Error fetching recommendations:", {
         message: error.response?.data?.message || error.message,
@@ -509,9 +509,6 @@ export default function Itinerary() {
         url: error.config?.url,
       });
       setRecommendations([]);
-      toast.error(
-        error.response?.data?.message || "Failed to fetch recommendations."
-      );
     }
   };
 
@@ -841,7 +838,7 @@ export default function Itinerary() {
       setRatingSuccess(response.data.message);
       setRatingError(null);
       if (itineraryIdnow) {
-        fetchRecommendations(itineraryIdnow); // Refresh recommendations after rating
+        fetchRecommendations(itineraryIdnow);
       }
     } catch (error) {
       setRatingError(
@@ -879,7 +876,6 @@ export default function Itinerary() {
           },
         }
       );
-      // Check Content-Type before parsing
       const contentType = response.headers.get("Content-Type");
       if (!contentType || !contentType.includes("application/json")) {
         console.error("Received non-JSON response:", await response.text());
@@ -890,7 +886,6 @@ export default function Itinerary() {
       }
       const data = await response.json();
       if (response.ok) {
-        // Remove itinerary from state
         if (selectedItinerary.collaborative) {
           setColabItineraries((prev) =>
             prev.filter((itinerary) => itinerary.id !== itineraryIdnow)
@@ -900,7 +895,6 @@ export default function Itinerary() {
             prev.filter((itinerary) => itinerary.id !== itineraryIdnow)
           );
         }
-        // Clear selected itinerary
         setSelectedItinerary(null);
         setitineraryIdnow("");
         toast.success("Itinerary deleted successfully!");
@@ -968,6 +962,51 @@ export default function Itinerary() {
     } catch (error) {
       console.error("Failed to delete place:", error);
       toast.error("Something went wrong while removing the place.");
+    }
+  };
+
+  const handleScheduleItinerary = async () => {
+    if (!selectedItinerary || !itineraryIdnow) {
+      toast.error("Please select an itinerary to schedule.");
+      return;
+    }
+    if (!selectedItinerary.startDate || !selectedItinerary.endDate) {
+      toast.error("Itinerary must have valid start and end dates.");
+      return;
+    }
+    if (!selectedItinerary.places || selectedItinerary.places.length === 0) {
+      toast.error("Itinerary must have at least one place to schedule.");
+      return;
+    }
+    setLoading(true);
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      toast.error("User not authenticated. Please log in.");
+      setLoading(false);
+      return;
+    }
+    try {
+      const response = await axios.post(
+        "http://localhost:5002/api/weather/adjust-itinerary",
+        { itinerary_id: itineraryIdnow },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Adjusted Itinerary Response:", response.data);
+      setAdjustedItinerary(response.data);
+      setShowAdjustedItinerary(true);
+      toast.success("Itinerary scheduled with weather adjustments!");
+    } catch (error) {
+      console.error("Failed to schedule itinerary:", error);
+      toast.error(
+        error.response?.data?.error || "Failed to schedule itinerary."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1290,7 +1329,7 @@ export default function Itinerary() {
                       "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
+                    (e.target.pageXOffsetShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   NEXT
@@ -1510,7 +1549,12 @@ export default function Itinerary() {
                           />
                         )}
                       </div>
-                      {collabTab && <div className="overlay" onClick={() => setCollabTab(false)}/>}
+                      {collabTab && (
+                        <div
+                          className="overlay"
+                          onClick={() => setCollabTab(false)}
+                        />
+                      )}
                       {collabTab && (
                         <div
                           className="users-box"
@@ -1727,7 +1771,7 @@ export default function Itinerary() {
                                                 cursor: "pointer",
                                                 fontSize: "100%",
                                                 fontFamily: "'Inter'",
-                                                fontWeight: "bold"
+                                                fontWeight: "bold",
                                               }}
                                               onClick={() =>
                                                 sendInvitation(
@@ -1969,8 +2013,10 @@ export default function Itinerary() {
                               "1px 1px 3px rgb(36, 57, 66)";
                             e.target.style.textShadow = "none";
                           }}
+                          onClick={handleScheduleItinerary}
+                          disabled={loading}
                         >
-                          SCHEDULE ITINERARY
+                          {loading ? "Scheduling..." : "SCHEDULE ITINERARY"}
                         </button>
                       </div>
                       {placesTab && (
@@ -2167,7 +2213,7 @@ export default function Itinerary() {
                                     textAlign: "center",
                                     padding: "10px",
                                     listStyle: "none",
-                                  }}
+                                 }}
                                 >
                                   No Places found.
                                 </li>

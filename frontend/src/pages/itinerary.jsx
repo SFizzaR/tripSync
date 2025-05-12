@@ -83,6 +83,22 @@ export default function Itinerary() {
     { id: "entertainment", src: enter, label: "Entertainment" },
   ];
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const prevCard = () => {
+    setCurrentIndex((prev) =>
+      prev === 0 ? placeDetails.photos.length - 1 : prev - 1
+    );
+  };
+
+  const nextCard = () => {
+    setCurrentIndex((prev) =>
+      prev === placeDetails.photos.length - 1 ? 0 : prev + 1
+    );
+  };
+
   useEffect(() => {
     if (selectedItinerary && selectedItinerary.places) {
       const initialCheckedState = {};
@@ -252,8 +268,8 @@ export default function Itinerary() {
             displayName: user.isYou
               ? `${user.username} (You)`
               : user.role === "admin"
-                ? `Admin - ${user.username}`
-                : user.username,
+              ? `Admin - ${user.username}`
+              : user.username,
           }));
           mappedUsers.sort((a, b) => {
             if (a.role === "admin") return -1;
@@ -616,7 +632,7 @@ export default function Itinerary() {
       );
       const data = await response.json();
       if (response.ok) {
-        alert("🎉 Itinerary saved successfully!");
+        toast.success("🎉 Itinerary saved successfully!");
         const newItinerary = { ...data, id: data._id };
         if (isCollaborative) {
           setColabItineraries((prev) => [...prev, newItinerary]);
@@ -624,7 +640,7 @@ export default function Itinerary() {
           setSoloItineraries((prev) => [...prev, newItinerary]);
         }
       } else {
-        alert("❌ Error: " + (data.error || "Unknown error"));
+        toast.error("❌ Error: " + (data.error || "Unknown error"));
       }
     } catch (error) {
       alert("Failed to save itinerary.");
@@ -679,35 +695,24 @@ export default function Itinerary() {
 
   const [editingDate, setEditingDate] = useState(null);
 
-  const handleBudgetToggle = async () => {
+  const handleBudgetToggle = () => {
     const budgetOptions = ["Economical", "Standard", "Luxury"];
     const currentIndex = budgetOptions.indexOf(
       selectedItinerary.budget || "Standard"
     );
     const newBudget = budgetOptions[(currentIndex + 1) % budgetOptions.length];
-
-    const success = await handleFieldUpdate("budget", newBudget);
-    if (success) {
-      setSelectedItinerary((prev) => ({
-        ...prev,
-        budget: newBudget,
-      }));
-    }
+    setSelectedItinerary({ ...selectedItinerary, budget: newBudget });
+    handleFieldUpdate("budget", newBudget);
   };
 
-
-  const handleStatusChange = async (e) => {
+  const handleStatusChange = (e) => {
     const newStatus = e.target.value;
-
-    const success = await handleFieldUpdate("status", newStatus);
-    if (success) {
-      setSelectedItinerary((prev) => ({
-        ...prev,
-        status: newStatus,
-      }));
-    }
+    setSelectedItinerary((prev) => ({
+      ...prev,
+      status: newStatus,
+    }));
+    handleFieldUpdate("status", newStatus);
   };
-
 
   console.log("Selected Option:", selectedOption);
 
@@ -871,7 +876,8 @@ export default function Itinerary() {
     }
     console.log("Attempting to delete itinerary with ID:", itineraryIdnow);
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete the itinerary "${selectedItinerary.title || "Untitled Itinerary"
+      `Are you sure you want to delete the itinerary "${
+        selectedItinerary.title || "Untitled Itinerary"
       }"?`
     );
     if (!confirmDelete) return;
@@ -1122,8 +1128,8 @@ export default function Itinerary() {
                     backgroundColor: "rgb(104, 163, 189)",
                   }}
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 18px rgb(204, 231, 243)")
+                    (e.target.style.boxShadow =
+                      "0px 0px 18px rgb(204, 231, 243)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1135,8 +1141,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(162, 203, 221)")
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1203,8 +1209,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(162, 203, 221)")
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1216,8 +1222,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(162, 203, 221)")
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1256,65 +1262,87 @@ export default function Itinerary() {
                   <input
                     type="date"
                     value={takeoffDate}
-                    onChange={async (e) => {
+                    min={today}
+                    onChange={(e) => {
                       const selectedDate = e.target.value;
-                      const success = await handleFieldUpdate("takeoffDate", selectedDate);
-                      if (success) setTakeoffDate(selectedDate);
+                      if (selectedDate < today) {
+                        toast.error("Takeoff date cannot be before today!");
+                        return;
+                      }
+                      if (touchdownDate && selectedDate > touchdownDate) {
+                        console.error(
+                          "❌ Error: Takeoff date cannot be after touchdown date!"
+                        );
+                        toast.error(
+                          "Takeoff date cannot be after the touchdown date!"
+                        );
+                        return;
+                      }
+                      setTakeoffDate(selectedDate);
                     }}
-                    className={`date-input ${takeoffDate ? "date-filled" : "date-empty"
-                      }`}
-
+                    className={`date-input ${
+                      takeoffDate ? "date-filled" : "date-empty"
+                    }`}
                   />
                   <FaCalendarAlt
-                    className={`calendar-icon ${!takeoffDate && !touchdownDate
-                      ? "calendar-icon-default"
-                      : "calendar-icon-adjusted"
-                      }`}
+                    className={`calendar-icon ${
+                      !takeoffDate && !touchdownDate
+                        ? "calendar-icon-default"
+                        : "calendar-icon-adjusted"
+                    }`}
                   />
                   {takeoffDate && (
                     <button
                       className="reset-button"
-                      onClick={async () => {
-                        const success = await handleFieldUpdate("takeoffDate", "");
-                        if (success) setTakeoffDate("");
-                      }}
+                      onClick={() => setTakeoffDate("")}
                     >
                       RESET
                     </button>
                   )}
                 </div>
+
                 <div className="touchdown-container">
                   <span className="date-title">TOUCHDOWN</span>
                   <input
                     type="date"
                     value={touchdownDate}
-                    onChange={async (e) => {
+                    min={takeoffDate || today}
+                    onChange={(e) => {
                       const selectedDate = e.target.value;
-                      if (selectedDate && selectedDate < takeoffDate) {
-                        alert("Touchdown date cannot be before the takeoff date!");
+                      if (selectedDate === today) {
+                        toast.error("Touchdown date cannot be today's date!");
                         return;
                       }
-                      const success = await handleFieldUpdate("touchdownDate", selectedDate);
-                      if (success) setTouchdownDate(selectedDate);
+                      if (selectedDate < today) {
+                        toast.error("Touchdown date cannot be before today!");
+                        return;
+                      }
+                      if (selectedDate < takeoffDate) {
+                        toast.error(
+                          "❌ Error: Touchdown date cannot be before takeoff date!"
+                        );
+                        toast.error(
+                          "Touchdown date cannot be before the takeoff date!"
+                        );
+                        return;
+                      }
+                      setTouchdownDate(selectedDate);
                     }}
-                    min={takeoffDate}
-                    className={`date-input ${touchdownDate ? "date-filled" : "date-empty"
-                      }`}
+                    className={`date-input ${
+                      touchdownDate ? "date-filled" : "date-empty"
+                    }`}
                   />
                   <FaCalendarAlt
-                    className={`calendar-icon ${!takeoffDate && !touchdownDate
-                      ? "calendar-icon-default"
-                      : "calendar-icon-adjusted"
-                      }`}
+                    className={`calendar-icon ${
+                      !takeoffDate && !touchdownDate
+                        ? "calendar-icon-default"
+                        : "calendar-icon-adjusted"
+                    }`}
                   />
                   {touchdownDate && (
                     <button
                       className="reset-button"
-                      onClick={async () => {
-                        const success = await handleFieldUpdate("touchdownDate", "");
-                        if (success) setTouchdownDate("");
-                      }}
-
+                      onClick={() => setTouchdownDate("")}
                     >
                       RESET
                     </button>
@@ -1326,8 +1354,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(162, 203, 221)")
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1339,11 +1367,11 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(162, 203, 221)")
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
-                    (e.target.pageXOffsetShadow = "1px 1px 3px rgb(36, 57, 66)")
+                    (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
                   }
                 >
                   NEXT
@@ -1407,8 +1435,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 15px rgb(162, 203, 221)")
+                    (e.target.style.boxShadow =
+                      "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1433,8 +1461,8 @@ export default function Itinerary() {
                     backgroundColor: "rgb(104, 163, 189)",
                   }}
                   onMouseEnter={(e) =>
-                  (e.target.style.boxShadow =
-                    "0px 0px 18px rgb(198, 236, 252)")
+                    (e.target.style.boxShadow =
+                      "0px 0px 18px rgb(198, 236, 252)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1455,8 +1483,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {soloItineraries &&
-                    Array.isArray(soloItineraries) &&
-                    soloItineraries.length > 0 ? (
+                  Array.isArray(soloItineraries) &&
+                  soloItineraries.length > 0 ? (
                     soloItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1482,8 +1510,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {colabItineraries &&
-                    Array.isArray(colabItineraries) &&
-                    colabItineraries.length > 0 ? (
+                  Array.isArray(colabItineraries) &&
+                  colabItineraries.length > 0 ? (
                     colabItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1827,7 +1855,7 @@ export default function Itinerary() {
                       <div
                         style={{
                           background:
-                            "linear-gradient(90deg, rgba(36, 6, 85, 0.67), rgba(73, 18, 161, 0.67))",
+                            "linear-gradient(90deg, rgba(6, 27, 85, 0.67), rgba(16, 68, 180, 0.67), rgba(30, 47, 92, 0.67))",
                           borderRadius: "10px",
                           padding: "-5px 5%",
                           color: "white",
@@ -1839,6 +1867,7 @@ export default function Itinerary() {
                           gap: "15px",
                           alignItems: "center",
                           justifyContent: "center",
+                          textShadow: "1px 1px 10px black",
                         }}
                       >
                         <img src={loc} style={{ width: "4%" }} />
@@ -1857,25 +1886,20 @@ export default function Itinerary() {
                         {editingDate === "start" ? (
                           <input
                             type="date"
-                            defaultValue={selectedItinerary.startDate || ""}
-                            onBlur={async (e) => {
-                              const newDate = e.target.value;
+                            value={selectedItinerary.startDate || ""}
+                            onChange={(e) =>
+                              setSelectedItinerary({
+                                ...selectedItinerary,
+                                startDate: e.target.value,
+                              })
+                            }
+                            onBlur={(e) => {
                               setEditingDate(null);
-
-                              if (newDate === selectedItinerary.startDate) return; // no change
-
-                              const confirmed = window.confirm(
-                                `Are you sure you want to update takeoff date to "${newDate}"?`
-                              );
-                              if (!confirmed) return;
-
-                              const success = await handleFieldUpdate("startDate", newDate);
-                              if (success) {
-                                setSelectedItinerary((prev) => ({
-                                  ...prev,
-                                  startDate: newDate,
-                                }));
-                              }
+                              if (selectedItinerary.startDate)
+                                handleFieldUpdate(
+                                  "startDate",
+                                  selectedItinerary.startDate
+                                );
                             }}
                             autoFocus
                           />
@@ -1883,12 +1907,12 @@ export default function Itinerary() {
                           <div className="dates">
                             {selectedItinerary.startDate
                               ? new Date(selectedItinerary.startDate)
-                                .toLocaleDateString("en-US", {
-                                  month: "2-digit",
-                                  day: "2-digit",
-                                  year: "numeric",
-                                })
-                                .replace(/\//g, "-")
+                                  .toLocaleDateString("en-US", {
+                                    month: "2-digit",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })
+                                  .replace(/\//g, "-")
                               : "--/--/--"}
                           </div>
                         )}
@@ -1912,31 +1936,21 @@ export default function Itinerary() {
                         {editingDate === "end" ? (
                           <input
                             type="date"
-                            defaultValue={selectedItinerary.endDate || ""}
+                            value={selectedItinerary.endDate || ""}
                             min={selectedItinerary.startDate}
-                            onBlur={async (e) => {
-                              const newDate = e.target.value;
+                            onChange={(e) =>
+                              setSelectedItinerary({
+                                ...selectedItinerary,
+                                endDate: e.target.value,
+                              })
+                            }
+                            onBlur={(e) => {
                               setEditingDate(null);
-
-                              if (newDate === selectedItinerary.endDate) return;
-
-                              if (newDate < selectedItinerary.startDate) {
-                                alert("Return date cannot be before the takeoff date!");
-                                return;
-                              }
-
-                              const confirmed = window.confirm(
-                                `Are you sure you want to update return date to "${newDate}"?`
-                              );
-                              if (!confirmed) return;
-
-                              const success = await handleFieldUpdate("endDate", newDate);
-                              if (success) {
-                                setSelectedItinerary((prev) => ({
-                                  ...prev,
-                                  endDate: newDate,
-                                }));
-                              }
+                              if (selectedItinerary.endDate)
+                                handleFieldUpdate(
+                                  "endDate",
+                                  selectedItinerary.endDate
+                                );
                             }}
                             autoFocus
                           />
@@ -1944,12 +1958,12 @@ export default function Itinerary() {
                           <div className="dates">
                             {selectedItinerary.endDate
                               ? new Date(selectedItinerary.endDate)
-                                .toLocaleDateString("en-US", {
-                                  month: "2-digit",
-                                  day: "2-digit",
-                                  year: "numeric",
-                                })
-                                .replace(/\//g, "-")
+                                  .toLocaleDateString("en-US", {
+                                    month: "2-digit",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })
+                                  .replace(/\//g, "-")
                               : "--/--/--"}
                           </div>
                         )}
@@ -1999,15 +2013,26 @@ export default function Itinerary() {
                       </div>
                     </div>
                     <div
-                      className={`itinerary-container ${selectedItinerary.title !== selectedItinerary.city
-                        ? "large"
-                        : "extra-large"
-                        }`}
+                      className={`itinerary-container ${
+                        selectedItinerary.title !== selectedItinerary.city
+                          ? "large"
+                          : "extra-large"
+                      }`}
+                      style={{
+                        display: "grid",
+                        gridTemplateRows: "auto 1fr 1fr",
+                      }}
                     >
                       <div
                         style={{
                           display: "grid",
                           gridTemplateColumns: "1fr 1fr",
+                          placeContent: "center",
+                          alignItems: "center",
+                          position: "sticky",
+                          zIndex: 10,
+                          width: "95%",
+                          gap: "0.5rem",
                         }}
                       >
                         <div style={{ display: "flex", alignItems: "start" }}>
@@ -2218,10 +2243,11 @@ export default function Itinerary() {
                                       {[1, 2, 3, 4, 5].map((star) => (
                                         <span
                                           key={star}
-                                          className={`star ${ratings[place.fsq_id] >= star
-                                            ? "filled"
-                                            : ""
-                                            }`}
+                                          className={`star ${
+                                            ratings[place.fsq_id] >= star
+                                              ? "filled"
+                                              : ""
+                                          }`}
                                           onClick={() =>
                                             handleRating(place.fsq_id, star)
                                           }
@@ -2271,30 +2297,56 @@ export default function Itinerary() {
                           style={{
                             position: "fixed",
                             top: 0,
-                            right: placesDeets ? "-5px" : "-280px",
-                            height: "100vh",
-                            width: "400px",
+                            right: placesDeets ? "-2px" : "-280px",
+                            height: "95vh",
+                            paddingTop: "2rem",
+                            width: "450px",
                             transition: "right 1s ease-in-out",
-                            backgroundColor: "rgb(0, 0, 0)",
+                            backgroundColor: "rgb(6, 8, 30)",
                             borderRadius: "10px",
                             padding: "10px",
                             color: "white",
                             borderLeft: "dashed 3px rgb(77, 102, 112)",
                             zIndex: 2000,
                             display: "grid",
-                            gridTemplateRows: "10% 40% 50%",
-                            overflowY: "auto",
+                            gridTemplateRows: "auto 1fr 1fr",
+                            overflowX: "hidden",
+                            rowGap: "5px",
+                            fontFamily: "Inter",
+                            textAlign: "left",
+                            padding: "1rem",
                           }}
                         >
+                          <button
+                            onClick={() => {
+                              setPlacesDeets(false);
+                              setPlaceDeetsId(null);
+                            }}
+                            style={{
+                              position: "absolute",
+                              top: "0px",
+                              right: "0px",
+                              backgroundColor: "transparent",
+                              color: "white",
+                              fontFamily: "Inter",
+                              fontWeight: "bold",
+                              fontSize: "27px",
+                              borderRadius: "10px",
+                              border: "none",
+                              padding: "5px 10px",
+                            }}
+                          >
+                            X
+                          </button>
                           <div
                             style={{
                               fontSize: "clamp(16px, 2vw, 24px)",
                               fontWeight: "bold",
-                              color: "rgb(164, 208, 233)",
+                              color: "rgb(229, 241, 248)",
                               textShadow:
-                                "0px 0px 6px rgba(102, 187, 212, 0.8)",
-                              textAlign: "center",
-                              marginBottom: "10px",
+                                "0px 0px 15px rgba(165, 216, 231, 0.8)",
+                              fontFamily: "P2P",
+                              marginBottom: "5px",
                             }}
                           >
                             {placeDetails?.name || "Loading..."}
@@ -2303,16 +2355,18 @@ export default function Itinerary() {
                             style={{
                               display: "flex",
                               flexDirection: "column",
-                              gap: "10px",
-                              padding: "10px",
+                              padding: "10px 0",
                               borderBottom: "1px solid rgb(77, 102, 112)",
                             }}
                           >
                             <div
                               style={{
                                 fontSize: "clamp(14px, 1.5vw, 18px)",
-                                color: "rgb(136, 174, 196)",
-                                textShadow: "1px 1px 2px rgba(15, 71, 88, 0.8)",
+                                color: "rgb(180, 198, 227)",
+                                fontWeight: "bold",
+                                fontFamily: "P2P",
+                                textShadow:
+                                  "1px 1px 12px rgba(133, 183, 198, 0.97)",
                               }}
                             >
                               PICTURES
@@ -2321,24 +2375,78 @@ export default function Itinerary() {
                               <div
                                 style={{
                                   display: "flex",
-                                  gap: "10px",
-                                  overflowX: "auto",
-                                  padding: "5px 0",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  position: "relative",
+                                  margin: "20px 0",
+                                  height: "60vh",
                                 }}
                               >
-                                {placeDetails.photos.map((photoUrl, index) => (
+                                {/* ❮ Left Arrow */}
+                                <button
+                                  onClick={prevCard}
+                                  className="arrow"
+                                  style={{
+                                    position: "absolute",
+                                    left: "50px",
+                                    zIndex: 1,
+                                    fontSize: "2rem",
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    textShadow: "3px 3px 5px black",
+                                  }}
+                                >
+                                  ❮
+                                </button>
+
+                                {/* Image Card */}
+                                <div
+                                  className="card"
+                                  style={{
+                                    maxHeight: "100%",
+                                    borderRadius: "12px",
+                                    overflow: "hidden",
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    border: "none",
+                                    borderRadius: 0,
+                                    padding: 0,
+                                    boxShadow: "none",
+                                  }}
+                                >
                                   <img
-                                    key={index}
-                                    src={photoUrl}
-                                    alt={`Photo ${index + 1}`}
+                                    src={
+                                      placeDetails.photos[currentIndex].image ||
+                                      placeDetails.photos[currentIndex]
+                                    }
+                                    alt={`Photo ${currentIndex + 1}`}
                                     style={{
-                                      width: "150px",
-                                      height: "100px",
-                                      objectFit: "cover",
-                                      borderRadius: "5px",
+                                      width: "100%",
+                                      height: "auto",
+                                      objectFit: "contain", // ensures no cropping, full image shown
                                     }}
                                   />
-                                ))}
+                                </div>
+
+                                {/* ❯ Right Arrow */}
+                                <button
+                                  onClick={nextCard}
+                                  className="arrow"
+                                  style={{
+                                    position: "absolute",
+                                    right: "50px",
+                                    zIndex: 1,
+                                    fontSize: "2rem",
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    textShadow: "3px 3px 5px black",
+                                  }}
+                                >
+                                  ❯
+                                </button>
                               </div>
                             ) : (
                               <p style={{ color: "gray", fontSize: "14px" }}>
@@ -2357,55 +2465,105 @@ export default function Itinerary() {
                             <div
                               style={{
                                 fontSize: "clamp(14px, 1.5vw, 18px)",
-                                color: "rgb(136, 174, 196)",
-                                textShadow: "1px 1px 2px rgba(15, 71, 88, 0.8)",
+                                color: "rgb(180, 198, 227)",
+                                fontWeight: "bold",
+                                fontFamily: "P2P",
+                                textShadow:
+                                  "1px 1px 12px rgba(133, 183, 198, 0.97)",
                               }}
                             >
                               DETAILS
                             </div>
                             <div>
-                              <strong style={{ color: "rgb(191, 224, 243)" }}>
-                                Address:
+                              <strong
+                                style={{
+                                  fontFamily: "P2P",
+                                  fontSize: "clamp(10px, 1.2vw, 12px)",
+                                  color: "rgb(191, 224, 243)",
+                                }}
+                              >
+                                ADDRESS:
                               </strong>{" "}
-                              {placeDetails?.address || "Not available"}
+                              <strong
+                                style={{
+                                  fontSize: "clamp(10px, 1.2vw, 12px)",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {placeDetails?.address || "Not available"}
+                              </strong>
                             </div>
                             <div>
-                              <strong style={{ color: "rgb(191, 224, 243)" }}>
-                                Categories:
+                              <strong
+                                style={{
+                                  fontFamily: "P2P",
+                                  fontSize: "clamp(10px, 1.2vw, 12px)",
+                                  color: "rgb(191, 224, 243)",
+                                }}
+                              >
+                                CATEGORIES:
                               </strong>{" "}
-                              {placeDetails?.categories?.length > 0
-                                ? placeDetails.categories.join(", ")
-                                : "Not available"}
+                              <strong
+                                style={{
+                                  fontSize: "clamp(10px, 1.2vw, 12px)",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {placeDetails?.categories?.length > 0
+                                  ? placeDetails.categories.join(", ")
+                                  : "Not available"}
+                              </strong>
                             </div>
                             <div>
-                              <strong style={{ color: "rgb(191, 224, 243)" }}>
-                                Coordinates:
+                              <strong
+                                style={{
+                                  fontFamily: "P2P",
+                                  fontSize: "clamp(10px, 1.2vw, 12px)",
+                                  color: "rgb(191, 224, 243)",
+                                }}
+                              >
+                                COORDINATES:
                               </strong>{" "}
-                              {placeDetails?.latitude && placeDetails?.longitude
-                                ? `${placeDetails.latitude}, ${placeDetails.longitude}`
-                                : "Not available"}
+                              <strong
+                                style={{
+                                  fontSize: "clamp(10px, 1.2vw, 12px)",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {placeDetails?.latitude &&
+                                placeDetails?.longitude
+                                  ? `${placeDetails.latitude}, ${placeDetails.longitude}`
+                                  : "Not available"}
+                              </strong>
                             </div>
                             <div>
-                              <strong style={{ color: "rgb(191, 224, 243)" }}>
-                                Reviews:
+                              <strong
+                                style={{
+                                  fontFamily: "P2P",
+                                  fontSize: "clamp(10px, 1.2vw, 12px)",
+                                  color: "rgb(191, 224, 243)",
+                                }}
+                              >
+                                REVIEWS:
                               </strong>
                               {placeDetails?.reviews?.length > 0 ? (
                                 <ul
                                   style={{
-                                    margin: "5px 0",
-                                    paddingLeft: "20px",
+                                    paddingLeft: "10px",
                                   }}
                                 >
                                   {placeDetails.reviews.map((review, index) => (
                                     <li
                                       key={index}
                                       style={{
-                                        fontSize: "14px",
-                                        marginBottom: "5px",
-                                        color: "rgb(200, 200, 200)",
+                                        fontSize: "2vw",
+                                        marginBottom: "8px",
+                                        fontSize: "clamp(10px, 1.2vw, 13px)",
+                                        fontWeight: "bold",
+                                        color: "rgb(212, 212, 212)",
                                       }}
                                     >
-                                      {review}
+                                      <i>{review}</i>
                                     </li>
                                   ))}
                                 </ul>
@@ -2437,7 +2595,7 @@ export default function Itinerary() {
                         }}
                       >
                         {selectedItinerary &&
-                          selectedItinerary.places?.length > 0 ? (
+                        selectedItinerary.places?.length > 0 ? (
                           selectedItinerary.places.map((place) => (
                             <div
                               key={place.placeId}

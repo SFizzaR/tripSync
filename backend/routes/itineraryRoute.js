@@ -13,7 +13,7 @@ router.delete('/:itineraryId/remove-user/:userId', protect, deleteUser);
 router.delete('/:itineraryId/remove-place/:placeId', deletePlace);
 router.get('/users/:itineraryId', protect, getColabUsers);
 router.delete('/:itineraryId', protect, deleteItinerary);
-router.get('/calender', protect getUserCalendarItineraries);
+router.get('/calender', protect, getUserCalendarItineraries);
 
 
 module.exports = router;

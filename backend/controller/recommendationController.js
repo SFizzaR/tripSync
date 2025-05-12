@@ -1,28 +1,35 @@
 const expressAsyncHandler = require('express-async-handler');
 const axios = require('axios');
-const Places = require('../models/placesModel'); // Adjust path as needed
-const UserRatings = require('../models/userRatingsModel'); // Adjust path as needed
+const Places = require('../models/placesModel');
+const UserRatings = require('../models/userRatingsModel');
+const Itinerary = require('../models/ItinerariesModel');
 
 const recommendations = expressAsyncHandler(async (req, res) => {
     const userId = req.params.userId;
     const itineraryId = req.query.itineraryId;
-    const city = req.query.city; // Required city filter
-    const maxPerCategory = parseInt(req.query.maxPerCategory) || 3; // Default to 3
+    const city = req.query.city;
+    const maxPerCategory = parseInt(req.query.maxPerCategory) || 3;
 
-    if (!city) {
-        return res.status(400).json({ error: 'City is required' });
+    if (!city || !itineraryId) {
+        return res.status(400).json({ error: 'City and itineraryId are required' });
     }
 
     try {
+        // Fetch the itinerary to get places already added
+        const itinerary = await Itinerary.findById(itineraryId);
+        if (!itinerary) {
+            return res.status(404).json({ error: 'Itinerary not found' });
+        }
+        const itineraryPlaceIds = itinerary.places.map((place) => place.placeId);
+
         // Dynamically determine user's top categories from ratings
         const ratings = await UserRatings.find({ user_id: userId });
         const categoryScores = {};
         for (const rating of ratings) {
-            if (rating.rating >= 4) { // Focus on high ratings (4 or 5 stars)
+            if (rating.rating >= 4) {
                 const place = await Places.findOne({ fsq_id: rating.place_id });
                 if (place && place.categories && Array.isArray(place.categories)) {
                     place.categories.forEach(category => {
-                        // Weight by rating value and frequency
                         categoryScores[category] = (categoryScores[category] || 0) + rating.rating;
                     });
                 }
@@ -74,14 +81,14 @@ const recommendations = expressAsyncHandler(async (req, res) => {
         // Fetch places from Foursquare for each top category
         const placeDetails = [];
         for (const category of topCategories) {
-            // Generalize the category if applicable
             const generalizedCategory = categoryGeneralization[category] || category;
-            const categoryId = categoryIdMap[generalizedCategory] || categoryIdMap['Attraction']; // Fallback to Attraction
+            const categoryId = categoryIdMap[generalizedCategory] || categoryIdMap['Attraction'];
             if (!categoryId) {
                 console.warn(`No Foursquare category ID for ${generalizedCategory}`);
                 continue;
             }
             try {
+                // Fetch more places to ensure enough after filtering
                 const response = await axios.get(
                     `https://api.foursquare.com/v3/places/search`,
                     {
@@ -91,13 +98,22 @@ const recommendations = expressAsyncHandler(async (req, res) => {
                         params: {
                             near: city,
                             categories: categoryId,
-                            limit: maxPerCategory,
-                            sort: 'RATING' // Sort by rating for top places
+                            limit: maxPerCategory * 2, // Fetch double to account for filtering
+                            sort: 'RATING'
                         }
                     }
                 );
 
+                let categoryCount = 0;
                 for (const place of response.data.results) {
+                    // Skip if place is already in the itinerary
+                    if (itineraryPlaceIds.includes(place.fsq_id)) {
+                        continue;
+                    }
+                    if (categoryCount >= maxPerCategory) {
+                        break;
+                    }
+
                     let placeData = await Places.findOne({ fsq_id: place.fsq_id });
                     if (!placeData) {
                         placeData = new Places({
@@ -123,10 +139,11 @@ const recommendations = expressAsyncHandler(async (req, res) => {
                         longitude: placeData.longitude,
                         photos: placeData.photos
                     });
+                    categoryCount++;
                 }
             } catch (error) {
                 console.error(`Error fetching places for category ${generalizedCategory}:`, error.message);
-                continue; // Skip to next category
+                continue;
             }
         }
 

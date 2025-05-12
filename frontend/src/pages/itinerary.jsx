@@ -1857,20 +1857,25 @@ export default function Itinerary() {
                         {editingDate === "start" ? (
                           <input
                             type="date"
-                            value={selectedItinerary.startDate || ""}
-                            onChange={(e) =>
-                              setSelectedItinerary({
-                                ...selectedItinerary,
-                                startDate: e.target.value,
-                              })
-                            }
-                            onBlur={(e) => {
+                            defaultValue={selectedItinerary.startDate || ""}
+                            onBlur={async (e) => {
+                              const newDate = e.target.value;
                               setEditingDate(null);
-                              if (selectedItinerary.startDate)
-                                handleFieldUpdate(
-                                  "startDate",
-                                  selectedItinerary.startDate
-                                );
+
+                              if (newDate === selectedItinerary.startDate) return; // no change
+
+                              const confirmed = window.confirm(
+                                `Are you sure you want to update takeoff date to "${newDate}"?`
+                              );
+                              if (!confirmed) return;
+
+                              const success = await handleFieldUpdate("startDate", newDate);
+                              if (success) {
+                                setSelectedItinerary((prev) => ({
+                                  ...prev,
+                                  startDate: newDate,
+                                }));
+                              }
                             }}
                             autoFocus
                           />
@@ -1907,21 +1912,31 @@ export default function Itinerary() {
                         {editingDate === "end" ? (
                           <input
                             type="date"
-                            value={selectedItinerary.endDate || ""}
+                            defaultValue={selectedItinerary.endDate || ""}
                             min={selectedItinerary.startDate}
-                            onChange={(e) =>
-                              setSelectedItinerary({
-                                ...selectedItinerary,
-                                endDate: e.target.value,
-                              })
-                            }
-                            onBlur={(e) => {
+                            onBlur={async (e) => {
+                              const newDate = e.target.value;
                               setEditingDate(null);
-                              if (selectedItinerary.endDate)
-                                handleFieldUpdate(
-                                  "endDate",
-                                  selectedItinerary.endDate
-                                );
+
+                              if (newDate === selectedItinerary.endDate) return;
+
+                              if (newDate < selectedItinerary.startDate) {
+                                alert("Return date cannot be before the takeoff date!");
+                                return;
+                              }
+
+                              const confirmed = window.confirm(
+                                `Are you sure you want to update return date to "${newDate}"?`
+                              );
+                              if (!confirmed) return;
+
+                              const success = await handleFieldUpdate("endDate", newDate);
+                              if (success) {
+                                setSelectedItinerary((prev) => ({
+                                  ...prev,
+                                  endDate: newDate,
+                                }));
+                              }
                             }}
                             autoFocus
                           />

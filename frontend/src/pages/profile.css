@@ -1,0 +1,134 @@
+.profile-container {
+  max-width: 600px;
+  margin: 80px auto 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.6s ease-out;
+  font-family: "Inter", sans-serif;
+  color: rgb(159, 192, 204);
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid rgb(124, 126, 126);
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  color: rgb(159, 192, 204);
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+.tab-button.active {
+  background: rgb(104, 163, 189);
+  color: white;
+  border-radius: 5px 5px 0 0;
+}
+
+.tab-button:hover {
+  background: rgba(162, 203, 221, 0.2);
+}
+
+.tab-content {
+  padding: 20px;
+}
+
+.tab-pane h3 {
+  font-family: "Significent", sans-serif;
+  font-size: 24px;
+  margin-bottom: 15px;
+  text-shadow: 1px 1px 1px rgb(23, 71, 88);
+}
+
+.tab-pane p {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  background: black;
+  border: 1px dashed rgb(124, 126, 126);
+  color: rgb(159, 192, 204);
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  border-radius: 5px;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: rgb(162, 203, 221);
+  box-shadow: 0 0 5px rgb(162, 203, 221);
+}
+
+.dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+  background: rgba(49, 89, 116, 0.9);
+  border: 1px solid rgb(124, 126, 126);
+  border-radius: 5px;
+  margin-bottom: 15px;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(101, 140, 175) #1e1e1e;
+}
+
+.dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: #1e1e1e;
+  border-radius: 10px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: rgb(101, 140, 175);
+  border-radius: 10px;
+}
+
+.dropdown-item {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid rgb(124, 126, 126);
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: rgb(162, 203, 221);
+}
+
+.dropdown-item:hover {
+  background: rgba(162, 203, 221, 0.2);
+}
+
+.update-button {
+  padding: 10px 20px;
+  background: rgb(104, 163, 189);
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+}
+
+.update-button:hover {
+  box-shadow: 0px 0px 15px rgb(162, 203, 221);
+}
+
+.update-button:disabled {
+  background: rgb(80, 100, 120);
+  cursor: not-allowed;
+}

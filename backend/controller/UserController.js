@@ -167,31 +167,117 @@ const storeToken = expressAsyncHandler(async (req, res) => {
   }
 })
 
-const editProfile = expressAsyncHandler(async (req, res) => {
-  console.log('🔒 Profile update route hit');
+const getUser = expressAsyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findById(userId).select("username city");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json({ username: user.username, city: user.city });
+  } catch (error) {
+    console.error("Error fetching user:", error.message);
+    res.status(500).json({ error: "Failed to fetch user data" });
+  }
+});
 
-  const { username, password, email, city } = req.body;
+const updateUsername = expressAsyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ error: "Username is required" });
+  }
 
   try {
-    const user = await User.findById(req.user._id); // req.user is populated by protect
-
+    const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    user.username = username || user.username;
-    user.email = email || user.email;
-    user.password = password || user.password;
-    user.city = city || user.city;
+    const existingUser = await User.findOne({ username });
+    if (existingUser && existingUser._id.toString() !== userId) {
+      return res.status(400).json({ error: "Username already taken" });
+    }
 
+    user.username = username;
     await user.save();
 
-    console.log(`✅ User profile updated: ${user._id}`);
-    res.status(200).json({ message: 'Profile updated successfully', user });
-  } catch (error) {
-    console.error('❌ Error updating profile:', error);
-    res.status(500).json({ error: 'An error occurred. Please try again.' });
-  }
-})
+    // Generate new access token with updated username
+    const accessToken = jwt.sign(
+      { user: { id: user._id, username: user.username, email: user.email } },
+      process.env.ACCESS_SECRET_TOKEN,
+      { expiresIn: "1h" }
+    );
 
-module.exports = { registerUser, loginUser, getFirstname, getUsers, getAllUsersExceptCurrent, storeToken, editProfile };
+    res.status(200).json({ message: "Username updated successfully", username, accessToken });
+  } catch (error) {
+    console.error("Error updating username:", error.message);
+    res.status(500).json({ error: "Failed to update username" });
+  }
+});
+
+const updatePassword = expressAsyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: "All password fields are required" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Current password is incorrect" });
+    }
+
+    const hashPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashPassword;
+    await user.save();
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error.message);
+    res.status(500).json({ error: "Failed to update password" });
+  }
+});
+
+const updateCity = expressAsyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { city } = req.body;
+
+  if (!city) {
+    return res.status(400).json({ error: "City is required" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.city = city;
+    await user.save();
+    res.status(200).json({ message: "City updated successfully", city });
+  } catch (error) {
+    console.error("Error updating city:", error.message);
+    res.status(500).json({ error: "Failed to update city" });
+  }
+});
+
+module.exports = {
+  registerUser,
+  loginUser,
+  getFirstname,
+  getUsers,
+  getAllUsersExceptCurrent,
+  storeToken,
+  getUser,
+  updateUsername,
+  updatePassword,
+  updateCity,
+};

@@ -25,26 +25,26 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      setLoading(true); // Set loading to true at the start
       const token = localStorage.getItem("accessToken");
       if (!token) {
         console.error("No token found in localStorage.");
+        setLoading(false); // Stop loading if no token
         return;
       }
 
       try {
-        const response = await fetch(
-          "http://localhost:5001/api/users/getname",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch("http://localhost:5001/api/users/getname", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (response.status === 401) {
           console.error("Unauthorized: Invalid token");
+          setLoading(false); // Stop loading on error
           return;
         }
 
@@ -54,11 +54,14 @@ export default function Dashboard() {
         setFirstName(data.first_name || "Guest");
       } catch (error) {
         console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false); // Always stop loading at the end
       }
     };
 
     fetchUserData();
   }, []);
+
 
   useEffect(() => {
     const fetchItineraries = async () => {
@@ -196,7 +199,7 @@ export default function Dashboard() {
   }, [userId, notifications]); // Only update if userId or notifications change
 
   return (
-    <div style={{ paddingBottom: "100px", minHeight: "100vh"}}>
+    <div style={{ paddingBottom: "100px", minHeight: "100vh" }}>
       {Loading ? (
         <>
           <img src={spinner} style={{
@@ -205,7 +208,7 @@ export default function Dashboard() {
             top: "15vw",
             left: "43vw",
             animation: "spin 10s linear infinite",
-          }}/>
+          }} />
 
           <div style={{
             position: "fixed",

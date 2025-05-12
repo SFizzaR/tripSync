@@ -252,8 +252,8 @@ export default function Itinerary() {
             displayName: user.isYou
               ? `${user.username} (You)`
               : user.role === "admin"
-              ? `Admin - ${user.username}`
-              : user.username,
+                ? `Admin - ${user.username}`
+                : user.username,
           }));
           mappedUsers.sort((a, b) => {
             if (a.role === "admin") return -1;
@@ -679,24 +679,35 @@ export default function Itinerary() {
 
   const [editingDate, setEditingDate] = useState(null);
 
-  const handleBudgetToggle = () => {
+  const handleBudgetToggle = async () => {
     const budgetOptions = ["Economical", "Standard", "Luxury"];
     const currentIndex = budgetOptions.indexOf(
       selectedItinerary.budget || "Standard"
     );
     const newBudget = budgetOptions[(currentIndex + 1) % budgetOptions.length];
-    setSelectedItinerary({ ...selectedItinerary, budget: newBudget });
-    handleFieldUpdate("budget", newBudget);
+
+    const success = await handleFieldUpdate("budget", newBudget);
+    if (success) {
+      setSelectedItinerary((prev) => ({
+        ...prev,
+        budget: newBudget,
+      }));
+    }
   };
 
-  const handleStatusChange = (e) => {
+
+  const handleStatusChange = async (e) => {
     const newStatus = e.target.value;
-    setSelectedItinerary((prev) => ({
-      ...prev,
-      status: newStatus,
-    }));
-    handleFieldUpdate("status", newStatus);
+
+    const success = await handleFieldUpdate("status", newStatus);
+    if (success) {
+      setSelectedItinerary((prev) => ({
+        ...prev,
+        status: newStatus,
+      }));
+    }
   };
+
 
   console.log("Selected Option:", selectedOption);
 
@@ -860,8 +871,7 @@ export default function Itinerary() {
     }
     console.log("Attempting to delete itinerary with ID:", itineraryIdnow);
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete the itinerary "${
-        selectedItinerary.title || "Untitled Itinerary"
+      `Are you sure you want to delete the itinerary "${selectedItinerary.title || "Untitled Itinerary"
       }"?`
     );
     if (!confirmDelete) return;
@@ -1112,8 +1122,8 @@ export default function Itinerary() {
                     backgroundColor: "rgb(104, 163, 189)",
                   }}
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 18px rgb(204, 231, 243)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 18px rgb(204, 231, 243)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1125,8 +1135,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1193,8 +1203,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1206,8 +1216,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1246,22 +1256,28 @@ export default function Itinerary() {
                   <input
                     type="date"
                     value={takeoffDate}
-                    onChange={(e) => setTakeoffDate(e.target.value)}
-                    className={`date-input ${
-                      takeoffDate ? "date-filled" : "date-empty"
-                    }`}
+                    onChange={async (e) => {
+                      const selectedDate = e.target.value;
+                      const success = await handleFieldUpdate("takeoffDate", selectedDate);
+                      if (success) setTakeoffDate(selectedDate);
+                    }}
+                    className={`date-input ${takeoffDate ? "date-filled" : "date-empty"
+                      }`}
+
                   />
                   <FaCalendarAlt
-                    className={`calendar-icon ${
-                      !takeoffDate && !touchdownDate
-                        ? "calendar-icon-default"
-                        : "calendar-icon-adjusted"
-                    }`}
+                    className={`calendar-icon ${!takeoffDate && !touchdownDate
+                      ? "calendar-icon-default"
+                      : "calendar-icon-adjusted"
+                      }`}
                   />
                   {takeoffDate && (
                     <button
                       className="reset-button"
-                      onClick={() => setTakeoffDate("")}
+                      onClick={async () => {
+                        const success = await handleFieldUpdate("takeoffDate", "");
+                        if (success) setTakeoffDate("");
+                      }}
                     >
                       RESET
                     </button>
@@ -1272,35 +1288,33 @@ export default function Itinerary() {
                   <input
                     type="date"
                     value={touchdownDate}
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const selectedDate = e.target.value;
                       if (selectedDate && selectedDate < takeoffDate) {
-                        console.error(
-                          "❌ Error: Touchdown date cannot be before takeoff date!"
-                        );
-                        alert(
-                          "Touchdown date cannot be before the takeoff date!"
-                        );
+                        alert("Touchdown date cannot be before the takeoff date!");
                         return;
                       }
-                      setTouchdownDate(selectedDate);
+                      const success = await handleFieldUpdate("touchdownDate", selectedDate);
+                      if (success) setTouchdownDate(selectedDate);
                     }}
                     min={takeoffDate}
-                    className={`date-input ${
-                      touchdownDate ? "date-filled" : "date-empty"
-                    }`}
+                    className={`date-input ${touchdownDate ? "date-filled" : "date-empty"
+                      }`}
                   />
                   <FaCalendarAlt
-                    className={`calendar-icon ${
-                      !takeoffDate && !touchdownDate
-                        ? "calendar-icon-default"
-                        : "calendar-icon-adjusted"
-                    }`}
+                    className={`calendar-icon ${!takeoffDate && !touchdownDate
+                      ? "calendar-icon-default"
+                      : "calendar-icon-adjusted"
+                      }`}
                   />
                   {touchdownDate && (
                     <button
                       className="reset-button"
-                      onClick={() => setTouchdownDate("")}
+                      onClick={async () => {
+                        const success = await handleFieldUpdate("touchdownDate", "");
+                        if (success) setTouchdownDate("");
+                      }}
+
                     >
                       RESET
                     </button>
@@ -1312,8 +1326,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1325,8 +1339,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.pageXOffsetShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1393,8 +1407,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1419,8 +1433,8 @@ export default function Itinerary() {
                     backgroundColor: "rgb(104, 163, 189)",
                   }}
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 18px rgb(198, 236, 252)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 18px rgb(198, 236, 252)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1441,8 +1455,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {soloItineraries &&
-                  Array.isArray(soloItineraries) &&
-                  soloItineraries.length > 0 ? (
+                    Array.isArray(soloItineraries) &&
+                    soloItineraries.length > 0 ? (
                     soloItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1468,8 +1482,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {colabItineraries &&
-                  Array.isArray(colabItineraries) &&
-                  colabItineraries.length > 0 ? (
+                    Array.isArray(colabItineraries) &&
+                    colabItineraries.length > 0 ? (
                     colabItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1864,12 +1878,12 @@ export default function Itinerary() {
                           <div className="dates">
                             {selectedItinerary.startDate
                               ? new Date(selectedItinerary.startDate)
-                                  .toLocaleDateString("en-US", {
-                                    month: "2-digit",
-                                    day: "2-digit",
-                                    year: "numeric",
-                                  })
-                                  .replace(/\//g, "-")
+                                .toLocaleDateString("en-US", {
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })
+                                .replace(/\//g, "-")
                               : "--/--/--"}
                           </div>
                         )}
@@ -1915,12 +1929,12 @@ export default function Itinerary() {
                           <div className="dates">
                             {selectedItinerary.endDate
                               ? new Date(selectedItinerary.endDate)
-                                  .toLocaleDateString("en-US", {
-                                    month: "2-digit",
-                                    day: "2-digit",
-                                    year: "numeric",
-                                  })
-                                  .replace(/\//g, "-")
+                                .toLocaleDateString("en-US", {
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })
+                                .replace(/\//g, "-")
                               : "--/--/--"}
                           </div>
                         )}
@@ -1970,11 +1984,10 @@ export default function Itinerary() {
                       </div>
                     </div>
                     <div
-                      className={`itinerary-container ${
-                        selectedItinerary.title !== selectedItinerary.city
-                          ? "large"
-                          : "extra-large"
-                      }`}
+                      className={`itinerary-container ${selectedItinerary.title !== selectedItinerary.city
+                        ? "large"
+                        : "extra-large"
+                        }`}
                     >
                       <div
                         style={{
@@ -2190,11 +2203,10 @@ export default function Itinerary() {
                                       {[1, 2, 3, 4, 5].map((star) => (
                                         <span
                                           key={star}
-                                          className={`star ${
-                                            ratings[place.fsq_id] >= star
-                                              ? "filled"
-                                              : ""
-                                          }`}
+                                          className={`star ${ratings[place.fsq_id] >= star
+                                            ? "filled"
+                                            : ""
+                                            }`}
                                           onClick={() =>
                                             handleRating(place.fsq_id, star)
                                           }
@@ -2213,7 +2225,7 @@ export default function Itinerary() {
                                     textAlign: "center",
                                     padding: "10px",
                                     listStyle: "none",
-                                 }}
+                                  }}
                                 >
                                   No Places found.
                                 </li>
@@ -2410,7 +2422,7 @@ export default function Itinerary() {
                         }}
                       >
                         {selectedItinerary &&
-                        selectedItinerary.places?.length > 0 ? (
+                          selectedItinerary.places?.length > 0 ? (
                           selectedItinerary.places.map((place) => (
                             <div
                               key={place.placeId}

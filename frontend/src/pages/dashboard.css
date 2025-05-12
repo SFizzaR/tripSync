@@ -6,3 +6,37 @@
     color: rgba(215, 248, 248, 0.89);
     text-shadow: 3px 3px 1px rgb(106, 167, 175);
 }
+
+.react-calendar__tile {
+  transition: background-color 0.2s ease;
+}
+
+.react-calendar__tile:hover {
+  background-color: rgba(159, 188, 224, 0.566);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.highlight-today {
+  border-radius: 8px;
+}
+
+.highlight {
+  background-color: #ffe58a;
+  border-radius: 8px;
+}
+
+.selected-tile {
+  background-color: #052c5f65 !important;
+  color: #000;
+  border-radius: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -53,7 +53,7 @@
 
 * Retrieves weather data from **NOAA** and **Meteosat**
 * Auto-generates synthetic data if APIs fail
-* Displays weather directly on the user’s dashboard
+* Schedules weather based itineraries 
 
 ## 🚀 Getting Started
 

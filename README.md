@@ -10,7 +10,7 @@
 
 ## Core Features
 
-* ** Personalised Dashboard**: Get current location weather, and personal calendar to keep track of upcoming events
+* **Personalised Dashboard**: Get current location weather, and personal calendar to keep track of upcoming events
 
 ![image](https://github.com/user-attachments/assets/6d1e4fa9-d0ba-4e64-8fc1-94271af41400)
 

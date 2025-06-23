@@ -268,8 +268,8 @@ export default function Itinerary() {
             displayName: user.isYou
               ? `${user.username} (You)`
               : user.role === "admin"
-              ? `Admin - ${user.username}`
-              : user.username,
+                ? `Admin - ${user.username}`
+                : user.username,
           }));
           mappedUsers.sort((a, b) => {
             if (a.role === "admin") return -1;
@@ -295,14 +295,14 @@ export default function Itinerary() {
     const token = localStorage.getItem("accessToken");
     const currentUserId = localStorage.getItem("userId");
     if (!token) {
-      alert("No token found. User not authenticated.");
+      toast.error("No token found. User not authenticated.");
       return;
     }
     const isCurrentUserAdmin = users.some(
       (u) => u._id === currentUserId && u.role === "admin"
     );
     if (!isCurrentUserAdmin && isTargetAdmin) {
-      alert("Admin cannot be removed.");
+      toast.error("Admin cannot be removed.");
       return;
     }
     const confirmDelete = window.confirm(
@@ -326,17 +326,17 @@ export default function Itinerary() {
           prevUsers.filter((user) => user._id !== userId)
         );
         if (userId === currentUserId) {
-          alert("You left the itinerary.");
+          toast.success("You left the itinerary.");
           navigate("/dashboard");
         } else {
-          alert("User removed successfully.");
+          toast.success("User removed successfully.");
         }
       } else {
-        alert(data.message || "Error removing user.");
+        toast.error(data.message || "Error removing user.");
       }
     } catch (error) {
       console.error("Failed to delete user:", error);
-      alert("Something went wrong.");
+      toast.error("Something went wrong.");
     }
   };
 
@@ -373,7 +373,7 @@ export default function Itinerary() {
   const handleAddPlace = (placeId, placeName) => {
     if (!placeId || !itineraryIdnow || !placeName) {
       console.error("❌ Error: Missing itineraryId, placeId, or placeName.");
-      alert("Error: Itinerary, Place ID, or Place Name is missing.");
+      toast.error("Error: Itinerary, Place ID, or Place Name is missing.");
       return;
     }
     console.log(
@@ -531,7 +531,7 @@ export default function Itinerary() {
   const addPlaceToItinerary = async (itineraryIdnow, placeId, placeName) => {
     if (!itineraryIdnow || !placeId || !placeName) {
       console.error("❌ Error: Missing itineraryId, placeId, or placeName.");
-      alert("Error: Itinerary, Place ID, or Place Name is missing.");
+      toast.error("Error: Itinerary, Place ID, or Place Name is missing.");
       return;
     }
     console.log("📌 Sending request to add place:");
@@ -565,7 +565,7 @@ export default function Itinerary() {
       }
     } catch (error) {
       console.error("❌ Network error:", error);
-      alert(`Failed to add place: ${error.message}`);
+      toast.error(`Failed to add place`);
     }
   };
 
@@ -600,7 +600,7 @@ export default function Itinerary() {
   const handleFinish = async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      alert("User not authenticated");
+      toast.error("User not authenticated");
       return;
     }
     try {
@@ -643,7 +643,7 @@ export default function Itinerary() {
         toast.error("❌ Error: " + (data.error || "Unknown error"));
       }
     } catch (error) {
-      alert("Failed to save itinerary.");
+      toast.error("Failed to save itinerary.");
     }
   };
 
@@ -663,25 +663,25 @@ export default function Itinerary() {
       );
       const data = await res.json();
       if (res.ok) {
-        alert("Update successful!");
+        toast.success("Update successful!");
       } else {
-        alert(`Update failed: ${data.message}`);
+        toast.error(`Update failed`);
       }
     } catch (err) {
       console.error("Update error:", err);
-      alert("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
     }
   };
 
   const handleNext = () => {
     if (step === 1 && !selectedOption) {
-      alert("Please select an option");
+      toast.error("Please select an option");
       return;
     } else if (step === 2 && !city) {
-      alert("Please select a city before proceeding.");
+      toast.error("Please select a city before proceeding.");
       return;
     } else if (step === 3 && (!takeoffDate || !touchdownDate)) {
-      alert("Please enter dates before proceeding.");
+      toast.error("Please enter dates before proceeding.");
       return;
     }
     setStep(step + 1);
@@ -790,7 +790,7 @@ export default function Itinerary() {
       try {
         const token = localStorage.getItem("accessToken");
         if (!token) {
-          alert("User not authenticated");
+          toast.error("User not authenticated");
           return;
         }
         const user = JSON.parse(localStorage.getItem("user"));
@@ -809,13 +809,13 @@ export default function Itinerary() {
         });
         const data = await response.json();
         if (response.ok) {
-          alert("✅ Invitation sent successfully!");
+          toast.success("Invitation sent successfully!");
         } else {
-          alert("❌ Error: " + data.message);
+          toast.error("Error: " + data.message);
         }
       } catch (error) {
         console.error("❌ Error sending invitation:", error);
-        alert("Failed to send invitation.");
+        toast.error("Failed to send invitation.");
       }
     }, 5000);
   };
@@ -876,8 +876,7 @@ export default function Itinerary() {
     }
     console.log("Attempting to delete itinerary with ID:", itineraryIdnow);
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete the itinerary "${
-        selectedItinerary.title || "Untitled Itinerary"
+      `Are you sure you want to delete the itinerary "${selectedItinerary.title || "Untitled Itinerary"
       }"?`
     );
     if (!confirmDelete) return;
@@ -1128,8 +1127,8 @@ export default function Itinerary() {
                     backgroundColor: "rgb(104, 163, 189)",
                   }}
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 18px rgb(204, 231, 243)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 18px rgb(204, 231, 243)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1141,8 +1140,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1209,8 +1208,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1222,8 +1221,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1280,16 +1279,14 @@ export default function Itinerary() {
                       }
                       setTakeoffDate(selectedDate);
                     }}
-                    className={`date-input ${
-                      takeoffDate ? "date-filled" : "date-empty"
-                    }`}
+                    className={`date-input ${takeoffDate ? "date-filled" : "date-empty"
+                      }`}
                   />
                   <FaCalendarAlt
-                    className={`calendar-icon ${
-                      !takeoffDate && !touchdownDate
-                        ? "calendar-icon-default"
-                        : "calendar-icon-adjusted"
-                    }`}
+                    className={`calendar-icon ${!takeoffDate && !touchdownDate
+                      ? "calendar-icon-default"
+                      : "calendar-icon-adjusted"
+                      }`}
                   />
                   {takeoffDate && (
                     <button
@@ -1328,16 +1325,14 @@ export default function Itinerary() {
                       }
                       setTouchdownDate(selectedDate);
                     }}
-                    className={`date-input ${
-                      touchdownDate ? "date-filled" : "date-empty"
-                    }`}
+                    className={`date-input ${touchdownDate ? "date-filled" : "date-empty"
+                      }`}
                   />
                   <FaCalendarAlt
-                    className={`calendar-icon ${
-                      !takeoffDate && !touchdownDate
-                        ? "calendar-icon-default"
-                        : "calendar-icon-adjusted"
-                    }`}
+                    className={`calendar-icon ${!takeoffDate && !touchdownDate
+                      ? "calendar-icon-default"
+                      : "calendar-icon-adjusted"
+                      }`}
                   />
                   {touchdownDate && (
                     <button
@@ -1354,8 +1349,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1367,8 +1362,8 @@ export default function Itinerary() {
                   onClick={handleNext}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1435,8 +1430,8 @@ export default function Itinerary() {
                   onClick={handleBack}
                   className="create-box-buttons"
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 15px rgb(162, 203, 221)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 15px rgb(162, 203, 221)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1461,8 +1456,8 @@ export default function Itinerary() {
                     backgroundColor: "rgb(104, 163, 189)",
                   }}
                   onMouseEnter={(e) =>
-                    (e.target.style.boxShadow =
-                      "0px 0px 18px rgb(198, 236, 252)")
+                  (e.target.style.boxShadow =
+                    "0px 0px 18px rgb(198, 236, 252)")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.boxShadow = "1px 1px 3px rgb(36, 57, 66)")
@@ -1483,8 +1478,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {soloItineraries &&
-                  Array.isArray(soloItineraries) &&
-                  soloItineraries.length > 0 ? (
+                    Array.isArray(soloItineraries) &&
+                    soloItineraries.length > 0 ? (
                     soloItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1510,8 +1505,8 @@ export default function Itinerary() {
               <navbar>
                 <ul className="itinerary-list">
                   {colabItineraries &&
-                  Array.isArray(colabItineraries) &&
-                  colabItineraries.length > 0 ? (
+                    Array.isArray(colabItineraries) &&
+                    colabItineraries.length > 0 ? (
                     colabItineraries.map((itinerary) => (
                       <li
                         key={itinerary.id}
@@ -1907,12 +1902,12 @@ export default function Itinerary() {
                           <div className="dates">
                             {selectedItinerary.startDate
                               ? new Date(selectedItinerary.startDate)
-                                  .toLocaleDateString("en-US", {
-                                    month: "2-digit",
-                                    day: "2-digit",
-                                    year: "numeric",
-                                  })
-                                  .replace(/\//g, "-")
+                                .toLocaleDateString("en-US", {
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })
+                                .replace(/\//g, "-")
                               : "--/--/--"}
                           </div>
                         )}
@@ -1958,12 +1953,12 @@ export default function Itinerary() {
                           <div className="dates">
                             {selectedItinerary.endDate
                               ? new Date(selectedItinerary.endDate)
-                                  .toLocaleDateString("en-US", {
-                                    month: "2-digit",
-                                    day: "2-digit",
-                                    year: "numeric",
-                                  })
-                                  .replace(/\//g, "-")
+                                .toLocaleDateString("en-US", {
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })
+                                .replace(/\//g, "-")
                               : "--/--/--"}
                           </div>
                         )}
@@ -2013,11 +2008,10 @@ export default function Itinerary() {
                       </div>
                     </div>
                     <div
-                      className={`itinerary-container ${
-                        selectedItinerary.title !== selectedItinerary.city
-                          ? "large"
-                          : "extra-large"
-                      }`}
+                      className={`itinerary-container ${selectedItinerary.title !== selectedItinerary.city
+                        ? "large"
+                        : "extra-large"
+                        }`}
                       style={{
                         display: "grid",
                         gridTemplateRows: "auto 1fr 1fr",
@@ -2243,11 +2237,10 @@ export default function Itinerary() {
                                       {[1, 2, 3, 4, 5].map((star) => (
                                         <span
                                           key={star}
-                                          className={`star ${
-                                            ratings[place.fsq_id] >= star
-                                              ? "filled"
-                                              : ""
-                                          }`}
+                                          className={`star ${ratings[place.fsq_id] >= star
+                                            ? "filled"
+                                            : ""
+                                            }`}
                                           onClick={() =>
                                             handleRating(place.fsq_id, star)
                                           }
@@ -2531,7 +2524,7 @@ export default function Itinerary() {
                                 }}
                               >
                                 {placeDetails?.latitude &&
-                                placeDetails?.longitude
+                                  placeDetails?.longitude
                                   ? `${placeDetails.latitude}, ${placeDetails.longitude}`
                                   : "Not available"}
                               </strong>
@@ -2595,7 +2588,7 @@ export default function Itinerary() {
                         }}
                       >
                         {selectedItinerary &&
-                        selectedItinerary.places?.length > 0 ? (
+                          selectedItinerary.places?.length > 0 ? (
                           selectedItinerary.places.map((place) => (
                             <div
                               key={place.placeId}

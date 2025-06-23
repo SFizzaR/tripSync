@@ -42,8 +42,7 @@ export default function MultiStepForm() {
   const [dropdownShow, setdropdownShow] = useState(false);
   const allCities = citiesData;
 
-  const [mismatch, setMismatch] = useState(false);
-
+  const [isFromDropDown, setIsfromDropdown] = useState(false);
   const nextStep = () => setStep((prev) => (prev < 3 ? prev + 1 : prev));
   const prevStep = () => setStep((prev) => (prev > 1 ? prev - 1 : prev));
 
@@ -558,28 +557,26 @@ export default function MultiStepForm() {
                     value={formData.city}
                     onChange={handleSearch}
                     onFocus={(e) => {
-                      e.target.previousSibling.style.top = "0px";
-                      e.target.style.border = "3px solid rgb(4, 82, 113)";
-                      setErrors((prev) => ({ ...prev, city: false }));
-                      if (formData.city) {
-                        const filtered = allCities.filter((item) =>
-                          item.city
-                            .toLowerCase()
-                            .includes(formData.city.toLowerCase())
-                        );
-                        setFilteredCities(filtered);
-                        setdropdownShow(filtered.length > 0);
+                      if (!isFromDropDown) {
+                        const matched = allCities.find(
+                          (item) => item.city.toLowerCase() == e.target.value.toLowerCase()
+                        )
+                        if (!matched) {
+                          setFormData((prev) => ({ ...prev, city: "" }))
+                          setErrors((prev) => ({ ...prev, city: true }));
+
+                        }
                       }
-                    }}
-                    onBlur={(e) => {
+                      setdropdownShow(false)
                       if (!e.target.value) {
                         e.target.previousSibling.style.top = "56%";
                         e.target.style.border = "2px solid white";
                       } else {
                         e.target.style.border = "3px solid rgb(175, 210, 224)";
                       }
-                      setdropdownShow(false);
+                      setIsfromDropdown(false)
                     }}
+
                     style={{
                       width: "100%",
                       padding: "10px",
@@ -621,15 +618,14 @@ export default function MultiStepForm() {
                       {filteredCities.map((item) => (
                         <div
                           key={item.city}
-                          onClick={() => {
-                            handleChange({
-                              target: {
-                                name: "city",
-                                value: `${item.city}`,
-                              },
-                            });
+
+
+                          onMouseDown={() => {
+                            setFormData((prev) => ({ ...prev, city: item.city }));
                             setdropdownShow(false);
+                            setIsfromDropdown(true);
                           }}
+
                           style={{
                             padding: "8px",
                             display: "flex",

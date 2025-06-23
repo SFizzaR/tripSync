@@ -11,29 +11,37 @@ import Header from "../components/header";
 import Logo from "../components/logo";
 import "./dashboard.css";
 import spinner from "../assets/icons/options/snowflake-solid.svg";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 export default function Dashboard() {
-  const [Loading, setLoading] = useState(false);
+  const [Loading, setLoading] = useState(true);
   const [date, setDate] = useState(new Date());
   const [firstName, setFirstName] = useState("Guest");
   const [userLocation, setUserLocation] = useState("");
   const [userId, setUserId] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [events, setEvents] = useState([]);
+  const [countdowns, setCountdowns] = useState([]);
 
-  const itineraryDates = ["2025-01-10", "2025-02-10", "2025-02-20"];
+  const itineraryDates = ["2025-05-10", "2025-05-13", "2025-02-20"];
 
   useEffect(() => {
     const fetchUserData = async () => {
-      setLoading(true); // Set loading to true at the start
+      setLoading(true);
       const token = localStorage.getItem("accessToken");
       if (!token) {
         console.error("No token found in localStorage.");
-        setLoading(false); // Stop loading if no token
+        setLoading(false);
         return;
       }
 
       try {
+        // Decode token to get userId
+        const decoded = jwtDecode(token);
+        const id = decoded.user?.id || decoded._id;
+        setUserId(id);
+
         const response = await fetch("http://localhost:5001/api/users/getname", {
           method: "GET",
           headers: {
@@ -44,44 +52,36 @@ export default function Dashboard() {
 
         if (response.status === 401) {
           console.error("Unauthorized: Invalid token");
-          setLoading(false); // Stop loading on error
+          setLoading(false);
           return;
         }
 
         const data = await response.json();
-        setUserId(data._id);
         setUserLocation(data.city);
         setFirstName(data.first_name || "Guest");
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false); // Always stop loading at the end
+        setLoading(false);
       }
     };
 
     fetchUserData();
   }, []);
 
-
   useEffect(() => {
     const fetchItineraries = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5001/api/itineraries/calender",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
-          }
-        );
+        const response = await fetch("http://localhost:5001/api/itineraries/calendar", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch itineraries");
-        }
+        if (!response.ok) throw new Error("Failed to fetch itineraries");
 
         const rawData = await response.json();
-        console.log("Calendar API response:", rawData);
 
         const formattedEvents = rawData.map((event) => ({
           title: event.title,
@@ -102,7 +102,6 @@ export default function Dashboard() {
     fetchItineraries();
   }, []);
 
-  // Filter events by selected date
   const isSameDay = (d1, d2) =>
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
@@ -111,20 +110,17 @@ export default function Dashboard() {
   const eventsForSelectedDate = events.filter((event) =>
     isSameDay(event.start, date)
   );
-  console.log("All Events:", events);
-  console.log("Selected Date:", date);
-  console.log("Events For Selected Date:", eventsForSelectedDate);
 
   const eventDates = new Set(
     events.map((event) => {
       const d = new Date(event.start);
-      return d.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      return d.toISOString().split("T")[0];
     })
   );
 
   const markNotificationAsRead = async (notificationId) => {
     try {
-      const response = await fetch("http://localhost:5001/api/notifications/", {
+      await fetch("http://localhost:5001/api/notifications/", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -132,8 +128,6 @@ export default function Dashboard() {
         },
         body: JSON.stringify({ notificationId, read: true }),
       });
-
-      if (!response.ok) throw new Error("Failed to mark as read");
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -141,13 +135,10 @@ export default function Dashboard() {
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem("accessToken"); // Ensure you're using the correct token key
-      if (!token) {
-        console.error("No token found in localStorage.");
-        return;
-      }
+      const token = localStorage.getItem("accessToken");
+      if (!token) return;
 
-      const response = await fetch(`http://localhost:5001/api/notifications/`, {
+      const response = await fetch("http://localhost:5001/api/notifications/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -155,13 +146,10 @@ export default function Dashboard() {
         },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch notifications");
-      }
+      if (!response.ok) throw new Error("Failed to fetch notifications");
 
       const data = await response.json();
       setNotifications(data);
-      console.log("Fetched notifications:", data);
 
       if (data) {
         data.forEach((notification) => {
@@ -175,51 +163,106 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchNotifications().then(() => {
-      console.log("✅ Fetch completed.");
-    });
+    fetchNotifications();
   }, []);
 
   useEffect(() => {
     generateToken();
 
     onMessage(messaging, (payload) => {
-      console.log("FCM Message Received:", payload);
-
       const newNotification = {
         message: payload.notification.body,
-        type: payload.data?.type || "default", // Assuming type is passed in data payload
-        _id: payload.data?.id || new Date().getTime(), // Fallback ID
+        type: payload.data?.type || "default",
+        _id: payload.data?.id || new Date().getTime(),
       };
 
       setNotifications((prev) => [...prev, newNotification]);
 
       toast(newNotification.message);
     });
-  }, [userId, notifications]); // Only update if userId or notifications change
+  }, [userId]);
+
+  const calculateCountdown = (startDate) => {
+    const targetDate = new Date(startDate);
+    const now = new Date();
+    const diffMs = targetDate - now;
+
+    if (diffMs <= 0) {
+      return "✈️ Itinerary has started.";
+    }
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
+    return `🕒 ${days} days, ${hours} hrs, ${minutes} mins left`;
+  };
+
+  const fetchCountdowns = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token || !userId) return;
+
+      const response = await axios.get(
+        `http://localhost:5001/api/itineraries/getStartDates`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const itineraries = response.data;
+      if (itineraries && itineraries.length > 0) {
+        const countdownData = itineraries.map((itinerary) => ({
+          itineraryId: itinerary.itineraryId,
+          title: itinerary.title,
+          city: itinerary.city,
+          countdownText: calculateCountdown(itinerary.startDate),
+        }));
+        setCountdowns(countdownData);
+      } else {
+        setCountdowns([{ title: "No Itineraries", countdownText: "📭 No upcoming itineraries." }]);
+      }
+    } catch (error) {
+      console.error("Countdown error:", error);
+      setCountdowns([{ title: "Error", countdownText: "⚠️ Error fetching countdowns." }]);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchCountdowns();
+    }
+  }, [userId]);
 
   return (
     <div style={{ paddingBottom: "100px", minHeight: "100vh" }}>
       {Loading ? (
         <>
-          <img src={spinner} style={{
-            position: "fixed",
-            width: "10%",
-            top: "15vw",
-            left: "43vw",
-            animation: "spin 10s linear infinite",
-          }} />
-
-          <div style={{
-            position: "fixed",
-            width: "10%",
-            top: "28vw",
-            left: "41.5vw",
-            color: "white",
-            fontSize: "3vw",
-            fontFamily: "Inter",
-          }}
-          ><i>Loading...</i></div>
+          <img
+            src={spinner}
+            style={{
+              position: "fixed",
+              width: "10%",
+              top: "15vw",
+              left: "43vw",
+              animation: "spin 10s linear infinite",
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              width: "10%",
+              top: "28vw",
+              left: "41.5vw",
+              color: "white",
+              fontSize: "3vw",
+              fontFamily: "Inter",
+            }}
+          >
+            <i>Loading...</i>
+          </div>
         </>
       ) : (
         <>
@@ -244,10 +287,7 @@ export default function Dashboard() {
             <Sidebar currentPath={useLocation().pathname} />
           </nav>
 
-          <Header
-            title={`Welcome, ${firstName}`}
-            text="WHERE ARE YOU HEADING NEXT?"
-          />
+          <Header title={`Welcome, ${firstName}`} text="WHERE ARE YOU HEADING NEXT?" />
 
           <section>
             <p className="section-title">WEATHER</p>
@@ -286,24 +326,31 @@ export default function Dashboard() {
                   ) : null;
                 }}
               />
+            </div>
+            <div className="event-section">
+              <h3>Events for {date.toDateString()}</h3>
+              {eventsForSelectedDate.length === 0 ? (
+                <p>No events on this date.</p>
+              ) : (
+                <ul>
+                  {eventsForSelectedDate.map((event, index) => (
+                    <li key={index}>
+                      <strong>{event.title}</strong> in{" "}
+                      {event.extendedProps.city}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
 
-              <div className="event-list">
-                <h4>Events on {date.toDateString()}:</h4>
-                {eventsForSelectedDate.length > 0 ? (
-                  <ul>
-                    {eventsForSelectedDate.map((event, index) => (
-                      <li key={index}>
-                        <strong>{event.title}</strong> (
-                        {event.extendedProps.city})<br />
-                        {event.start.toLocaleTimeString()} -{" "}
-                        {event.end.toLocaleTimeString()}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No events on this day.</p>
-                )}
-              </div>
+          <section>
+            <p className="section-title">COUNTDOWN</p>
+            <div className="countdown-box">
+              {countdowns.map((countdown, index) => (
+                <div key={index} style={{ marginBottom: "10px" }}>
+                </div>
+              ))}
             </div>
           </section>
         </>

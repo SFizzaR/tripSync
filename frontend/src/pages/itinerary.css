@@ -118,7 +118,7 @@
   background-color: rgb(151, 198, 212);
   box-shadow: 1px 1px 3px rgb(36, 57, 66);
   border: none;
-  padding: 4px;
+  padding: 6px;
   font-family: "Inter", sans-serif;
   font-weight: bold;
   font-size: clamp(5px, 1.5vw, 18px);
@@ -128,7 +128,6 @@
   max-width: 250px;
   max-height: 4vw;
   margin-left: 12vw;
-  overflow-x: hidden;
   white-space: nowrap;
 }
 
@@ -235,7 +234,7 @@
 }
 
 .date-title {
-  color: rgb(28, 101, 134);
+  color: rgb(203, 228, 240);
   font-size: 90%;
   font-weight: bold;
   margin-bottom: 10%;
@@ -281,14 +280,14 @@
 }
 
 .reset-button {
-  background-color: purple;
+  background-color: rgb(158, 213, 223);
   box-shadow: 0px 0px 2px rgb(85, 51, 123);
   border-style: none;
   padding: 8px 10px;
   font-family: Montserrat;
   font-weight: bold;
   font-size: 12px;
-  color: white;
+  color: rgb(3, 55, 71);
   border-radius: 10px;
   cursor: pointer;
   display: flex;
@@ -390,7 +389,6 @@
     background-color: transparent;
     border: none;
     margin: 5px;
-    
     padding: 5px 15px;
     font-family: "Montserrat", sans-serif;
     font-weight: bold;
@@ -402,7 +400,6 @@
     align-items: center;
     justify-content: start;
     gap: 4px;
-    overflow-x: hidden;
     white-space: nowrap;
 }
 

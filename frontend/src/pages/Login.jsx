@@ -4,6 +4,7 @@ import plane from "../assets/plane.PNG";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from 'axios';
+import toast from "react-hot-toast";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -31,7 +32,7 @@ export default function Login() {
 
             const { accessToken, username } = response.data; // ✅ Ensure username is extracted
 
-            alert('Sign-in successful!');
+            toast.success('Sign-in successful!');
             
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('username', username); // ✅ Now `username` is correctly used
@@ -69,7 +70,7 @@ export default function Login() {
           maxWidth: "400px",
           minWidth: "400px",
           height: "95%",
-          backgroundColor: "rgba(85, 175, 202, 0.2)",
+          backgroundColor: "rgba(61, 61, 62, 0.2)",
           backdropFilter: "blur(5px)",
           borderRadius: "10px",
           boxShadow: "1px 2px 10px rgba(0, 0, 0, 0.5)",

@@ -76,23 +76,30 @@ body{
 }
 
 /* For WebKit-based browsers (Chrome, Edge, Safari) */
+.filters::-webkit-scrollbar,
+body::-webkit-scrollbar,
 .solo-itineraries::-webkit-scrollbar,
 .collab-itineraries::-webkit-scrollbar {
   width: 8px; 
 }
 
+.filters::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
 .solo-itineraries::-webkit-scrollbar-track,
 .collab-itineraries::-webkit-scrollbar-track {
   background: #1e1e1e; 
-  border-radius: 10px;
 }
 
+.filters::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
 .solo-itineraries::-webkit-scrollbar-thumb,
 .collab-itineraries::-webkit-scrollbar-thumb {
   background: rgb(101, 140, 175); 
   border-radius: 10px;
 }
 
+.filters::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
 .solo-itineraries::-webkit-scrollbar-thumb:hover,
 .collab-itineraries::-webkit-scrollbar-thumb:hover {
   background: rgb(101, 140, 175);
@@ -100,17 +107,9 @@ body{
 
 /* For Firefox */
 .solo-itineraries,
+.filters,
+.homepage,
 .collab-itineraries {
   scrollbar-width: thin; 
   scrollbar-color: rgb(101, 140, 175) #1e1e1e;
-}
-
-.filters {
-  scrollbar-width: thin; 
-  scrollbar-color: rgb(62, 16, 95) #1e1e1e;
-}
-
-.filters::-webkit-scrollbar-thumb {
-  background: rgb(62, 16, 95); 
-  border-radius: 10px;
 }

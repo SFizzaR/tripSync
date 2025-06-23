@@ -12,7 +12,6 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../font.css";
 
 export default function Profile() {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("username");
   const [username, setUsername] = useState("");
   const [newUsername, setNewUsername] = useState("");
@@ -50,6 +49,7 @@ export default function Profile() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+        console.log("data from backend: ",response.data)
         setUsername(response.data.username || "");
         setCity(response.data.city || "");
       } catch (error) {
@@ -181,7 +181,7 @@ export default function Profile() {
         <Logo />
         <Sidebar currentPath={window.location.pathname} />
       </nav>
-      <Header title="My Profile" text="MANAGE YOUR ACCOUNT SETTINGS" />
+      
       <div
         style={{
           display: "flex",
@@ -205,22 +205,11 @@ export default function Profile() {
             alignItems: "center",
             textAlign: "center",
             padding: "20px",
-            animation: "fadeIn 0.6s ease-out",
           }}
         >
-          <img
-            src={plane}
-            style={{
-              width: "35%",
-              maxWidth: "200px",
-              display: "block",
-              marginTop: "-60px",
-              marginBottom: "10px",
-            }}
-          />
           <h1
             style={{
-              fontFamily: "Significent",
+              fontFamily: "Inter",
               fontSize: "40px",
               color: "#fff",
               margin: "0 0 10px 0",

@@ -191,89 +191,106 @@ export default function Home() {
 
       {/* About Section */}
       <section className={isFullScreen ? "about-grid" : ""}>
-      <div className="about-section">
-        <div>
-          <div
-            style={{
-              display: !isFullScreen ? "flex" : "block",
-              justifyContent: "center",
-              alignItems: "center", // Fixes alignment issue
-              columnGap: !isFullScreen? "2px" : 0,
-            }}
-          >
-            <p className="flashing-text">ABOUT TRIPSYNC</p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 30%"}}>
-              <div>
-              <p className="aboutDeets">
-                <strong>TripSync</strong> is a cutting-edge itinerary creation
-                and management platform designed to simplify travel planning
-                with the power of AI. Whether you're embarking on{" "}
-                <em>a solo adventure, a family getaway, or a business trip,</em>{" "}
-                TripSync customizes itineraries tailored to your preferences,
-                budget, and schedule.
-              </p>
-              <p className="aboutDeets">
-                Say goodbye to tedious planning and hello to effortless journeys
-                with TripSync—<strong>your ultimate travel companion!</strong>
-              </p>
-              </div>
-
-              <div>
-              <img src={cases} className="cases-image"/>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {isFullScreen && (
-        <div className="mission-section">
+        <div className="about-section">
           <div>
-            <div className="mission-header">
-              <p className="mission-title">MISSION STATEMENT</p>
+            <div
+              style={{
+                display: !isFullScreen ? "flex" : "block",
+                justifyContent: "center",
+                alignItems: "center", // Fixes alignment issue
+                columnGap: !isFullScreen ? "2px" : 0,
+              }}
+            >
+              <p className="flashing-text">ABOUT TRIPSYNC</p>
             </div>
 
-            <div className="mission-content" style={{
-              display: "block",
-              textAlign: "center"
-            }}>
-
-              <div className="mission-details">
-                <p>
-                  <i>
-                    "Our mission is to revolutionize travel planning by
-                    providing an
-                    <strong>
-                      {" "}
-                      intelligent, adaptive, and user-centric
-                    </strong>{" "}
-                    itinerary management platform.
-                  </i>
+            <div
+              style={{
+                display: !isFullScreen ? "grid" : "",
+                gridTemplateColumns: !isFullScreen ? "1fr 30%" : "",
+              }}
+            >
+              <div>
+                <p className="aboutDeets">
+                  <strong>TripSync</strong> is a cutting-edge itinerary creation
+                  and management platform designed to simplify travel planning
+                  with the power of AI. Whether you're embarking on{" "}
+                  <em>
+                    a solo adventure, a family getaway, or a business trip,
+                  </em>{" "}
+                  TripSync customizes itineraries tailored to your preferences,
+                  budget, and schedule.
                 </p>
-                <p>
-                  <i>
-                    Leveraging AI-driven personalization, real-time
-                    weather-based activity adjustments, and deep
-                    learning-powered perception features, we aim to enhance the
-                    travel experience by ensuring seamless, optimized, and
-                    enjoyable journeys.
-                  </i>
-                </p>
-                <p>
-                  <i>
-                    Our platform empowers users with dynamic itinerary
-                    generation, smart recommendations, and collaborative
-                    planning, making every trip stress-free, efficient, and
-                    memorable."
-                  </i>
+                <p className="aboutDeets">
+                  Say goodbye to tedious planning and hello to effortless
+                  journeys with TripSync—
+                  <strong>your ultimate travel companion!</strong>
                 </p>
               </div>
+
+              {!isFullScreen && (
+                <div>
+                  <img src={cases} className="cases-image" />
+                </div>
+              )}
             </div>
           </div>
         </div>
-      )}
 
+        {isFullScreen && (
+          <>
+            <div className="mission-section">
+              <div>
+                <div className="mission-header">
+                  <p className="mission-title">MISSION STATEMENT</p>
+                </div>
+
+                <div
+                  className="mission-content"
+                  style={{
+                    display: "block",
+                    textAlign: "center",
+                  }}
+                >
+                  <div className="mission-details">
+                    <p>
+                      <i>
+                        "Our mission is to revolutionize travel planning by
+                        providing an
+                        <strong>
+                          {" "}
+                          intelligent, adaptive, and user-centric
+                        </strong>{" "}
+                        itinerary management platform.
+                      </i>
+                    </p>
+                    <p>
+                      <i>
+                        Leveraging AI-driven personalization, real-time
+                        weather-based activity adjustments, and deep
+                        learning-powered perception features, we aim to enhance
+                        the travel experience by ensuring seamless, optimized,
+                        and enjoyable journeys.
+                      </i>
+                    </p>
+                    <p>
+                      <i>
+                        Our platform empowers users with dynamic itinerary
+                        generation, smart recommendations, and collaborative
+                        planning, making every trip stress-free, efficient, and
+                        memorable."
+                      </i>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <img src={cases} className="cases-image" />
+            </div>
+          </>
+        )}
       </section>
 
       {/*DIVIDER*/}

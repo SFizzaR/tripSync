@@ -368,9 +368,9 @@ const deleteItinerary = expressAsyncHandler(async (req, res) => {
   }
 });
 
-const getUserCalendarItineraries = async (req, res) => {
+const getUserCalendarItineraries = expressAsyncHandler(async (req, res) => {
   try {
-    const userId = req.user._id; // assuming you're using middleware to attach the logged-in user
+    const userId = req.user._id; 
 
     const itineraries = await Itinerary.find({ users: userId })
       .select("startDate endDate title city");
@@ -388,44 +388,39 @@ const getUserCalendarItineraries = async (req, res) => {
     console.error("Error fetching calendar itineraries:", error);
     res.status(500).json({ message: "Server error" });
   }
-};
+});
 
 const getStartDates = expressAsyncHandler(async (req, res) => {
-  const { userId } = req.params; // Extract userId from URL parameters
-
-  if (!userId) {
-    console.error('Missing userId parameter');
-    return res.status(400).json({ error: 'userId is required' });
-  }
-
   try {
-    // Get current date (midnight of May 12, 2025)
-    const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0); // Normalize to start of day
+    const userId = req.user._id; 
 
-    // Find itineraries for the user with startDate >= currentDate
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); 
+
     const itineraries = await Itinerary.find({
-      userId,
+      users: userId, 
       startDate: { $gte: currentDate },
-    }).select('startDate'); // Select only startDate field
+    }).select('startDate title city _id'); 
 
     if (!itineraries || itineraries.length === 0) {
-      console.log(`No itineraries found for user ${userId} from ${currentDate}`);
-      return res.status(404).json({ message: 'No itineraries found' });
+      console.log(`No upcoming itineraries found for user ${userId}`);
+      return res.status(200).json([]); 
     }
 
-    // Map to extract startDate values
     const startDates = itineraries.map((itinerary) => ({
       itineraryId: itinerary._id,
       startDate: itinerary.startDate,
+      title: itinerary.title,
+      city: itinerary.city,
     }));
 
-    console.log(`Found ${startDates.length} itineraries for user ${userId}`);
+    console.log(`Found ${startDates.length} upcoming itineraries for user ${userId}`);
     res.status(200).json(startDates);
   } catch (error) {
     console.error('Error fetching start dates:', error.message);
-    res.status(500).json({ error: 'Failed to fetch start dates' });
+    res.status(500).json({ message: 'Failed to fetch start dates', error: error.message });
   }
 });
+
 
 module.exports = { createItinerary, getSoloItineraries, getColabItineraries, updateItinerary, addPlaceToItinerary, getItineraryPlaces, addUserToItinerary, deleteUser, deletePlace, getColabUsers, deleteItinerary, getUserCalendarItineraries, getStartDates };

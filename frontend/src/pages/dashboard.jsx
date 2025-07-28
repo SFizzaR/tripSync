@@ -344,11 +344,14 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <section>
+           <section>
             <p className="section-title">COUNTDOWN</p>
             <div className="countdown-box">
               {countdowns.map((countdown, index) => (
-                <div key={index} style={{ marginBottom: "10px" }}>
+                <div key={index} style={{ marginBottom: "10px", color: "white", fontFamily: "Inter" }}>
+                  <strong>{countdown.title}</strong>
+                  {countdown.city && <span> in {countdown.city}</span>}
+                  <p>{countdown.countdownText}</p>
                 </div>
               ))}
             </div>

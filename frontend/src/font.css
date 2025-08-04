@@ -17,6 +17,11 @@
   src: url("./assets/Montserrat-VariableFont_wght.ttf") format("truetype");
 }
 
+@font-face {
+  font-family: 'DigitalNumbers';
+  src: url("./assets/DigitalNumbers-Regular.ttf") format("truetype");
+}
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Press+Start+2P&display=swap");
 
 @keyframes slideIn {
@@ -113,3 +118,4 @@ body::-webkit-scrollbar-thumb:hover,
   scrollbar-width: thin; 
   scrollbar-color: rgb(101, 140, 175) #1e1e1e;
 }
+

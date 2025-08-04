@@ -13,6 +13,7 @@ import "./dashboard.css";
 import spinner from "../assets/icons/options/snowflake-solid.svg";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import "../font.css"
 
 export default function Dashboard() {
   const [Loading, setLoading] = useState(true);
@@ -186,56 +187,81 @@ export default function Dashboard() {
     const targetDate = new Date(startDate);
     const now = new Date();
     const diffMs = targetDate - now;
+    const timeremaining = {}
 
     if (diffMs <= 0) {
       return "✈️ Itinerary has started.";
     }
 
-    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
-    return `🕒 ${days} days, ${hours} hrs, ${minutes} mins left`;
-  };
-
-  const fetchCountdowns = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token || !userId) return;
-
-      const response = await axios.get(
-        `http://localhost:5001/api/itineraries/getStartDates`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const itineraries = response.data;
-      if (itineraries && itineraries.length > 0) {
-        const countdownData = itineraries.map((itinerary) => ({
-          itineraryId: itinerary.itineraryId,
-          title: itinerary.title,
-          city: itinerary.city,
-          countdownText: calculateCountdown(itinerary.startDate),
-        }));
-        setCountdowns(countdownData);
-      } else {
-        setCountdowns([{ title: "No Itineraries", countdownText: "📭 No upcoming itineraries." }]);
-      }
-    } catch (error) {
-      console.error("Countdown error:", error);
-      setCountdowns([{ title: "Error", countdownText: "⚠️ Error fetching countdowns." }]);
-    }
+    timeremaining.days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    timeremaining.hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+    timeremaining.minutes = Math.floor((diffMs / (1000 * 60)) % 60);
+    return timeremaining;
   };
 
   useEffect(() => {
-    if (userId) {
-      fetchCountdowns();
-    }
-  }, [userId]);
+    if (!userId) return;
 
+    let intervalId;
+    let baseItineraries = [];
+
+    const fetchOnceAndStartInterval = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        const response = await axios.get(
+          `http://localhost:5001/api/itineraries/getStartDates`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        baseItineraries = response.data;
+
+        if (baseItineraries.length === 0) {
+          setCountdowns([
+            {
+              title: "No Itineraries",
+              countdownText: "📭 No upcoming itineraries.",
+            },
+          ]);
+          return;
+        }
+
+        // Start interval to update time remaining
+        intervalId = setInterval(() => {
+          const updatedCountdowns = baseItineraries.map((itinerary) => {
+            const time = calculateCountdown(itinerary.startDate);
+            return {
+              itineraryId: itinerary.itineraryId,
+              title: itinerary.title,
+              city: itinerary.city,
+              timeremaining: typeof time === "string" ? null : time,
+              countdownText: typeof time === "string" ? time : null,
+            };
+          });
+
+          setCountdowns(updatedCountdowns);
+        }, 1000);
+      } catch (error) {
+        console.error("Countdown error:", error);
+        setCountdowns([
+          {
+            title: "Error",
+            countdownText: "⚠️ Error fetching countdowns.",
+          },
+        ]);
+      }
+    };
+
+    fetchOnceAndStartInterval();
+
+    return () => clearInterval(intervalId); // cleanup when component unmounts
+  }, [userId]);
   return (
     <div style={{ paddingBottom: "100px", minHeight: "100vh" }}>
       {Loading ? (
@@ -344,14 +370,118 @@ export default function Dashboard() {
             </div>
           </section>
 
-           <section>
+   <section>
             <p className="section-title">COUNTDOWN</p>
-            <div className="countdown-box">
+            <div className="countdown-box space-y-4">
               {countdowns.map((countdown, index) => (
-                <div key={index} style={{ marginBottom: "10px", color: "white", fontFamily: "Inter" }}>
+                <div
+                  key={index}
+                  style={{
+                    marginBottom: "10px",
+                    color: "white",
+                    fontFamily: "Inter"
+                  }}
+                >
                   <strong>{countdown.title}</strong>
                   {countdown.city && <span> in {countdown.city}</span>}
-                  <p>{countdown.countdownText}</p>
+
+
+                  {countdown.timeremaining ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        marginTop: "20px"
+                      }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                        }}>
+                        {/* Days */}
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}>
+                          <motion.span
+                            key={countdown.timeremaining.days}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                            style={{
+                              fontFamily: "DigitalNumbers",
+                              fontSize: "2rem"
+                            }}
+                          >{countdown.timeremaining.days}</motion.span>
+                          <p>days:</p>
+                        </div>
+
+                        <span
+                          className="blink"
+                          style={{
+                            fontSize: "2rem"
+                          }}>:</span>
+
+                        {/* Hours */}
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}>
+                          <motion.span
+                            key={countdown.timeremaining.hours}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                            style={{
+                              fontFamily: "DigitalNumbers",
+                              fontSize: "2rem"
+                            }}
+
+                          >{countdown.timeremaining.hours}</motion.span>
+                          <p>hours:</p>
+                        </div>
+
+                        <span
+                          className="blink"
+                          style={{
+                            fontSize: "2rem"
+                          }}>:</span>
+
+                        {/* Minutes */}
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}>
+                          <motion.span
+                            key={countdown.timeremaining.minutes}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                            style={{
+                              fontFamily: "DigitalNumbers",
+                              fontSize: "2rem"
+                            }}
+
+                          >{countdown.timeremaining.minutes}</motion.span>
+                          <p>minutes</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p>
+                      {countdown.countdownText}
+                    </p>
+                  )}
+
                 </div>
               ))}
             </div>
@@ -361,3 +491,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

@@ -13,6 +13,7 @@ import "./dashboard.css";
 import spinner from "../assets/icons/options/snowflake-solid.svg";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { motion } from "framer-motion"
 import "../font.css"
 
 export default function Dashboard() {
@@ -24,8 +25,7 @@ export default function Dashboard() {
   const [notifications, setNotifications] = useState([]);
   const [events, setEvents] = useState([]);
   const [countdowns, setCountdowns] = useState([]);
-
-  const itineraryDates = ["2025-05-10", "2025-05-13", "2025-02-20"];
+  const [inProgress, setInProgress] = useState([])
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -79,11 +79,10 @@ export default function Dashboard() {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
         });
-
+        console.log(response)
         if (!response.ok) throw new Error("Failed to fetch itineraries");
 
         const rawData = await response.json();
-
         const formattedEvents = rawData.map((event) => ({
           title: event.title,
           start: new Date(event.start),
@@ -211,7 +210,7 @@ export default function Dashboard() {
         if (!token) return;
 
         const response = await axios.get(
-          `http://localhost:5001/api/itineraries/getStartDates`,
+          `http://localhost:5001/api/itineraries/getInProgressAndUpcoming`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -219,7 +218,6 @@ export default function Dashboard() {
             },
           }
         );
-
         baseItineraries = response.data;
 
         if (baseItineraries.length === 0) {
@@ -228,31 +226,76 @@ export default function Dashboard() {
               title: "No Itineraries",
               countdownText: "📭 No upcoming itineraries.",
             },
+            setInProgress([
+              {
+                title: "No Itineraries",
+                Text: "📭 No ongoing itineraries.",
+              }
+            ])
           ]);
           return;
         }
+        else {
+          intervalId = setInterval(() => {
+            const now = new Date();
 
-        // Start interval to update time remaining
-        intervalId = setInterval(() => {
-          const updatedCountdowns = baseItineraries.map((itinerary) => {
-            const time = calculateCountdown(itinerary.startDate);
-            return {
-              itineraryId: itinerary.itineraryId,
-              title: itinerary.title,
-              city: itinerary.city,
-              timeremaining: typeof time === "string" ? null : time,
-              countdownText: typeof time === "string" ? time : null,
-            };
-          });
+            const futureCountdowns = [];
+            const inProgressTrips = [];
 
-          setCountdowns(updatedCountdowns);
-        }, 1000);
+            baseItineraries.forEach((itinerary) => {
+              const startDate = new Date(itinerary.startDate);
+              const endDate = new Date(itinerary.endDate); // make sure this exists
+
+              if (startDate > now) {
+                // Future trip → Countdown
+                const time = calculateCountdown(startDate);
+
+                futureCountdowns.push({
+                  itineraryId: itinerary.itineraryId,
+                  title: itinerary.title,
+                  city: itinerary.city,
+                  timeremaining: typeof time === "string" ? null : time,
+                  countdownText: typeof time === "string" ? time : null,
+                });
+
+              } else if (endDate > now) {
+                // Ongoing trip → In Progress
+                const totalDuration = endDate - startDate;
+                const timePassed = now - startDate;
+                const progress = Math.min((timePassed / totalDuration) * 100, 100);
+                const diffInMs = endDate - now;
+                const daysRemaining = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+
+                inProgressTrips.push({
+                  itineraryId: itinerary.itineraryId,
+                  title: itinerary.title,
+                  city: itinerary.city,
+                  progress: progress.toFixed(1), // keep 1 decimal place
+                  daysRemaining: daysRemaining
+                });
+              }
+
+              // else: it's a completed trip — you can handle that separately if needed
+            });
+
+            setCountdowns(futureCountdowns);
+            setInProgress(inProgressTrips);
+          }, 1000);
+
+        }
+
       } catch (error) {
         console.error("Countdown error:", error);
         setCountdowns([
           {
             title: "Error",
             countdownText: "⚠️ Error fetching countdowns.",
+          },
+        ]);
+        setInProgress([
+          {
+            title: "Error",
+            Text: "⚠️ Error fetching countdowns.",
           },
         ]);
       }
@@ -262,6 +305,7 @@ export default function Dashboard() {
 
     return () => clearInterval(intervalId); // cleanup when component unmounts
   }, [userId]);
+
   return (
     <div style={{ paddingBottom: "100px", minHeight: "100vh" }}>
       {Loading ? (
@@ -322,8 +366,17 @@ export default function Dashboard() {
 
           <section>
             <p className="section-title">YOUR CALENDAR</p>
-            <div className="calendar-container">
-              <h3>Select a Date</h3>
+            <div
+              className="calendar-container"
+
+            >
+              <h3
+                style={{
+                  paddingLeft: "20px",
+                  color: "white",
+                  fontFamily: "Inter"
+                }}
+              >Select a Date</h3>
               <Calendar
                 onChange={setDate}
                 value={date}
@@ -335,7 +388,7 @@ export default function Dashboard() {
 
                   if (tileStr === todayStr) className += " highlight-today";
                   if (
-                    itineraryDates.includes(
+                    events.includes(
                       tileDate.toISOString().split("T")[0]
                     )
                   )
@@ -353,7 +406,13 @@ export default function Dashboard() {
                 }}
               />
             </div>
-            <div className="event-section">
+            <div
+              className="event-section"
+              style={{
+                paddingLeft: "20px",
+                color: "white",
+                fontFamily: "Inter"
+              }}>
               <h3>Events for {date.toDateString()}</h3>
               {eventsForSelectedDate.length === 0 ? (
                 <p>No events on this date.</p>
@@ -369,10 +428,25 @@ export default function Dashboard() {
               )}
             </div>
           </section>
-
-   <section>
-            <p className="section-title">COUNTDOWN</p>
-            <div className="countdown-box space-y-4">
+          <section>
+            <p
+              className="section-title"
+              style={{
+                fontWeight: "bold"
+              }}
+            >COUNTDOWN</p>
+            <div
+              className="countdown-box"
+              style={{
+                paddingLeft: "20px"
+              }}
+            >
+              <h1
+                style={{
+                  color: "white",
+                  fontFamily: "Inter"
+                }}>
+                Upcoming</h1>
               {countdowns.map((countdown, index) => (
                 <div
                   key={index}
@@ -384,8 +458,6 @@ export default function Dashboard() {
                 >
                   <strong>{countdown.title}</strong>
                   {countdown.city && <span> in {countdown.city}</span>}
-
-
                   {countdown.timeremaining ? (
                     <div
                       style={{
@@ -415,16 +487,17 @@ export default function Dashboard() {
                               fontFamily: "DigitalNumbers",
                               fontSize: "2rem"
                             }}
-                          >{countdown.timeremaining.days}</motion.span>
+                          >{countdown.timeremaining.days}
+                          </motion.span>
                           <p>days:</p>
                         </div>
-
                         <span
                           className="blink"
                           style={{
-                            fontSize: "2rem"
-                          }}>:</span>
-
+                            fontSize: "2rem",
+                            fontFamily: "DigitalNumbers",
+                          }}>:
+                        </span>
                         {/* Hours */}
                         <div
                           style={{
@@ -442,16 +515,18 @@ export default function Dashboard() {
                               fontFamily: "DigitalNumbers",
                               fontSize: "2rem"
                             }}
-
-                          >{countdown.timeremaining.hours}</motion.span>
+                          >{countdown.timeremaining.hours}
+                          </motion.span>
                           <p>hours:</p>
                         </div>
-
                         <span
                           className="blink"
                           style={{
-                            fontSize: "2rem"
-                          }}>:</span>
+                            fontSize: "2rem",
+                            fontFamily: "DigitalNumbers",
+
+                          }}>:
+                        </span>
 
                         {/* Minutes */}
                         <div
@@ -470,8 +545,8 @@ export default function Dashboard() {
                               fontFamily: "DigitalNumbers",
                               fontSize: "2rem"
                             }}
-
-                          >{countdown.timeremaining.minutes}</motion.span>
+                          >{countdown.timeremaining.minutes}
+                          </motion.span>
                           <p>minutes</p>
                         </div>
                       </div>
@@ -481,7 +556,80 @@ export default function Dashboard() {
                       {countdown.countdownText}
                     </p>
                   )}
+                </div>
+              ))}
+              <h1
+                style={{
+                  color: "white",
+                  fontFamily: "Inter",
+                }}
+              >
+                Ongoing
 
+              </h1>
+              {inProgress.map((trip) => (
+                <div
+                  key={trip.itineraryId}
+                  style={{
+                    color: "white",
+                    fontFamily: "Inter",
+                    marginBottom: "10px",
+                  }} >
+                  <strong>{trip.title}</strong>
+                  {trip.city ? (
+                    <>
+                      <span>in {trip.city}</span>
+                      <p 
+                        style={{ 
+                          marginBottom: "4px", 
+                          color: "#fff", 
+                          animation: trip.daysRemaining === 1 ? "pulse 1s infinite" : "none" 
+                        }}>
+                        {trip.daysRemaining} day(s) remaining
+                      </p>
+                      <div
+                        style={{
+                          width: "25%",
+                          backgroundColor: "#e9ecef",
+                          borderRadius: "10px",
+                          boxShadow: "0 0 10px rgba(0, 123, 255, 0.7)",
+                          marginTop: "10px",
+                          height: "1.5em",
+                          position: "relative",
+                          overflow: "hidden"
+                        }}
+                      >
+                        {/* Inner progress fill */}
+                        <div
+                          style={{
+                            width: `${trip.progress}%`,
+                            background: "linear-gradient(90deg, #17a2b8, #138496)",
+                            height: "100%",
+                            borderRadius: "12px 0 0 12px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              position: "absolute",
+                              left: "50%",
+                              top: "50%",
+                              transform: "translate(-50%, -50%)",
+                              color: "white",
+                              fontWeight: "bold",
+                              fontSize: "14px",
+                              pointerEvents: "none",
+                            }}
+                          >
+                            {trip.progress}% Time passed
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <p>
+                      {trip.Text}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -491,4 +639,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

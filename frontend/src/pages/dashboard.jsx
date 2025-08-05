@@ -188,10 +188,6 @@ export default function Dashboard() {
     const diffMs = targetDate - now;
     const timeremaining = {}
 
-    if (diffMs <= 0) {
-      return "✈️ Itinerary has started.";
-    }
-
     timeremaining.days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     timeremaining.hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
     timeremaining.minutes = Math.floor((diffMs / (1000 * 60)) % 60);
@@ -219,71 +215,59 @@ export default function Dashboard() {
           }
         );
         baseItineraries = response.data;
-
-        if (baseItineraries.length === 0) {
-          setCountdowns([
-            {
-              title: "No Itineraries",
-              countdownText: "📭 No upcoming itineraries.",
-            },
-            setInProgress([
-              {
-                title: "No Itineraries",
-                Text: "📭 No ongoing itineraries.",
-              }
-            ])
-          ]);
-          return;
-        }
-        else {
-          intervalId = setInterval(() => {
-            const now = new Date();
-
-            const futureCountdowns = [];
-            const inProgressTrips = [];
-
-            baseItineraries.forEach((itinerary) => {
-              const startDate = new Date(itinerary.startDate);
-              const endDate = new Date(itinerary.endDate); // make sure this exists
-
-              if (startDate > now) {
-                // Future trip → Countdown
-                const time = calculateCountdown(startDate);
-
-                futureCountdowns.push({
-                  itineraryId: itinerary.itineraryId,
-                  title: itinerary.title,
-                  city: itinerary.city,
-                  timeremaining: typeof time === "string" ? null : time,
-                  countdownText: typeof time === "string" ? time : null,
-                });
-
-              } else if (endDate > now) {
-                // Ongoing trip → In Progress
-                const totalDuration = endDate - startDate;
-                const timePassed = now - startDate;
-                const progress = Math.min((timePassed / totalDuration) * 100, 100);
-                const diffInMs = endDate - now;
-                const daysRemaining = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
-
-                inProgressTrips.push({
-                  itineraryId: itinerary.itineraryId,
-                  title: itinerary.title,
-                  city: itinerary.city,
-                  progress: progress.toFixed(1), // keep 1 decimal place
-                  daysRemaining: daysRemaining
-                });
-              }
-
-              // else: it's a completed trip — you can handle that separately if needed
-            });
-
-            setCountdowns(futureCountdowns);
-            setInProgress(inProgressTrips);
-          }, 1000);
-
-        }
-
+        intervalId = setInterval(() => {
+          const now = new Date();
+          const futureCountdowns = [];
+          const inProgressTrips = [];
+          baseItineraries.forEach((itinerary) => {
+            const startDate = new Date(itinerary.startDate);
+            const endDate = new Date(itinerary.endDate);
+            if (startDate <= now && now <= endDate) {
+              const totalDuration = endDate - startDate;
+              const timePassed = now - startDate;
+              const progress = Math.min((timePassed / totalDuration) * 100, 100);
+              const diffInMs = endDate - now;
+              const daysRemaining = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+              inProgressTrips.push({
+                itineraryId: itinerary.itineraryId,
+                title: itinerary.title,
+                city: itinerary.city,
+                progress: progress.toFixed(1),
+                daysRemaining,
+              });
+            }
+            if (startDate > now) {
+              const time = calculateCountdown(startDate);
+              futureCountdowns.push({
+                itineraryId: itinerary.itineraryId,
+                title: itinerary.title,
+                city: itinerary.city,
+                timeremaining: typeof time === "string" ? null : time,
+                countdownText: typeof time === "string" ? time : null,
+              });
+            }
+          });
+          setCountdowns(
+            futureCountdowns.length > 0
+              ? futureCountdowns
+              : [
+                {
+                  title: "No Itineraries",
+                  countdownText: "📭 No upcoming itineraries.",
+                },
+              ]
+          );
+          setInProgress(
+            inProgressTrips.length > 0
+              ? inProgressTrips
+              : [
+                {
+                  title: "No Itineraries",
+                  Text: "📭 No ongoing itineraries."
+                },
+              ]
+          );
+        }, 1000);
       } catch (error) {
         console.error("Countdown error:", error);
         setCountdowns([
@@ -295,16 +279,15 @@ export default function Dashboard() {
         setInProgress([
           {
             title: "Error",
-            Text: "⚠️ Error fetching countdowns.",
+            Text: "⚠️ Error fetching countdowns."
           },
         ]);
       }
     };
-
     fetchOnceAndStartInterval();
-
-    return () => clearInterval(intervalId); // cleanup when component unmounts
+    return () => clearInterval(intervalId);
   }, [userId]);
+
 
   return (
     <div style={{ paddingBottom: "100px", minHeight: "100vh" }}>
@@ -356,19 +339,15 @@ export default function Dashboard() {
             <Logo />
             <Sidebar currentPath={useLocation().pathname} />
           </nav>
-
           <Header title={`Welcome, ${firstName}`} text="WHERE ARE YOU HEADING NEXT?" />
-
           <section>
             <p className="section-title">WEATHER</p>
             <WeatherBox location={userLocation} />
           </section>
-
           <section>
             <p className="section-title">YOUR CALENDAR</p>
             <div
               className="calendar-container"
-
             >
               <h3
                 style={{
@@ -383,9 +362,7 @@ export default function Dashboard() {
                 tileClassName={({ date: tileDate }) => {
                   const todayStr = new Date().toLocaleDateString();
                   const tileStr = tileDate.toLocaleDateString();
-
                   let className = "";
-
                   if (tileStr === todayStr) className += " highlight-today";
                   if (
                     events.includes(
@@ -395,7 +372,6 @@ export default function Dashboard() {
                     className += " highlight";
                   if (date && tileStr === new Date(date).toLocaleDateString())
                     className += " selected-tile";
-
                   return className.trim();
                 }}
                 tileContent={({ date }) => {
@@ -447,117 +423,118 @@ export default function Dashboard() {
                   fontFamily: "Inter"
                 }}>
                 Upcoming</h1>
-              {countdowns.map((countdown, index) => (
-                <div
-                  key={index}
-                  style={{
-                    marginBottom: "10px",
-                    color: "white",
-                    fontFamily: "Inter"
-                  }}
-                >
-                  <strong>{countdown.title}</strong>
-                  {countdown.city && <span> in {countdown.city}</span>}
-                  {countdown.timeremaining ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        marginTop: "20px"
-                      }}>
+              {
+                countdowns.map((countdown, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      marginBottom: "10px",
+                      color: "white",
+                      fontFamily: "Inter"
+                    }}
+                  >
+                    <strong>{countdown.title}</strong>
+                    {countdown.city && <span> in {countdown.city}</span>}
+                    {countdown.timeremaining ? (
                       <div
                         style={{
                           display: "flex",
                           flexDirection: "row",
+                          marginTop: "20px"
                         }}>
-                        {/* Days */}
                         <div
                           style={{
                             display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center"
+                            flexDirection: "row",
                           }}>
-                          <motion.span
-                            key={countdown.timeremaining.days}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
+                          <div
                             style={{
-                              fontFamily: "DigitalNumbers",
-                              fontSize: "2rem"
-                            }}
-                          >{countdown.timeremaining.days}
-                          </motion.span>
-                          <p>days:</p>
-                        </div>
-                        <span
-                          className="blink"
-                          style={{
-                            fontSize: "2rem",
-                            fontFamily: "DigitalNumbers",
-                          }}>:
-                        </span>
-                        {/* Hours */}
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center"
-                          }}>
-                          <motion.span
-                            key={countdown.timeremaining.hours}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center"
+                            }}>
+                            <motion.span
+                              key={countdown.timeremaining.days}
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3 }}
+                              style={{
+                                fontFamily: "DigitalNumbers",
+                                fontSize: "2rem"
+                              }}
+                            >
+                              {countdown.timeremaining.days}
+                            </motion.span>
+                            <p>days:</p>
+                          </div>
+                          <span
+                            className="blink"
                             style={{
+                              fontSize: "2rem",
                               fontFamily: "DigitalNumbers",
-                              fontSize: "2rem"
-                            }}
-                          >{countdown.timeremaining.hours}
-                          </motion.span>
-                          <p>hours:</p>
-                        </div>
-                        <span
-                          className="blink"
-                          style={{
-                            fontSize: "2rem",
-                            fontFamily: "DigitalNumbers",
-
-                          }}>:
-                        </span>
-
-                        {/* Minutes */}
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center"
-                          }}>
-                          <motion.span
-                            key={countdown.timeremaining.minutes}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
+                            }}>
+                            :
+                          </span>
+                          <div
                             style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center"
+                            }}>
+                            <motion.span
+                              key={countdown.timeremaining.hours}
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3 }}
+                              style={{
+                                fontFamily: "DigitalNumbers",
+                                fontSize: "2rem"
+                              }}
+                            >
+                              {countdown.timeremaining.hours}
+                            </motion.span>
+                            <p>hours:</p>
+                          </div>
+                          <span
+                            className="blink"
+                            style={{
+                              fontSize: "2rem",
                               fontFamily: "DigitalNumbers",
-                              fontSize: "2rem"
-                            }}
-                          >{countdown.timeremaining.minutes}
-                          </motion.span>
-                          <p>minutes</p>
+                            }}>
+                            :
+                          </span>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center"
+                            }}>
+                            <motion.span
+                              key={countdown.timeremaining.minutes}
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3 }}
+                              style={{
+                                fontFamily: "DigitalNumbers",
+                                fontSize: "2rem"
+                              }}
+                            >
+                              {countdown.timeremaining.minutes}
+                            </motion.span>
+                            <p>minutes</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <p>
-                      {countdown.countdownText}
-                    </p>
-                  )}
-                </div>
-              ))}
+                    ) : (
+                      <p>
+                        {countdown.countdownText}
+                      </p>
+                    )}
+                  </div>
+                ))}
               <h1
                 style={{
                   color: "white",
@@ -565,7 +542,6 @@ export default function Dashboard() {
                 }}
               >
                 Ongoing
-
               </h1>
               {inProgress.map((trip) => (
                 <div
@@ -579,12 +555,7 @@ export default function Dashboard() {
                   {trip.city ? (
                     <>
                       <span>in {trip.city}</span>
-                      <p 
-                        style={{ 
-                          marginBottom: "4px", 
-                          color: "#fff", 
-                          animation: trip.daysRemaining === 1 ? "pulse 1s infinite" : "none" 
-                        }}>
+                      <p style={{ marginBottom: "4px", color: "#fff", animation: trip.daysRemaining === 1 ? "pulse 1s infinite" : "none" }}>
                         {trip.daysRemaining} day(s) remaining
                       </p>
                       <div

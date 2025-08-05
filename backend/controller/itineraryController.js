@@ -390,37 +390,37 @@ const getUserCalendarItineraries = expressAsyncHandler(async (req, res) => {
   }
 });
 
-const getStartDates = expressAsyncHandler(async (req, res) => {
+const getInProgressAndUpcoming = expressAsyncHandler(async (req, res) => {
   try {
-    const userId = req.user._id; 
+    const userId = req.user._id;
 
     const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0); 
-
+    currentDate.setHours(0, 0, 0, 0);
     const itineraries = await Itinerary.find({
-      users: userId, 
-      startDate: { $gte: currentDate },
-    }).select('startDate title city _id'); 
+      users: userId,
+      endDate: { $gte: currentDate },
 
+    }).select('startDate title city _id endDate');
     if (!itineraries || itineraries.length === 0) {
-      console.log(`No upcoming itineraries found for user ${userId}`);
-      return res.status(200).json([]); 
+      console.log(`No in progress itineraries found for user ${userId}`);
+      return res.status(200).json([]);
     }
 
-    const startDates = itineraries.map((itinerary) => ({
+    const inProgress = itineraries.map((itinerary) => ({
       itineraryId: itinerary._id,
       startDate: itinerary.startDate,
       title: itinerary.title,
       city: itinerary.city,
+      endDate: itinerary.endDate
     }));
 
-    console.log(`Found ${startDates.length} upcoming itineraries for user ${userId}`);
-    res.status(200).json(startDates);
+    console.log(`Found ${inProgress.length} in progress itineraries for user ${userId}`);
+    res.status(200).json(inProgress);
   } catch (error) {
-    console.error('Error fetching start dates:', error.message);
-    res.status(500).json({ message: 'Failed to fetch start dates', error: error.message });
+    console.error('Error fetching in progress itineraries:', error.message);
+    res.status(500).json({ message: 'Failed to fetch in progress itineraries ', error: error.message });
   }
-});
 
 
-module.exports = { createItinerary, getSoloItineraries, getColabItineraries, updateItinerary, addPlaceToItinerary, getItineraryPlaces, addUserToItinerary, deleteUser, deletePlace, getColabUsers, deleteItinerary, getUserCalendarItineraries, getStartDates };
+module.exports = { createItinerary, getSoloItineraries, getColabItineraries, updateItinerary, addPlaceToItinerary, getItineraryPlaces, addUserToItinerary, deleteUser, deletePlace, getColabUsers, deleteItinerary, getUserCalendarItineraries, getInProgressAndUpcoming };
+

@@ -608,6 +608,14 @@ export default function Itinerary() {
       const userId = decodedToken.user.id;
       const userBudget = "Standard";
       const isCollaborative = selectedOption === "collaborative";
+      const status = ""
+      now = datetime.now().date()
+      if (!takeoffDate && takeoffDate > now) {
+        status = "planning"
+      }
+      else {
+        status = "in-progress"
+      }
       const itineraryData = {
         userId,
         city,
@@ -615,7 +623,7 @@ export default function Itinerary() {
         endDate: touchdownDate || null,
         budget: userBudget,
         collaborative: isCollaborative,
-        status: "planning",
+        status: status,
         title: itineraryName || city,
       };
       console.log("📦 Sending Itinerary Data:", itineraryData);
@@ -2723,3 +2731,4 @@ export default function Itinerary() {
     </div>
   );
 }
+

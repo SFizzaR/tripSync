@@ -420,7 +420,7 @@ const getInProgressAndUpcoming = expressAsyncHandler(async (req, res) => {
     console.error('Error fetching in progress itineraries:', error.message);
     res.status(500).json({ message: 'Failed to fetch in progress itineraries ', error: error.message });
   }
-
+});
 
 module.exports = { createItinerary, getSoloItineraries, getColabItineraries, updateItinerary, addPlaceToItinerary, getItineraryPlaces, addUserToItinerary, deleteUser, deletePlace, getColabUsers, deleteItinerary, getUserCalendarItineraries, getInProgressAndUpcoming };
 

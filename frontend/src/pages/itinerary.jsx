@@ -608,14 +608,9 @@ export default function Itinerary() {
       const userId = decodedToken.user.id;
       const userBudget = "Standard";
       const isCollaborative = selectedOption === "collaborative";
-      const status = ""
-      now = datetime.now().date()
-      if (!takeoffDate && takeoffDate > now) {
-        status = "planning"
-      }
-      else {
-        status = "in-progress"
-      }
+      const now = new Date();
+      const takeoffDateObj = takeoffDate ? new Date(takeoffDate) : null;
+      const status = !takeoffDateObj || takeoffDateObj > now ? "planning" : "in-progress";
       const itineraryData = {
         userId,
         city,
@@ -652,6 +647,7 @@ export default function Itinerary() {
       }
     } catch (error) {
       toast.error("Failed to save itinerary.");
+      console.error("❌ Network error:", error);
     }
   };
 

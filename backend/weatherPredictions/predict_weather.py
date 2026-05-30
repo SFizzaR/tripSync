@@ -230,7 +230,7 @@ def predict_weather(station_id, city_name, start_date, end_date, seq_length=30):
     last_data_date = city_data['DATE'].max()
     days_to_bridge = (start_date - last_data_date).days
     
-    last_sequence = scaled_df[features].iloc[-seq_length:].values
+    last_sequence = scaled_df[features].iloc[-seq_length:].values.copy()  # Make writable copy
     historical_data = city_data[features].iloc[-seq_length:].copy()
     predictions = []
     

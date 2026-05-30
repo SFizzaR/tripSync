@@ -71,6 +71,15 @@ export default function Itinerary() {
   const [adjustedItinerary, setAdjustedItinerary] = useState(null);
   const [showAdjustedItinerary, setShowAdjustedItinerary] = useState(false);
 
+  const getPlaceId = (place) =>
+    place?.fsq_id ||
+    place?.fsq_place_id ||
+    place?.id ||
+    place?.place_id ||
+    place?._id ||
+    place?.fsqId ||
+    null;
+
   const filters = [
     { id: "history", src: hist, label: "History" },
     { id: "restaurant", src: rest, label: "Restaurants" },
@@ -400,9 +409,10 @@ export default function Itinerary() {
       );
       console.log("Fetched Places:", response.data);
       response.data.forEach((place, index) => {
-        if (!place.fsq_id) {
+        const placeId = getPlaceId(place);
+        if (!placeId) {
           console.error(
-            `❌ Error: Missing _id for place at index ${index}`,
+            `❌ Error: Missing place ID for place at index ${index}`,
             place
           );
         }
@@ -504,7 +514,7 @@ export default function Itinerary() {
         `Fetching recommendations for user ${userId} with itinerary ${itineraryId} in ${selectedItinerary.city}`
       );
       const response = await axios.get(
-        `http://localhost:5001/api/recommendations/recommendations/${userId}`,
+        `http://localhost:5001/api/recommendations/${userId}`,
         {
           params: {
             itineraryId,
@@ -840,6 +850,7 @@ export default function Itinerary() {
       setRatingSuccess(null);
       return;
     }
+    console.log(`Submitting rating for place ${placeId}:`, rating, `by user ${userId}`);
     try {
       const response = await axios.post(
         "http://localhost:5001/api/places/rate",
@@ -2192,7 +2203,7 @@ export default function Itinerary() {
                               {Array.isArray(places) && places.length > 0 ? (
                                 places.map((place, index) => (
                                   <li
-                                    key={place.fsq_id}
+                                    key={getPlaceId(place) || index}
                                     className="places-list-item"
                                   >
                                     <div
@@ -2212,14 +2223,13 @@ export default function Itinerary() {
                                         }}
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleAddPlace(
-                                            place.fsq_id,
-                                            place.name
-                                          );
-                                          handlePlaceClick(
-                                            place.fsq_id,
-                                            place.name
-                                          );
+                                          const placeId = getPlaceId(place);
+                                          if (!placeId) {
+                                            console.error("Missing place ID for add place", place);
+                                            return;
+                                          }
+                                          handleAddPlace(placeId, place.name);
+                                          handlePlaceClick(placeId, place.name);
                                         }}
                                       />
                                       {place.name}
@@ -2232,7 +2242,7 @@ export default function Itinerary() {
                                       }}
                                       onClick={() => {
                                         setPlacesDeets(true);
-                                        setPlaceDeetsId(place.fsq_id);
+                                        setPlaceDeetsId(getPlaceId(place));
                                       }}
                                     >
                                       view details
@@ -2241,13 +2251,18 @@ export default function Itinerary() {
                                       {[1, 2, 3, 4, 5].map((star) => (
                                         <span
                                           key={star}
-                                          className={`star ${ratings[place.fsq_id] >= star
+                                          className={`star ${ratings[getPlaceId(place)] >= star
                                             ? "filled"
                                             : ""
                                             }`}
-                                          onClick={() =>
-                                            handleRating(place.fsq_id, star)
-                                          }
+                                          onClick={() => {
+                                            const placeId = getPlaceId(place);
+                                            if (!placeId) {
+                                              console.error("Missing place ID for rating", place);
+                                              return;
+                                            }
+                                            handleRating(placeId, star);
+                                          }}
                                           style={{ cursor: "pointer" }}
                                         >
                                           ★
@@ -2671,17 +2686,19 @@ export default function Itinerary() {
                         }}
                       >
                         {recommendations.length > 0 ? (
-                          recommendations.map((place) => (
-                            <div
-                              key={place.fsq_id}
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                margin: "5px 0",
-                                padding: "8px 0",
-                                borderTop: "1px solid grey",
-                              }}
+                          recommendations.map((place, recIndex) => {
+                            const placeId = getPlaceId(place);
+                            return (
+                              <div
+                                key={placeId || recIndex}
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  margin: "5px 0",
+                                  padding: "8px 0",
+                                  borderTop: "1px solid grey",
+                                }}
                             >
                               <div>
                                 <span>{place.name}</span>
@@ -2702,12 +2719,18 @@ export default function Itinerary() {
                                   width: "clamp(5px, 1.9vw, 20px)",
                                   cursor: "pointer",
                                 }}
-                                onClick={() =>
-                                  handleAddPlace(place.fsq_id, place.name)
-                                }
+                                onClick={() => {
+                                  const placeId = getPlaceId(place);
+                                  if (!placeId) {
+                                    console.error("Missing place ID for recommendation add", place);
+                                    return;
+                                  }
+                                  handleAddPlace(placeId, place.name);
+                                }}
                               />
                             </div>
-                          ))
+                            );
+                          })
                         ) : (
                           <p>Rate some places to get recommendations!</p>
                         )}

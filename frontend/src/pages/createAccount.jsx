@@ -93,7 +93,10 @@ export default function MultiStepForm() {
       toast.error("Please fill in all required fields.");
       return;
     }
-
+if (formData.password.length < 8){
+  toast.error("Password must be at least 8 characters long.");
+  return;
+}
     try {
       const response = await axios.post(
         "http://localhost:5001/api/users/register",

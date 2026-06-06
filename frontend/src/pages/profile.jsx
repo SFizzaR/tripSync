@@ -19,6 +19,7 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [city, setCity] = useState("");
+  const [newCity, setNewCity] = useState(""); // ADDED: Separate state for new city
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -41,23 +42,25 @@ export default function Profile() {
           toast.error("Invalid token. Please log in again.");
           return;
         }
-        setUserId(id);
 
+        // FIX: Use 'id' directly instead of 'userId' which hasn't been set yet
         const response = await axios.get(
-          `http://localhost:5001/api/users/getUser/${userId}`,
+          `http://localhost:5001/api/users/getUser/${id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        console.log("data from backend: ",response.data)
+        console.log("data from backend: ", response.data);
+        setUserId(id);
         setUsername(response.data.username || "");
         setCity(response.data.city || "");
+        setNewCity(response.data.city || ""); // Initialize newCity with fetched value
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
     };
     fetchUserData();
-  }, );
+  }, []); // FIX: Explicit empty dependency array
 
   // Handle username update
   const handleUsernameUpdate = async () => {
@@ -128,7 +131,7 @@ export default function Profile() {
 
   // Handle city update
   const handleCityUpdate = async () => {
-    if (!city) {
+    if (!newCity) {
       toast.error("Please enter a city.");
       return;
     }
@@ -137,9 +140,10 @@ export default function Profile() {
     try {
       const response = await axios.put(
         `http://localhost:5001/api/users/updateCity/${userId}`,
-        { city },
+        { city: newCity }, // FIX: Send newCity instead of city
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      setCity(newCity); // Update the display city
       toast.success("City updated successfully!");
     } catch (error) {
       console.error("Failed to update city:", error);
@@ -597,7 +601,7 @@ export default function Profile() {
                     style={{
                       position: "absolute",
                       left: "10px",
-                      top: city ? "0px" : "65%",
+                      top: newCity ? "0px" : "65%", // FIX: Check newCity instead of city
                       transform: "translateY(-50%)",
                       color: "rgba(255, 255, 255, 0.7)",
                       transition: "0.2s ease all",
@@ -608,8 +612,8 @@ export default function Profile() {
                   </label>
                   <input
                     type="text"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    value={newCity} // FIX: Bind to newCity instead of city
+                    onChange={(e) => setNewCity(e.target.value)} // FIX: Update newCity
                     onFocus={(e) => (e.target.previousSibling.style.top = "0px")}
                     onBlur={(e) => {
                       if (!e.target.value)
